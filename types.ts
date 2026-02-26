@@ -21,10 +21,29 @@ export interface Skill {
 }
 
 export interface Tool {
+  id?: string;
   name: string;
   tag: string;
   icon: string;
   benefit: string;
+}
+
+export interface Blog {
+  id?: string;
+  title: string;
+  content: string;
+  image: string;
+  date: string;
+  author: string;
+}
+
+export interface Review {
+  id?: string;
+  clientName: string;
+  role: string;
+  content: string;
+  isApproved: boolean;
+  createdAt?: any;
 }
 
 export interface Stat {

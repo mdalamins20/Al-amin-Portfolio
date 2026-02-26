@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './components/ThemeContext';
+import { AuthProvider } from './components/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Hero } from './components/Hero';
 import { ContentSections } from './components/ContentSections';
@@ -11,9 +14,15 @@ import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { HirePopup } from './components/HirePopup';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminLayout } from './components/AdminDashboard/AdminLayout';
+import { ManageProjects } from './components/AdminDashboard/ManageProjects';
+import { ManageSkills } from './components/AdminDashboard/ManageSkills';
+import { ManageBlogs } from './components/AdminDashboard/ManageBlogs';
+import { ManageReviews } from './components/AdminDashboard/ManageReviews';
 import { AnimatePresence } from 'framer-motion';
 
-function AppContent() {
+function MainPortfolio() {
   const [showCV, setShowCV] = useState(false);
   const [isHirePopupVisible, setIsHirePopupVisible] = useState(false);
   const [isPermanentlyDismissed, setIsPermanentlyDismissed] = useState(() => {
@@ -21,20 +30,15 @@ function AppContent() {
   });
 
   useEffect(() => {
-    // Only start timer if not permanently dismissed
     if (!isPermanentlyDismissed) {
       const timer = setTimeout(() => {
         setIsHirePopupVisible(true);
-      }, 30000); // 30 seconds
-
+      }, 30000);
       return () => clearTimeout(timer);
     }
   }, [isPermanentlyDismissed]);
 
-  const handleClosePopup = () => {
-    setIsHirePopupVisible(false);
-  };
-
+  const handleClosePopup = () => setIsHirePopupVisible(false);
   const handlePermanentDismiss = () => {
     setIsHirePopupVisible(false);
     setIsPermanentlyDismissed(true);
@@ -42,31 +46,93 @@ function AppContent() {
   };
 
   return (
-    <AnimatePresence mode="wait">
-      <Layout key="content" onViewCV={() => setShowCV(true)}>
-        <Hero />
-        <ContentSections />
-        <Expertise />
-        <Services />
-        <ProjectGrid />
-        <Testimonials />
-        <ContactSection />
-        <Footer onViewCV={() => setShowCV(true)} />
-        
-        <HirePopup 
-          isVisible={isHirePopupVisible} 
-          onClose={handleClosePopup}
-          onCancel={handlePermanentDismiss}
-        />
-      </Layout>
-    </AnimatePresence>
+    <Layout onViewCV={() => setShowCV(true)}>
+      <Hero />
+      <ContentSections />
+      <Expertise />
+      <Services />
+      <ProjectGrid />
+      <Testimonials />
+      <ContactSection />
+      <Footer onViewCV={() => setShowCV(true)} />
+      
+      <HirePopup 
+        isVisible={isHirePopupVisible} 
+        onClose={handleClosePopup}
+        onCancel={handlePermanentDismiss}
+      />
+    </Layout>
   );
 }
 
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <Router>
+          <AnimatePresence mode="wait">
+            <Routes>
+              {/* Public Portfolio */}
+              <Route path="/" element={<MainPortfolio />} />
+              
+              {/* Admin Auth */}
+              <Route path="/admin-login" element={<AdminLogin />} />
+              
+              {/* Protected Admin Dashboard */}
+              <Route path="/admin-dashboard" element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <div className="space-y-6">
+                      <h1 className="text-3xl font-bold text-theme-text">Dashboard Overview</h1>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[
+                          { label: 'Total Projects', value: '12', color: 'bg-blue-500' },
+                          { label: 'Skills Listed', value: '24', color: 'bg-purple-500' },
+                          { label: 'Blog Posts', value: '8', color: 'bg-emerald-500' },
+                          { label: 'Pending Reviews', value: '3', color: 'bg-amber-500' },
+                        ].map((stat, i) => (
+                          <div key={i} className="bg-theme-card border border-theme-border p-6 rounded-2xl">
+                            <p className="text-theme-dim text-sm font-medium">{stat.label}</p>
+                            <p className="text-3xl font-bold text-theme-text mt-2">{stat.value}</p>
+                            <div className={`h-1 w-12 ${stat.color} rounded-full mt-4`} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </AdminLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/admin-dashboard/projects" element={
+                <ProtectedRoute>
+                  <AdminLayout><ManageProjects /></AdminLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/admin-dashboard/skills" element={
+                <ProtectedRoute>
+                  <AdminLayout><ManageSkills /></AdminLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/admin-dashboard/blogs" element={
+                <ProtectedRoute>
+                  <AdminLayout><ManageBlogs /></AdminLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/admin-dashboard/reviews" element={
+                <ProtectedRoute>
+                  <AdminLayout><ManageReviews /></AdminLayout>
+                </ProtectedRoute>
+              } />
+
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AnimatePresence>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
