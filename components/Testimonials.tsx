@@ -127,12 +127,7 @@ export const Testimonials: React.FC = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       if (!isConfigured || !db) {
-        setReviews(FALLBACK_TESTIMONIALS.map(t => ({
-          clientName: t.name,
-          role: t.role,
-          content: t.content,
-          isApproved: true
-        })));
+        setReviews([]);
         setLoading(false);
         return;
       }
@@ -150,21 +145,11 @@ export const Testimonials: React.FC = () => {
         if (reviewsData.length > 0) {
           setReviews(reviewsData);
         } else {
-          setReviews(FALLBACK_TESTIMONIALS.map(t => ({
-            clientName: t.name,
-            role: t.role,
-            content: t.content,
-            isApproved: true
-          })));
+          setReviews([]);
         }
       } catch (error) {
         console.error('Error fetching reviews:', error);
-        setReviews(FALLBACK_TESTIMONIALS.map(t => ({
-          clientName: t.name,
-          role: t.role,
-          content: t.content,
-          isApproved: true
-        })));
+        setReviews([]);
       } finally {
         setLoading(false);
       }

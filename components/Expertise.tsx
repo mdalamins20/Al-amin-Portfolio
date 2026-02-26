@@ -30,11 +30,11 @@ export const Expertise: React.FC = () => {
         if (skillsData.length > 0) {
           setSkills(skillsData);
         } else {
-          setSkills(FALLBACK_TOOLS);
+          setSkills([]);
         }
       } catch (error) {
         console.error('Error fetching skills:', error);
-        setSkills(FALLBACK_TOOLS);
+        setSkills([]);
       } finally {
         setLoading(false);
       }
@@ -61,6 +61,10 @@ export const Expertise: React.FC = () => {
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="animate-spin text-brand" size={48} />
           <p className="text-theme-dim font-medium">Loading expertise...</p>
+        </div>
+      ) : skills.length === 0 ? (
+        <div className="text-center py-20 bg-theme-bg/50 rounded-[3rem] border border-dashed border-theme-border">
+          <p className="text-theme-dim italic">No skills listed yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">

@@ -30,11 +30,11 @@ export const ProjectGrid: React.FC = () => {
         if (projectsData.length > 0) {
           setProjects(projectsData);
         } else {
-          setProjects(FALLBACK_PROJECTS);
+          setProjects([]);
         }
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setProjects(FALLBACK_PROJECTS);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
@@ -59,6 +59,10 @@ export const ProjectGrid: React.FC = () => {
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="animate-spin text-brand" size={48} />
           <p className="text-theme-dim font-medium">Loading projects...</p>
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="text-center py-20 bg-theme-card rounded-[3rem] border border-dashed border-theme-border">
+          <p className="text-theme-dim italic">No projects added yet. Check back soon!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">

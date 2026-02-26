@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Languages, Palette, Check, Globe, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Sun, Moon, Languages, Palette, Check, Globe, X, Home, Layers, Code, Mail, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS, LANGUAGES } from '../constants';
 import { useTheme, ACCENT_COLORS } from './ThemeContext';
@@ -11,6 +12,7 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
   const { mode, toggleMode, accentColor, setAccentColor } = useTheme();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -80,8 +82,19 @@ export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
 
   const currentLang = LANGUAGES.find(l => l.code === currentLangCode) || LANGUAGES[0];
 
+  const isLinkActive = (href: string) => {
+    if (href.startsWith('/#')) {
+      return location.pathname === '/' && location.hash === href.replace(/^\//, '');
+    }
+    if (href.startsWith('#')) {
+      return location.pathname === '/' && location.hash === href;
+    }
+    return location.pathname === href;
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
       isScrolled ? 'bg-theme-bg/90 backdrop-blur-md border-b border-theme-border py-4' : 'bg-transparent py-6'
     }`}>
       <div className="section-container flex justify-between items-center">
@@ -90,11 +103,30 @@ export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
         </a>
 
         <div className="hidden md:flex items-center space-x-6">
-           {NAV_ITEMS.filter(i => !i.isAction).map(item => (
-             <a key={item.label} href={item.href} className="text-[10px] font-bold uppercase tracking-widest text-theme-dim hover:text-brand transition-colors">
-               {item.label}
-             </a>
-           ))}
+           {NAV_ITEMS.filter(i => !i.isAction).map(item => {
+             const active = isLinkActive(item.href);
+             return item.href.startsWith('/#') || item.href.startsWith('#') ? (
+               <a 
+                 key={item.label} 
+                 href={item.href} 
+                 className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                   active ? 'text-brand' : 'text-theme-dim hover:text-brand'
+                 }`}
+               >
+                 {item.label}
+               </a>
+             ) : (
+               <Link 
+                 key={item.label} 
+                 to={item.href} 
+                 className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                   active ? 'text-brand' : 'text-theme-dim hover:text-brand'
+                 }`}
+               >
+                 {item.label}
+               </Link>
+             );
+           })}
            
            <div className="h-4 w-[1px] bg-theme-border"></div>
 
@@ -302,5 +334,47 @@ export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
         )}
       </AnimatePresence>
     </nav>
+
+    {/* Mobile Floating App Bar */}
+    <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm">
+      <div className="bg-theme-card/90 backdrop-blur-xl border border-theme-border rounded-[2rem] p-2 flex justify-between items-center shadow-2xl">
+        {[
+          { icon: Home, href: '/#hero' },
+          { icon: Layers, href: '/#services' },
+          { icon: Code, href: '/#work' },
+          { icon: BookOpen, href: '/blog' },
+          { icon: Mail, href: '/#contact' },
+        ].map((item, index) => {
+          const Icon = item.icon;
+          const active = isLinkActive(item.href);
+          return item.href.startsWith('/#') || item.href.startsWith('#') ? (
+            <a 
+              key={index}
+              href={item.href} 
+              className={`flex-1 flex justify-center py-3 rounded-2xl transition-all duration-300 ${
+                active 
+                  ? 'text-brand bg-brand/10' 
+                  : 'text-theme-dim hover:text-theme-text'
+              }`}
+            >
+              <Icon size={20} className={active ? 'scale-110' : 'scale-100'} />
+            </a>
+          ) : (
+            <Link 
+              key={index}
+              to={item.href} 
+              className={`flex-1 flex justify-center py-3 rounded-2xl transition-all duration-300 ${
+                active 
+                  ? 'text-brand bg-brand/10' 
+                  : 'text-theme-dim hover:text-theme-text'
+              }`}
+            >
+              <Icon size={20} className={active ? 'scale-110' : 'scale-100'} />
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  </>
   );
 };

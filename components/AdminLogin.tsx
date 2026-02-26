@@ -26,8 +26,16 @@ export const AdminLogin: React.FC = () => {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/admin-dashboard');
     } catch (err: any) {
-      setError('Invalid email or password. Please try again.');
-      console.error(err);
+      console.error('Login error:', err);
+      if (err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please check your credentials in Firebase Console.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No admin account found with this email.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password.');
+      } else {
+        setError(err.message || 'An error occurred during login.');
+      }
     } finally {
       setLoading(false);
     }

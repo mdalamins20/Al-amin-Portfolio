@@ -65,10 +65,11 @@ export const SOCIAL_LINKS = [
 ];
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Why Me', href: '#advantage' },
-  { label: 'Services', href: '#services' },
-  { label: 'Work', href: '#work' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Why Me', href: '/#advantage' },
+  { label: 'Services', href: '/#services' },
+  { label: 'Work', href: '/#work' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Contact', href: '/#contact' },
   { label: 'View CV', href: '#cv', isAction: true },
 ];
 
@@ -99,101 +100,9 @@ export const SERVICES = [
   }
 ];
 
-export const PROJECTS: Project[] = [
-  { 
-    id: '01', 
-    title: 'AI Auto Branding Tool', 
-    category: 'Automation', 
-    description: 'Autonomous branding engine for digital assets.',
-    role: 'Lead Full-Stack Developer',
-    result: 'Reduced manual design time by 65%.',
-    techStack: ['Python', 'AI Integration', 'Node.js'],
-    link: '#project-01'
-  },
-  { 
-    id: '02', 
-    title: 'Smart Wallet', 
-    category: 'FinTech', 
-    description: 'Next-gen financial tracker for modern users.',
-    role: 'Product Designer & Developer',
-    result: 'Improved user retention by 30% via intuitive UX.',
-    techStack: ['React Native', 'Firebase', 'Redux'],
-    link: '#project-02'
-  },
-  { 
-    id: '03', 
-    title: 'Amar Barishal', 
-    category: 'App & UI', 
-    description: 'City-wide digital ecosystem for community services.',
-    role: 'Full-Stack Architect',
-    result: 'Scaled to 10k+ local users within 6 months.',
-    techStack: ['Flutter', 'MongoDB', 'Express'],
-    link: '#project-03'
-  },
-  { 
-    id: '04', 
-    title: 'ChronoFlow', 
-    category: 'Productivity', 
-    description: 'AI activity logger for enterprise teams.',
-    role: 'System Designer',
-    result: 'Eliminated task tracking overhead for teams of 50+.',
-    techStack: ['React', 'PostgreSQL', 'Python'],
-    link: '#project-04'
-  },
-  { 
-    id: '05', 
-    title: 'E-Commerce Elite', 
-    category: 'Web Application', 
-    description: 'Scalable multivendor marketplace with headless architecture.',
-    role: 'Lead Architect',
-    result: 'Achieved <1s page load speed for 5k+ SKU catalog.',
-    techStack: ['Next.js', 'Tailwind', 'Stripe'],
-    link: '#project-05'
-  },
-  { 
-    id: '06', 
-    title: 'SecureNet Admin', 
-    category: 'Security', 
-    description: 'Custom Kali-based server management dashboard.',
-    role: 'Security Engineer',
-    result: 'Blocked 99.9% of brute-force attempts on private networks.',
-    techStack: ['Linux Bash', 'Python', 'WebSockets'],
-    link: '#project-06'
-  }
-];
+export const PROJECTS: Project[] = [];
 
-export const TOOLS: Tool[] = [
-  { 
-    name: 'React.js', 
-    tag: 'ENTERPRISE', 
-    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg',
-    benefit: 'Building scalable, lightning-fast interfaces.'
-  },
-  { 
-    name: 'Node.js', 
-    tag: 'SCALABLE', 
-    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg',
-    benefit: 'Efficient server-side performance for high traffic.'
-  },
-  { 
-    name: 'Python', 
-    tag: 'AUTOMATION', 
-    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg',
-    benefit: 'Automating complex business logic and AI.'
-  },
-  { 
-    name: 'Flutter', 
-    tag: 'MOBILE', 
-    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/flutter/flutter-original.svg',
-    benefit: 'Native-feeling apps for iOS and Android.'
-  },
-  { 
-    name: 'Photoshop', 
-    tag: 'CREATIVE', 
-    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/photoshop/photoshop-original.svg',
-    benefit: 'Crafting high-end visual brand assets.'
-  }
-];
+export const TOOLS: Tool[] = [];
 
 export const STATS: Stat[] = [
   { value: "3", suffix: "+", label: "Years Experience" },
@@ -225,80 +134,4 @@ export const PROCESS = [
   }
 ];
 
-export const TESTIMONIALS = [
-  {
-    name: "Arjun Mehta",
-    role: "CEO, TechSphere India",
-    content: "Al-amin transformed our digital presence with a design that truly speaks to our premium customers. Highly professional and efficient."
-  },
-  {
-    name: "Lee Wei",
-    role: "Product Lead, SG Solutions",
-    content: "The automation tools Al-amin built saved our team hours every week. His technical depth in Python and Node.js is impressive."
-  },
-  {
-    name: "Ahmad Firdaus",
-    role: "Marketing Director, KL Creatives",
-    content: "Extraordinary attention to detail. He delivered a high-conversion landing page that doubled our lead generation in just a month."
-  },
-  {
-    name: "Kenji Tanaka",
-    role: "CTO, Tokyo Web Labs",
-    content: "World-class engineering standards. The code is clean, documented, and extremely performant. Highly recommended."
-  },
-  {
-    name: "Fatima Al-Sayed",
-    role: "Founder, Dubai Startups",
-    content: "Working with Al-amin was seamless. He understands the business goal behind every technical decision. A true partner."
-  },
-  {
-    name: "Min-ji Kim",
-    role: "UX Manager, Seoul Interactive",
-    content: "His ability to bridge the gap between design and development is rare. The UI/UX systems he crafts are top-tier."
-  },
-  {
-    name: "Siddharth Gupta",
-    role: "Managing Director, Bangalore FinTech",
-    content: "Strategic, fast, and reliable. Al-amin is our go-to expert for any complex web application development."
-  },
-  {
-    name: "Linh Nguyen",
-    role: "E-commerce Head, Hanoi Retail",
-    content: "Our online sales skyrocketed after the redesign. The site is lightning fast and mobile experience is flawless."
-  },
-  {
-    name: "Priya Sharma",
-    role: "Creative Head, Mumbai Media",
-    content: "Cinematic quality in every frame. His video editing and branding skills helped us launch our YouTube channel successfully."
-  },
-  {
-    name: "Wei Chen",
-    role: "IT Consultant, Shanghai Tech",
-    content: "Technical mastery at its best. He solved our server security issues with professional Kali Linux administration."
-  },
-  {
-    name: "Anjali Rao",
-    role: "COO, Hyderabad Logistics",
-    content: "Simple and transparent process. We always knew exactly where the project stood. Delivered on time and within budget."
-  },
-  {
-    name: "Hassan Sheikh",
-    role: "Startup Mentor, Karachi Ventures",
-    content: "Al-amin brings global standards to local projects. His vision for digital growth is exactly what startups need."
-  },
-  {
-    name: "Zainab Al-Mulla",
-    role: "Director, Kuwait Digital",
-    content: "Impressive MERN stack expertise. Our complex dashboard works perfectly across all devices thanks to his architecture."
-  },
-  {
-    name: "Somchai Sukhum",
-    role: "Owner, Bangkok Hospitality",
-    content: "The best developer we've worked with. He is responsive, polite, and most importantly, produces high-quality work."
-  },
-  {
-    name: "Kartik Iyer",
-    role: "Lead Designer, Pune Graphics",
-    content: "His UI design skills are exceptional. He turned our vision into a stunning reality with perfect typography and layout."
-  }
-];
+export const TESTIMONIALS: any[] = [];

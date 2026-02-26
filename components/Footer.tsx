@@ -1,7 +1,8 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { USER_INFO, SOCIAL_LINKS, NAV_ITEMS } from '../constants';
-import { ArrowUp, FileText } from 'lucide-react';
+import { ArrowUp, FileText, Settings } from 'lucide-react';
 
 export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
   const scrollToTop = () => {
@@ -53,12 +54,24 @@ export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
                       <span>{item.label}</span>
                     </button>
                   ) : (
-                    <a href={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                      {item.label}
-                    </a>
+                    item.href.startsWith('/#') || item.href.startsWith('#') ? (
+                      <a href={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link to={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                        {item.label}
+                      </Link>
+                    )
                   )}
                 </li>
               ))}
+              <li>
+                <Link to="/admin-login" className="text-xs font-bold uppercase tracking-widest text-theme-dim hover:text-brand transition-colors flex items-center gap-2">
+                  <Settings size={14} />
+                  <span>Admin Login</span>
+                </Link>
+              </li>
             </ul>
           </div>
 

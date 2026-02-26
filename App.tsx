@@ -20,6 +20,8 @@ import { ManageProjects } from './components/AdminDashboard/ManageProjects';
 import { ManageSkills } from './components/AdminDashboard/ManageSkills';
 import { ManageBlogs } from './components/AdminDashboard/ManageBlogs';
 import { ManageReviews } from './components/AdminDashboard/ManageReviews';
+import { BlogPage } from './components/BlogPage';
+import { BlogPostDetail } from './components/BlogPostDetail';
 import { AnimatePresence } from 'framer-motion';
 
 function MainPortfolio() {
@@ -74,6 +76,8 @@ function App() {
             <Routes>
               {/* Public Portfolio */}
               <Route path="/" element={<MainPortfolio />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:id" element={<BlogPostDetail />} />
               
               {/* Admin Auth */}
               <Route path="/admin-login" element={<AdminLogin />} />
