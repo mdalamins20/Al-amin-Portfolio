@@ -20,6 +20,7 @@ import { ManageProjects } from './components/AdminDashboard/ManageProjects';
 import { ManageSkills } from './components/AdminDashboard/ManageSkills';
 import { ManageBlogs } from './components/AdminDashboard/ManageBlogs';
 import { ManageReviews } from './components/AdminDashboard/ManageReviews';
+import { DashboardOverview } from './components/AdminDashboard/DashboardOverview';
 import { BlogPage } from './components/BlogPage';
 import { BlogPostDetail } from './components/BlogPostDetail';
 import { AnimatePresence } from 'framer-motion';
@@ -86,23 +87,7 @@ function App() {
               <Route path="/admin-dashboard" element={
                 <ProtectedRoute>
                   <AdminLayout>
-                    <div className="space-y-6">
-                      <h1 className="text-3xl font-bold text-theme-text">Dashboard Overview</h1>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[
-                          { label: 'Total Projects', value: '12', color: 'bg-blue-500' },
-                          { label: 'Skills Listed', value: '24', color: 'bg-purple-500' },
-                          { label: 'Blog Posts', value: '8', color: 'bg-emerald-500' },
-                          { label: 'Pending Reviews', value: '3', color: 'bg-amber-500' },
-                        ].map((stat, i) => (
-                          <div key={i} className="bg-theme-card border border-theme-border p-6 rounded-2xl">
-                            <p className="text-theme-dim text-sm font-medium">{stat.label}</p>
-                            <p className="text-3xl font-bold text-theme-text mt-2">{stat.value}</p>
-                            <div className={`h-1 w-12 ${stat.color} rounded-full mt-4`} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <DashboardOverview />
                   </AdminLayout>
                 </ProtectedRoute>
               } />

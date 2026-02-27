@@ -74,49 +74,68 @@ export const ProjectGrid: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="group relative flex flex-col bg-theme-bg dark:bg-theme-card p-8 md:p-12 border border-theme-border transition-all duration-300 hover:z-10 hover:shadow-2xl hover:border-brand/30 rounded-[2.5rem]"
+              className="group relative flex flex-col bg-theme-bg dark:bg-theme-card border border-theme-border transition-all duration-300 hover:z-10 hover:shadow-2xl hover:border-brand/30 rounded-[2.5rem] overflow-hidden"
             >
-              <div className="flex justify-between items-start mb-12">
-                 <div>
-                   <span className="px-4 py-1.5 bg-theme-card dark:bg-theme-bg text-theme-dim text-[10px] font-bold uppercase tracking-widest rounded-full border border-theme-border transition-colors group-hover:bg-brand/10 group-hover:text-brand group-hover:border-brand/20">
-                      {project.category}
-                   </span>
-                   <p className="text-[10px] font-bold text-theme-dim mt-4 uppercase tracking-widest">Role: {project.role}</p>
-                 </div>
-                 <span className="text-6xl font-serif font-bold text-theme-border/30 dark:text-theme-border/20 select-none transition-colors group-hover:text-brand/10">
-                    {index + 1 < 10 ? `0${index + 1}` : index + 1}
-                 </span>
+              {/* Project Image */}
+              <div className="aspect-[16/10] overflow-hidden relative bg-theme-bg">
+                {project.image ? (
+                  <img 
+                    src={project.image} 
+                    alt={project.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-theme-card">
+                    <Code size={48} className="text-theme-dim opacity-20" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
 
-              <div className="flex-grow mb-12">
-                 <h3 className="text-3xl md:text-4xl font-serif font-bold text-theme-text leading-tight group-hover:text-brand transition-colors mb-4">
-                    {project.title}
-                 </h3>
-                 <p className="text-theme-dim text-sm leading-relaxed mb-6">
-                   {project.description}
-                 </p>
-                 
-                 {project.result && (
-                   <div className="flex items-center space-x-2 text-brand mb-6">
-                      <CheckCircle2 size={16} />
-                      <span className="text-xs font-bold uppercase tracking-wider">{project.result}</span>
+              <div className="p-8 md:p-10 flex-grow flex flex-col">
+                <div className="flex justify-between items-start mb-8">
+                   <div>
+                     <span className="px-4 py-1.5 bg-theme-card dark:bg-theme-bg text-theme-dim text-[10px] font-bold uppercase tracking-widest rounded-full border border-theme-border transition-colors group-hover:bg-brand/10 group-hover:text-brand group-hover:border-brand/20">
+                        {project.category}
+                     </span>
+                     <p className="text-[10px] font-bold text-theme-dim mt-4 uppercase tracking-widest">Role: {project.role}</p>
                    </div>
-                 )}
+                   <span className="text-5xl font-serif font-bold text-theme-border/30 dark:text-theme-border/20 select-none transition-colors group-hover:text-brand/10">
+                      {index + 1 < 10 ? `0${index + 1}` : index + 1}
+                   </span>
+                </div>
 
-                 <div className="flex flex-wrap gap-2">
-                   {project.techStack?.map(tech => (
-                     <span key={tech} className="text-[9px] font-black bg-theme-card dark:bg-theme-bg border border-theme-border px-3 py-1 rounded text-theme-dim">{tech}</span>
-                   ))}
-                 </div>
-              </div>
+                <div className="flex-grow mb-8">
+                   <h3 className="text-2xl md:text-3xl font-serif font-bold text-theme-text leading-tight group-hover:text-brand transition-colors mb-4">
+                      {project.title}
+                   </h3>
+                   <p className="text-theme-dim text-sm leading-relaxed mb-6 line-clamp-3">
+                     {project.description}
+                   </p>
+                   
+                   {project.result && (
+                     <div className="flex items-center space-x-2 text-brand mb-6">
+                        <CheckCircle2 size={16} />
+                        <span className="text-xs font-bold uppercase tracking-wider">{project.result}</span>
+                     </div>
+                   )}
 
-              <div className="pt-8 border-t border-theme-border flex justify-between items-center transition-colors group-hover:border-brand/20">
-                 <span className="text-[10px] font-black uppercase tracking-[0.25em] text-theme-dim group-hover:text-brand transition-colors">
-                    Case Study
-                 </span>
-                 <div className="w-10 h-10 bg-theme-card dark:bg-theme-bg rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-brand group-hover:text-white border border-theme-border group-hover:border-brand shadow-sm">
-                    <ArrowUpRight size={18} />
-                 </div>
+                   <div className="flex flex-wrap gap-2">
+                     {project.techStack?.map(tech => (
+                       <span key={tech} className="text-[9px] font-black bg-theme-card dark:bg-theme-bg border border-theme-border px-3 py-1 rounded text-theme-dim">{tech}</span>
+                     ))}
+                   </div>
+                </div>
+
+                <div className="pt-8 border-t border-theme-border flex justify-between items-center transition-colors group-hover:border-brand/20">
+                   <span className="text-[10px] font-black uppercase tracking-[0.25em] text-theme-dim group-hover:text-brand transition-colors">
+                      Case Study
+                   </span>
+                   <div className="w-10 h-10 bg-theme-card dark:bg-theme-bg rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-brand group-hover:text-white border border-theme-border group-hover:border-brand shadow-sm">
+                      <ArrowUpRight size={18} />
+                   </div>
+                </div>
               </div>
             </motion.a>
           ))}
