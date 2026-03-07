@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
 const firebaseConfig = {
@@ -29,6 +30,7 @@ if (isConfigured) {
 
 export const auth = (isConfigured && app) ? getAuth(app) : null as any;
 export const db = (isConfigured && app) ? getFirestore(app) : null as any;
+export const storage = (isConfigured && app) ? getStorage(app) : null as any;
 
 // Initialize Analytics if supported
 export const analytics = (isConfigured && app) ? isSupported().then(yes => yes ? getAnalytics(app) : null) : null;

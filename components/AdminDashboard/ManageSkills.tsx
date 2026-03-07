@@ -14,6 +14,7 @@ import {
 import { Tool } from '../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageUpload } from './ImageUpload';
 
 export const ManageSkills: React.FC = () => {
   const [skills, setSkills] = useState<Tool[]>([]);
@@ -127,14 +128,12 @@ export const ManageSkills: React.FC = () => {
                   placeholder="e.g. ENTERPRISE"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-theme-text">Icon URL (SVG/PNG)</label>
-                <input
-                  required
-                  value={currentSkill.icon || ''}
-                  onChange={e => setCurrentSkill({ ...currentSkill, icon: e.target.value })}
-                  className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-                  placeholder="https://cdn.jsdelivr.net/gh/devicons/..."
+              <div className="space-y-2 md:col-span-2">
+                <ImageUpload
+                  label="Skill Icon (SVG/PNG)"
+                  initialValue={currentSkill.icon}
+                  onUploadComplete={(url) => setCurrentSkill({ ...currentSkill, icon: url })}
+                  folder="skills"
                 />
               </div>
               <div className="space-y-2">

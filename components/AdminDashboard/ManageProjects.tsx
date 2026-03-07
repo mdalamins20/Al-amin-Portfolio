@@ -14,6 +14,7 @@ import {
 import { Project } from '../../types';
 import { Plus, Trash2, Edit2, ExternalLink, Save, X, Loader2, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageUpload } from './ImageUpload';
 
 export const ManageProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -140,13 +141,12 @@ export const ManageProjects: React.FC = () => {
                   placeholder="Project overview..."
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-theme-text">Image URL</label>
-                <input
-                  value={currentProject.image || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, image: e.target.value })}
-                  className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-                  placeholder="https://..."
+              <div className="space-y-2 md:col-span-2">
+                <ImageUpload
+                  label="Project Image"
+                  initialValue={currentProject.image}
+                  onUploadComplete={(url) => setCurrentProject({ ...currentProject, image: url })}
+                  folder="projects"
                 />
               </div>
               <div className="space-y-2">

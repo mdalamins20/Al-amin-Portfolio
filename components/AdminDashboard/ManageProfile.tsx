@@ -5,6 +5,7 @@ import { Profile, SocialLink, Stat, Service, ProcessStep } from '../../types';
 import { Save, Loader2, Plus, Trash2, Edit2, X, Globe, User, Briefcase, Mail, Phone, MapPin, Star, Code, Layers, Zap, Palette, Settings, CheckCircle2, ArrowUpRight, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getIconByName, ICON_NAMES } from '../IconMapper';
+import { ImageUpload } from './ImageUpload';
 
 export const ManageProfile: React.FC = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -145,11 +146,11 @@ export const ManageProfile: React.FC = () => {
                 />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-theme-text">Profile Image URL</label>
-                <input
-                  value={formData.image}
-                  onChange={e => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
+                <ImageUpload
+                  label="Profile Image"
+                  initialValue={formData.image}
+                  onUploadComplete={(url) => setFormData({ ...formData, image: url })}
+                  folder="profile"
                 />
               </div>
             </motion.div>

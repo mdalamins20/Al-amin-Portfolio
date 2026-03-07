@@ -16,6 +16,7 @@ import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { ImageUpload } from './ImageUpload';
 
 export const ManageBlogs: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -126,16 +127,12 @@ export const ManageBlogs: React.FC = () => {
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-theme-text">Image URL</label>
-                  <input
-                    required
-                    value={currentBlog.image || ''}
-                    onChange={e => setCurrentBlog({ ...currentBlog, image: e.target.value })}
-                    className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-                    placeholder="https://..."
-                  />
-                </div>
+                <ImageUpload
+                  label="Blog Feature Image"
+                  initialValue={currentBlog.image}
+                  onUploadComplete={(url) => setCurrentBlog({ ...currentBlog, image: url })}
+                  folder="blogs"
+                />
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-theme-text">Author Name</label>
                   <input
