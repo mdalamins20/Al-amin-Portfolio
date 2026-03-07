@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { USER_INFO } from '../constants';
 import { Copy, Check, Send, Loader2, CheckCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useProfile } from './ProfileContext';
 
 export const ContactSection: React.FC = () => {
+  const { profile, loading } = useProfile();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -20,13 +21,17 @@ export const ContactSection: React.FC = () => {
     }
   }, [isSuccess]);
 
+  if (loading || !profile) {
+    return null;
+  }
+
   // WhatsApp Link Construction
-  const whatsappNumber = "8801778189644"; 
+  const whatsappNumber = profile.phone.replace(/\+/g, ''); 
   const whatsappMessage = encodeURIComponent("Hello, I visited your portfolio and would like to contact you.");
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(USER_INFO.email);
+    navigator.clipboard.writeText(profile.email);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -92,7 +97,7 @@ export const ContactSection: React.FC = () => {
             <div className="space-y-8">
                 <div className="flex items-start gap-5 group">
                     <a 
-                      href={`mailto:${USER_INFO.email}`} 
+                      href={`mailto:${profile.email}`} 
                       className="w-14 h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105"
                     >
                         <img 
@@ -104,8 +109,8 @@ export const ContactSection: React.FC = () => {
                     <div className="flex-1">
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-1">Email</p>
                         <div className="flex items-center gap-3">
-                             <a href={`mailto:${USER_INFO.email}`} className="text-lg md:text-xl font-medium text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors break-all">
-                                {USER_INFO.email}
+                             <a href={`mailto:${profile.email}`} className="text-lg md:text-xl font-medium text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors break-all">
+                                 {profile.email}
                              </a>
                              <button 
                                 onClick={handleCopy} 
@@ -139,7 +144,7 @@ export const ContactSection: React.FC = () => {
                           rel="noopener noreferrer"
                           className="text-lg md:text-xl font-medium text-slate-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer"
                         >
-                           {USER_INFO.phone}
+                           {profile.phone}
                         </a>
                     </div>
                 </div>

@@ -71,7 +71,8 @@ export const BlogPage: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  className="group bg-theme-card border border-theme-border rounded-[2.5rem] overflow-hidden hover:border-brand/50 transition-all duration-500 flex flex-col"
+                  className="group bg-theme-card border border-theme-border rounded-[2.5rem] overflow-hidden hover:border-brand/50 transition-all duration-500 flex flex-col cursor-pointer"
+                  onClick={() => window.location.href = `/blog/${blog.id}`}
                 >
                   <div className="aspect-[16/10] overflow-hidden relative">
                     <img 
@@ -95,12 +96,14 @@ export const BlogPage: React.FC = () => {
                     <h3 className="text-2xl font-serif font-bold text-theme-text mb-4 group-hover:text-brand transition-colors line-clamp-2">
                       {blog.title}
                     </h3>
-                    <p className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1">
-                      {blog.content}
-                    </p>
+                    <div 
+                      className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1 font-bengali"
+                      dangerouslySetInnerHTML={{ __html: blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' }}
+                    />
                     <Link 
                       to={`/blog/${blog.id}`}
                       className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-theme-text group-hover:text-brand transition-colors"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Read Article
                       <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

@@ -8,7 +8,6 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Blog } from '../types';
 import { Layout } from './Layout';
 import { SectionWrapper } from './SectionWrapper';
-import ReactMarkdown from 'react-markdown';
 
 export const BlogPostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -103,10 +102,9 @@ export const BlogPostDetail: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="prose prose-lg dark:prose-invert max-w-none markdown-body"
-            >
-              <ReactMarkdown>{blog.content}</ReactMarkdown>
-            </motion.div>
+              className="prose prose-lg dark:prose-invert max-w-none font-bengali blog-content"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+            />
           </div>
         </SectionWrapper>
       </div>

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- FONTS: English + Specialized Scripts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Bengali:wght@300;400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
 
     <script>
       tailwind.config = {
@@ -20,6 +20,7 @@
             fontFamily: {
               sans: ['var(--font-main)', 'sans-serif'],
               serif: ['var(--font-main)', 'serif'],
+              bengali: ['Hind Siliguri', 'sans-serif'],
             },
             colors: {
               brand: {
@@ -53,7 +54,7 @@
       }
 
       /* TYPOGRAPHY MATRIX - Forces correct fonts for different languages */
-      html[data-applied-lang='bn'] { --font-main: 'Noto Sans Bengali', sans-serif !important; }
+      html[data-applied-lang='bn'] { --font-main: 'Hind Siliguri', sans-serif !important; }
       html[data-applied-lang='ar'], html[data-applied-lang='ur'] { --font-main: 'Noto Naskh Arabic', serif !important; }
       html[data-applied-lang='hi'] { --font-main: 'Noto Sans Devanagari', sans-serif !important; }
       html[data-applied-lang='ja'] { --font-main: 'Noto Sans JP', sans-serif !important; }
@@ -121,6 +122,39 @@
 
       .section-container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
       svg { stroke: currentColor; fill: none; }
+
+      /* Blog Content Styling */
+      .blog-content {
+        font-family: 'Hind Siliguri', sans-serif !important;
+        line-height: 1.8;
+      }
+      .blog-content h1, .blog-content h2, .blog-content h3 {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .blog-content p {
+        margin-bottom: 1.5rem;
+      }
+      .blog-content img {
+        border-radius: 1.5rem;
+        margin: 2rem 0;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+      }
+      .blog-content a {
+        color: var(--accent);
+        text-decoration: underline;
+        font-weight: 600;
+      }
+      .blog-content blockquote {
+        border-left: 4px solid var(--accent);
+        padding-left: 1.5rem;
+        font-style: italic;
+        margin: 2rem 0;
+        color: var(--text-secondary);
+      }
     </style>
     
     <script type="text/javascript">

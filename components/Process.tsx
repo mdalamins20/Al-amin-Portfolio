@@ -1,8 +1,15 @@
 import React from 'react';
 import { SectionWrapper } from './SectionWrapper';
-import { PROCESS } from '../constants';
+import { useProfile } from './ProfileContext';
+import { Loader2 } from 'lucide-react';
 
 export const Process: React.FC = () => {
+  const { profile, loading } = useProfile();
+
+  if (loading || !profile) {
+    return null;
+  }
+
   return (
     <SectionWrapper id="process">
       <div className="grid md:grid-cols-12 gap-12">
@@ -17,7 +24,7 @@ export const Process: React.FC = () => {
 
         <div className="md:col-span-8">
           <div className="space-y-12">
-            {PROCESS.map((step, index) => (
+            {profile.process.map((step, index) => (
               <div key={index} className="flex flex-col md:flex-row gap-6 md:gap-12 border-t border-neutral-200 dark:border-neutral-800 pt-8 first:border-0 first:pt-0">
                 <div className="text-neutral-300 dark:text-neutral-700 text-5xl font-serif font-bold opacity-50">
                   {step.step}

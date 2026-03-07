@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { SectionWrapper } from './SectionWrapper';
-import { STATS, ABOUT_ME, STRATEGIC_ABOUT } from '../constants';
 import { motion } from 'framer-motion';
-import { CheckCircle, Trophy, Users, Clock, ShieldCheck, Target, Zap } from 'lucide-react';
+import { CheckCircle, Trophy, Users, Clock, ShieldCheck, Target, Zap, Loader2 } from 'lucide-react';
+import { useProfile } from './ProfileContext';
 
 const VALUE_PROPS = [
   {
@@ -29,11 +29,21 @@ const VALUE_PROPS = [
 ];
 
 export const ContentSections: React.FC = () => {
+  const { profile, loading } = useProfile();
+
+  if (loading || !profile) {
+    return (
+      <div className="py-20 flex items-center justify-center">
+        <Loader2 className="animate-spin text-brand" size={48} />
+      </div>
+    );
+  }
+
   return (
     <>
       <SectionWrapper id="advantage" className="py-20 border-y border-slate-100 dark:border-slate-900">
          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-            {STATS.map((stat, idx) => (
+            {profile.stats.map((stat, idx) => (
                <motion.div 
                  key={idx}
                  initial={{ opacity: 0, y: 10 }}
@@ -63,7 +73,7 @@ export const ContentSections: React.FC = () => {
           </div>
           <div className="lg:col-span-7">
             <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 leading-relaxed font-medium mb-12">
-              {ABOUT_ME}
+              {profile.aboutMe}
             </p>
             
             {/* Added Strategic Clarity Block */}
@@ -73,21 +83,21 @@ export const ContentSections: React.FC = () => {
                   <Target size={18} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Who I Help</span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{STRATEGIC_ABOUT.whoIHelp}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{profile.whoIHelp}</p>
               </div>
               <div>
                 <div className="flex items-center space-x-2 text-brand-600 mb-3">
                   <Zap size={18} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Problems Solved</span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{STRATEGIC_ABOUT.problemsSolved}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{profile.problemsSolved}</p>
               </div>
               <div>
                 <div className="flex items-center space-x-2 text-brand-600 mb-3">
                   <ShieldCheck size={18} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Why Trust Me</span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{STRATEGIC_ABOUT.trustFactor}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{profile.trustFactor}</p>
               </div>
             </div>
           </div>

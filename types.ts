@@ -52,6 +52,45 @@ export interface Stat {
   label: string;
 }
 
+export interface SocialLink {
+  name: string;
+  url: string;
+  iconName: string;
+}
+
+export interface Service {
+  title: string;
+  description: string;
+  iconName: string;
+  benefit: string;
+}
+
+export interface ProcessStep {
+  step: string;
+  title: string;
+  description: string;
+}
+
+export interface Profile {
+  name: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  email: string;
+  phone: string;
+  tagline: string;
+  image: string;
+  supportingLine: string;
+  aboutMe: string;
+  whoIHelp: string;
+  problemsSolved: string;
+  trustFactor: string;
+  socialLinks: SocialLink[];
+  stats: Stat[];
+  services: Service[];
+  process: ProcessStep[];
+}
+
 export interface NavItem {
   label: string;
   href: string;

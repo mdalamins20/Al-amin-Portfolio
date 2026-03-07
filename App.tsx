@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './components/ThemeContext';
 import { AuthProvider } from './components/AuthContext';
+import { ProfileProvider } from './components/ProfileContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Hero } from './components/Hero';
@@ -20,6 +21,7 @@ import { ManageProjects } from './components/AdminDashboard/ManageProjects';
 import { ManageSkills } from './components/AdminDashboard/ManageSkills';
 import { ManageBlogs } from './components/AdminDashboard/ManageBlogs';
 import { ManageReviews } from './components/AdminDashboard/ManageReviews';
+import { ManageProfile } from './components/AdminDashboard/ManageProfile';
 import { DashboardOverview } from './components/AdminDashboard/DashboardOverview';
 import { BlogPage } from './components/BlogPage';
 import { BlogPostDetail } from './components/BlogPostDetail';
@@ -72,7 +74,8 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
+        <ProfileProvider>
+          <Router>
           <AnimatePresence mode="wait">
             <Routes>
               {/* Public Portfolio */}
@@ -116,13 +119,20 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="/admin-dashboard/profile" element={
+                <ProtectedRoute>
+                  <AdminLayout><ManageProfile /></AdminLayout>
+                </ProtectedRoute>
+              } />
+
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>
         </Router>
-      </AuthProvider>
-    </ThemeProvider>
+      </ProfileProvider>
+    </AuthProvider>
+  </ThemeProvider>
   );
 }
 

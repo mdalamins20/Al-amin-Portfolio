@@ -40,6 +40,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: Wrench, label: 'Skills', path: '/admin-dashboard/skills' },
     { icon: BookOpen, label: 'Blogs', path: '/admin-dashboard/blogs' },
     { icon: MessageSquare, label: 'Reviews', path: '/admin-dashboard/reviews' },
+    { icon: User, label: 'Profile', path: '/admin-dashboard/profile' },
   ];
 
   return (
@@ -65,7 +66,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white font-bold text-xl">
               A
             </div>
-            <span className="text-xl font-bold text-theme-text">Admin Panel</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-theme-text">Admin Panel</span>
+              <Link to="/" className="text-[10px] font-bold uppercase tracking-widest text-brand hover:underline">View Site</Link>
+            </div>
           </div>
 
           <nav className="flex-1 space-y-2">

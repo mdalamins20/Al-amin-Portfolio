@@ -1,9 +1,21 @@
 import React from 'react';
 import { SectionWrapper } from './SectionWrapper';
-import { SERVICES } from '../constants';
 import { motion } from 'framer-motion';
+import { useProfile } from './ProfileContext';
+import { getIconByName } from './IconMapper';
+import { Loader2 } from 'lucide-react';
 
 export const Services: React.FC = () => {
+  const { profile, loading } = useProfile();
+
+  if (loading || !profile) {
+    return (
+      <div className="py-24 flex items-center justify-center">
+        <Loader2 className="animate-spin text-brand" size={48} />
+      </div>
+    );
+  }
+
   return (
     <SectionWrapper id="services" className="py-24 relative overflow-hidden">
       {/* Dynamic Background Circle */}
@@ -19,8 +31,7 @@ export const Services: React.FC = () => {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {SERVICES.map((service, index) => {
-          const Icon = service.icon;
+        {profile.services.map((service, index) => {
           return (
             <motion.div
               key={index}
@@ -32,7 +43,7 @@ export const Services: React.FC = () => {
             >
               <div className="flex items-start justify-between mb-8">
                 <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                  <Icon className="w-8 h-8" />
+                  {getIconByName(service.iconName, 32)}
                 </div>
                 <span className="text-6xl font-serif font-black text-slate-100 dark:text-slate-800 transition-colors group-hover:text-brand-600/10">
                   0{index + 1}
@@ -45,6 +56,11 @@ export const Services: React.FC = () => {
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg font-medium">
                 {service.description}
               </p>
+              {service.benefit && (
+                <p className="mt-4 text-brand text-sm font-bold uppercase tracking-widest">
+                  Benefit: {service.benefit}
+                </p>
+              )}
             </motion.div>
           );
         })}

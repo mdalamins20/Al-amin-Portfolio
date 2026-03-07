@@ -1,13 +1,21 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { USER_INFO, SOCIAL_LINKS, NAV_ITEMS } from '../constants';
-import { ArrowUp, FileText, Settings } from 'lucide-react';
+import { NAV_ITEMS } from '../constants';
+import { ArrowUp, FileText, Settings, Loader2 } from 'lucide-react';
+import { useProfile } from './ProfileContext';
+import { getIconByName } from './IconMapper';
 
 export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
+  const { profile, loading } = useProfile();
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (loading || !profile) {
+    return null; // Or a simple skeleton
+  }
 
   return (
     <footer className="bg-white dark:bg-[#050505] border-t border-neutral-200 dark:border-neutral-900 pt-20 pb-10 px-6 md:px-12">
@@ -16,14 +24,13 @@ export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
           
           <div className="md:col-span-2">
             <h2 className="text-3xl font-serif text-neutral-900 dark:text-white mb-6">
-              {USER_INFO.name}<span className="text-brand-600">.</span>
+              {profile.name}<span className="text-brand-600">.</span>
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mb-8">
-              Creating high-performance digital products that merge minimalist aesthetics with powerful engineering strategies.
+              {profile.supportingLine}
             </p>
             <div className="flex flex-wrap gap-3">
-              {SOCIAL_LINKS.map((link) => {
-                const Icon = link.icon;
+              {profile.socialLinks.map((link) => {
                 return (
                   <a 
                     key={link.name} 
@@ -33,7 +40,7 @@ export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
                     title={link.name}
                     className="w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-500 hover:text-brand-600 hover:border-brand-600 dark:hover:text-brand-400 dark:hover:border-brand-400 transition-colors"
                   >
-                    <Icon size={18} />
+                    {getIconByName(link.iconName, 18)}
                   </a>
                 );
               })}
@@ -78,8 +85,8 @@ export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
           <div>
             <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-900 dark:text-white mb-6">Contact</h3>
             <ul className="space-y-4 text-neutral-500 dark:text-neutral-400">
-              <li className="font-bold text-slate-900 dark:text-white">{USER_INFO.email}</li>
-              <li>{USER_INFO.phone}</li>
+              <li className="font-bold text-slate-900 dark:text-white">{profile.email}</li>
+              <li>{profile.phone}</li>
               <li>Dhaka, Bangladesh</li>
               <li className="pt-4 text-[10px] font-black uppercase tracking-widest">Available for Remote / Freelance</li>
             </ul>
@@ -88,7 +95,7 @@ export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-neutral-100 dark:border-neutral-900">
           <p className="text-xs text-neutral-400 font-mono uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} {USER_INFO.name}. All Rights Reserved.
+            &copy; {new Date().getFullYear()} {profile.name}. All Rights Reserved.
           </p>
           
           <button 

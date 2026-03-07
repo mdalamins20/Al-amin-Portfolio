@@ -14,6 +14,8 @@ import {
 import { Blog } from '../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export const ManageBlogs: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -144,14 +146,24 @@ export const ManageBlogs: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-theme-text">Content (Markdown supported)</label>
-                <textarea
-                  required
-                  value={currentBlog.content || ''}
-                  onChange={e => setCurrentBlog({ ...currentBlog, content: e.target.value })}
-                  className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text min-h-[300px]"
-                  placeholder="Write your blog content here..."
-                />
+                <label className="text-sm font-medium text-theme-text">Content (Rich Text Editor)</label>
+                <div className="bg-white text-black rounded-xl overflow-hidden min-h-[350px]">
+                  <ReactQuill 
+                    theme="snow"
+                    value={currentBlog.content || ''}
+                    onChange={(content) => setCurrentBlog({ ...currentBlog, content })}
+                    className="h-[300px]"
+                    modules={{
+                      toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                        [{'list': 'ordered'}, {'list': 'bullet'}],
+                        ['link', 'image', 'code-block'],
+                        ['clean']
+                      ],
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-4 mt-4">

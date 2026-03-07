@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, Loader2, Code } from 'lucide-react';
 import { SectionWrapper } from './SectionWrapper';
 import { db, isConfigured } from '../firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';

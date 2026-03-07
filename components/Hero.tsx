@@ -1,11 +1,21 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { USER_INFO } from '../constants';
-import { ArrowRight, Calendar, MessageCircle } from 'lucide-react';
+import { useProfile } from './ProfileContext';
+import { ArrowRight, Calendar, MessageCircle, Loader2 } from 'lucide-react';
 
 export const Hero: React.FC = () => {
-  const whatsappLink = `https://wa.me/8801778189644?text=Hello%20Al-amin!`;
+  const { profile, loading } = useProfile();
+  
+  if (loading || !profile) {
+    return (
+      <div className="min-h-[90vh] flex items-center justify-center">
+        <Loader2 className="animate-spin text-brand" size={48} />
+      </div>
+    );
+  }
+
+  const whatsappLink = `https://wa.me/${profile.phone.replace(/\+/g, '')}?text=Hello%20${profile.firstName}!`;
 
   return (
     <section id="hero" className="relative min-h-[90vh] flex items-center py-20 overflow-visible">
@@ -34,8 +44,8 @@ export const Hero: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="text-5xl md:text-7xl lg:text-8xl font-serif font-black tracking-tight text-theme-text leading-[1.05] mb-8"
           >
-            {USER_INFO.firstName}{' '}
-            <span className="text-brand">{USER_INFO.lastName}.</span>
+            {profile.firstName}{' '}
+            <span className="text-brand">{profile.lastName}.</span>
           </motion.h1>
 
           <motion.p
@@ -44,7 +54,7 @@ export const Hero: React.FC = () => {
              transition={{ delay: 0.2 }}
              className="text-lg md:text-xl text-theme-dim font-medium max-w-xl leading-relaxed mb-10"
           >
-            {USER_INFO.tagline} {USER_INFO.supportingLine}
+            {profile.tagline} {profile.supportingLine}
           </motion.p>
 
           <motion.div
@@ -87,13 +97,16 @@ export const Hero: React.FC = () => {
             
             <div className="w-full h-full overflow-hidden rounded-theme shadow-2xl border border-theme-border">
               <img 
-                src={USER_INFO.image} 
-                alt={USER_INFO.name} 
+                src={profile.image} 
+                alt={profile.name} 
                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-105 hover:scale-100"
+                referrerPolicy="no-referrer"
               />
               
               <div className="absolute bottom-6 -right-6 bg-theme-card border border-theme-border p-6 rounded-theme shadow-xl z-20 text-center">
-                <p className="text-4xl font-serif font-black text-brand mb-1">3+</p>
+                <p className="text-4xl font-serif font-black text-brand mb-1">
+                  {profile.stats.find(s => s.label.toLowerCase().includes('year'))?.value || '3'}+
+                </p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-theme-dim leading-tight">
                   Years of<br/>Mastery
                 </p>

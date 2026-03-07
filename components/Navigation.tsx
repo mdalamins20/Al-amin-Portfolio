@@ -5,6 +5,7 @@ import { Sun, Moon, Languages, Palette, Check, Globe, X, Home, Layers, Code, Mai
 import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS, LANGUAGES } from '../constants';
 import { useTheme, ACCENT_COLORS } from './ThemeContext';
+import { useProfile } from './ProfileContext';
 
 interface NavigationProps {
   onViewCV: () => void;
@@ -12,6 +13,7 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
   const { mode, toggleMode, accentColor, setAccentColor } = useTheme();
+  const { profile } = useProfile();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
