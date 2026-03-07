@@ -14,8 +14,8 @@ import {
 import { Blog } from '../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 export const ManageBlogs: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
