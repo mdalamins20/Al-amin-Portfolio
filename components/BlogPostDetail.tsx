@@ -90,7 +90,7 @@ export const BlogPostDetail: React.FC = () => {
                   <span>{blog.author}</span>
                 </div>
               </div>
-              <h1 className="text-4xl md:text-6xl font-serif font-bold text-theme-text mb-8 leading-tight">
+              <h1 className="text-4xl md:text-6xl font-serif font-bold text-theme-text mb-8 leading-tight break-words">
                 {blog.title}
               </h1>
               <div className="aspect-video rounded-[3rem] overflow-hidden border border-theme-border mb-12">
@@ -102,7 +102,7 @@ export const BlogPostDetail: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="prose prose-lg dark:prose-invert max-w-none font-bengali blog-content"
+              className="prose prose-lg dark:prose-invert max-w-full font-bengali blog-content break-words overflow-hidden"
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
           </div>

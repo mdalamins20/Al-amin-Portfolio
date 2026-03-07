@@ -93,11 +93,11 @@ export const BlogPage: React.FC = () => {
                         <span>{blog.author}</span>
                       </div>
                     </div>
-                    <h3 className="text-2xl font-serif font-bold text-theme-text mb-4 group-hover:text-brand transition-colors line-clamp-2">
+                    <h3 className="text-2xl font-serif font-bold text-theme-text mb-4 group-hover:text-brand transition-colors line-clamp-2 break-words">
                       {blog.title}
                     </h3>
                     <div 
-                      className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1 font-bengali"
+                      className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1 font-bengali break-words"
                       dangerouslySetInnerHTML={{ __html: blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' }}
                     />
                     <Link 
