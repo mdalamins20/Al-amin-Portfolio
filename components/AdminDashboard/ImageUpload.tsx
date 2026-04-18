@@ -44,7 +44,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         }, 
         (error) => {
           console.error("Upload error:", error);
-          alert("Failed to upload image. Please check your Firebase Storage rules.");
+          alert(`Upload failed: ${error.message}\nCode: ${error.code}`);
           setUploading(false);
         }, 
         async () => {

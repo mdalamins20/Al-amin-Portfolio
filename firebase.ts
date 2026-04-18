@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCB5QCR55Fp1pPLRgThjej_8DOnDB7naZ4",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "alaminportfolio-24fab.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "alaminportfolio-24fab",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "alaminportfolio-24fab.firebasestorage.app",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "alaminportfolio-24fab.appspot.com",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "588393161246",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:588393161246:web:4691ad99ed5123bb3d840f",
 };
