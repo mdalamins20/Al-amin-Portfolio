@@ -7,11 +7,13 @@ import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Blog } from '../types';
 import { Layout } from './Layout';
 import { SectionWrapper } from './SectionWrapper';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { SEO } from './SEO';
 
 export const BlogPage: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -37,8 +39,23 @@ export const BlogPage: React.FC = () => {
     fetchBlogs();
   }, []);
 
+  // Safe HTML stripping to avoid regex catastrophic backtracking
+  const stripHtmlAndTruncate = (html: string, maxLength: number) => {
+    if (!html) return '';
+    try {
+      const plainText = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+      return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText;
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <Layout onViewCV={() => {}}>
+      <SEO 
+        title="Journal & Blogs" 
+        description="Read the latest articles, tutorials, and insights by Muhammad Al-amin, an expert Full Stack Web Developer."
+      />
       <div className="pt-32 pb-20">
         <SectionWrapper id="blog-header">
           <div className="text-center mb-20">
@@ -71,16 +88,17 @@ export const BlogPage: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  className="group bg-theme-card border border-theme-border rounded-[2.5rem] overflow-hidden hover:border-brand/50 transition-all duration-500 flex flex-col cursor-pointer"
-                  onClick={() => window.location.href = `/blog/${blog.id}`}
+                  className="group bg-theme-card border border-theme-border rounded-[2.5rem] overflow-hidden hover:border-brand/50 transition-all duration-300 flex flex-col cursor-pointer will-change-transform"
+                  onClick={() => navigate(`/blog/${blog.id}`)}
                 >
                   <div className="aspect-[16/10] overflow-hidden relative">
                     <img 
                       src={blog.image} 
                       alt={blog.title} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 transform-gpu"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                   <div className="p-8 flex-1 flex flex-col">
                     <div className="flex items-center gap-4 text-[10px] font-bold text-theme-dim uppercase tracking-widest mb-4">
@@ -96,10 +114,9 @@ export const BlogPage: React.FC = () => {
                     <h3 className="text-2xl font-serif font-bold text-theme-text mb-4 group-hover:text-brand transition-colors line-clamp-2 break-words">
                       {blog.title}
                     </h3>
-                    <div 
-                      className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1 font-bengali break-words"
-                      dangerouslySetInnerHTML={{ __html: blog.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' }}
-                    />
+                    <p className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1 font-bengali break-words">
+                       {stripHtmlAndTruncate(blog.content, 150)}
+                    </p>
                     <Link 
                       to={`/blog/${blog.id}`}
                       className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-theme-text group-hover:text-brand transition-colors"

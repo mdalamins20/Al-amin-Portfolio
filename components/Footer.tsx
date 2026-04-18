@@ -61,22 +61,16 @@ export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
                       <span>{item.label}</span>
                     </button>
                   ) : (
-                    item.href.startsWith('/#') || item.href.startsWith('#') ? (
-                      <a href={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link to={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                        {item.label}
-                      </Link>
-                    )
+                    <Link to={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                      {item.label}
+                    </Link>
                   )}
                 </li>
               ))}
               <li>
-                <Link to="/admin-login" className="text-xs font-bold uppercase tracking-widest text-theme-dim hover:text-brand transition-colors flex items-center gap-2">
+                <Link to="/admin-dashboard" className="text-xs font-bold uppercase tracking-widest text-theme-dim hover:text-brand transition-colors flex items-center gap-2">
                   <Settings size={14} />
-                  <span>Admin Login</span>
+                  <span>Admin Panel</span>
                 </Link>
               </li>
             </ul>

@@ -107,17 +107,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
         <div className="hidden md:flex items-center space-x-6">
            {NAV_ITEMS.filter(i => !i.isAction).map(item => {
              const active = isLinkActive(item.href);
-             return item.href.startsWith('/#') || item.href.startsWith('#') ? (
-               <a 
-                 key={item.label} 
-                 href={item.href} 
-                 className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                   active ? 'text-brand' : 'text-theme-dim hover:text-brand'
-                 }`}
-               >
-                 {item.label}
-               </a>
-             ) : (
+             return (
                <Link 
                  key={item.label} 
                  to={item.href} 
@@ -349,19 +339,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onViewCV }) => {
         ].map((item, index) => {
           const Icon = item.icon;
           const active = isLinkActive(item.href);
-          return item.href.startsWith('/#') || item.href.startsWith('#') ? (
-            <a 
-              key={index}
-              href={item.href} 
-              className={`flex-1 flex justify-center py-3 rounded-2xl transition-all duration-300 ${
-                active 
-                  ? 'text-brand bg-brand/10' 
-                  : 'text-theme-dim hover:text-theme-text'
-              }`}
-            >
-              <Icon size={20} className={active ? 'scale-110' : 'scale-100'} />
-            </a>
-          ) : (
+          return (
             <Link 
               key={index}
               to={item.href} 

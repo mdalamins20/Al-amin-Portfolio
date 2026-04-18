@@ -8,6 +8,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Blog } from '../types';
 import { Layout } from './Layout';
 import { SectionWrapper } from './SectionWrapper';
+import { SEO } from './SEO';
 
 export const BlogPostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -62,8 +63,24 @@ export const BlogPostDetail: React.FC = () => {
     );
   }
 
+  const stripHtmlAndTruncate = (html: string, maxLength: number) => {
+    if (!html) return '';
+    try {
+      const plainText = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+      return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText;
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <Layout onViewCV={() => {}}>
+      <SEO 
+        title={blog.title} 
+        description={stripHtmlAndTruncate(blog.content, 160)}
+        image={blog.image}
+        type="article"
+      />
       <div className="pt-32 pb-20">
         <SectionWrapper id="blog-post">
           <Link 

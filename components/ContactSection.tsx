@@ -199,7 +199,7 @@ export const ContactSection: React.FC = () => {
                             name="name" 
                             required
                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Type your name"
+                            placeholder="Enter Your Name"
                         />
                     </div>
                     <div className="space-y-2">
@@ -210,7 +210,7 @@ export const ContactSection: React.FC = () => {
                             name="email" 
                             required
                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Type your email"
+                            placeholder="Enter Your Email"
                         />
                     </div>
                 </div>
@@ -223,7 +223,7 @@ export const ContactSection: React.FC = () => {
                             id="phone" 
                             name="phone" 
                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Type your phone number"
+                            placeholder="Enter Your Phone Number"
                         />
                     </div>
                     <div className="space-y-2">
@@ -233,7 +233,7 @@ export const ContactSection: React.FC = () => {
                             id="subject" 
                             name="subject" 
                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Type your subject"
+                            placeholder="Enter Subject"
                         />
                     </div>
                 </div>
@@ -246,7 +246,7 @@ export const ContactSection: React.FC = () => {
                         required
                         rows={4}
                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all resize-y min-h-[120px]"
-                        placeholder="Type your message..."
+                        placeholder="Write your message here..."
                     />
                 </div>
 

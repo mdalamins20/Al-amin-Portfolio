@@ -18,9 +18,6 @@ export const Services: React.FC = () => {
 
   return (
     <SectionWrapper id="services" className="py-24 relative overflow-hidden">
-      {/* Dynamic Background Circle */}
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-500/5 rounded-full blur-[100px] -z-10"></div>
-
       <div className="mb-20 text-center md:text-left">
         <h2 className="text-brand-600 font-bold uppercase tracking-[0.25em] text-xs mb-3">
           Capabilities
@@ -39,7 +36,7 @@ export const Services: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="relative p-10 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 transition-all duration-500 group shadow-sm hover:shadow-2xl hover:-translate-y-2"
+              className="relative p-10 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 will-change-transform transform-gpu"
             >
               <div className="flex items-start justify-between mb-8">
                 <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-all duration-500 shadow-sm">

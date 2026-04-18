@@ -99,8 +99,10 @@ export const Hero: React.FC = () => {
               <img 
                 src={profile.image} 
                 alt={profile.name} 
-                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-105 hover:scale-100"
+                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700 scale-105 hover:scale-100 will-change-transform transform-gpu"
                 referrerPolicy="no-referrer"
+                loading="eager"
+                fetchPriority="high"
               />
               
               <div className="absolute bottom-6 -right-6 bg-theme-card border border-theme-border p-6 rounded-theme shadow-xl z-20 text-center">

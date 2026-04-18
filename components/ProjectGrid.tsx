@@ -74,7 +74,7 @@ export const ProjectGrid: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="group relative flex flex-col bg-theme-bg dark:bg-theme-card border border-theme-border transition-all duration-300 hover:z-10 hover:shadow-2xl hover:border-brand/30 rounded-[2.5rem] overflow-hidden"
+              className="group relative flex flex-col bg-theme-bg dark:bg-theme-card border border-theme-border transition-all duration-300 hover:z-10 hover:shadow-xl hover:border-brand/30 rounded-[2.5rem] overflow-hidden will-change-transform"
             >
               {/* Project Image */}
               <div className="aspect-[16/10] overflow-hidden relative bg-theme-bg">
@@ -82,7 +82,8 @@ export const ProjectGrid: React.FC = () => {
                   <img 
                     src={project.image} 
                     alt={project.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 transform-gpu"
                     referrerPolicy="no-referrer"
                   />
                 ) : (

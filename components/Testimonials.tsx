@@ -75,7 +75,7 @@ const ReviewForm = () => {
               value={formData.clientName}
               onChange={e => setFormData({ ...formData, clientName: e.target.value })}
               className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-              placeholder="John Doe"
+              placeholder="Enter Your Name"
             />
           </div>
           <div className="space-y-2">
@@ -88,7 +88,7 @@ const ReviewForm = () => {
               value={formData.role}
               onChange={e => setFormData({ ...formData, role: e.target.value })}
               className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-              placeholder="CEO, TechCorp"
+              placeholder="E.g. CEO, Developer, Freelancer"
             />
           </div>
         </div>

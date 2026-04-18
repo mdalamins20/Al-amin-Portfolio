@@ -53,7 +53,7 @@ export const ManageBlogs: React.FC = () => {
       const blogData = {
         ...currentBlog,
         date: currentBlog.date || new Date().toISOString().split('T')[0],
-        author: currentBlog.author || 'Muhammad Al-amin'
+        author: currentBlog.author || 'Anonymous'
       };
 
       if (currentBlog.id) {
@@ -138,9 +138,10 @@ export const ManageBlogs: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-theme-text">Author Name</label>
                   <input
-                    value={currentBlog.author || 'Muhammad Al-amin'}
+                    value={currentBlog.author || ''}
                     onChange={e => setCurrentBlog({ ...currentBlog, author: e.target.value })}
                     className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
+                    placeholder="Enter Author Name"
                   />
                 </div>
               </div>
@@ -160,7 +161,16 @@ export const ManageBlogs: React.FC = () => {
                         ['link', 'image', 'code-block'],
                         ['clean']
                       ],
+                      clipboard: {
+                        matchVisual: false,
+                      }
                     }}
+                    formats={[
+                      'header',
+                      'bold', 'italic', 'underline', 'strike', 'blockquote',
+                      'list', 'indent',
+                      'link', 'image', 'code-block', 'align'
+                    ]}
                   />
                 </div>
               </div>
