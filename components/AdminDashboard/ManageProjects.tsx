@@ -147,6 +147,8 @@ export const ManageProjects: React.FC = () => {
                   initialValue={currentProject.image}
                   onUploadComplete={(url) => setCurrentProject({ ...currentProject, image: url })}
                   folder="projects"
+                  cropShape="rect"
+                  aspectRatio={16/9}
                 />
               </div>
               <div className="space-y-2">

@@ -132,6 +132,8 @@ export const ManageBlogs: React.FC = () => {
                   initialValue={currentBlog.image}
                   onUploadComplete={(url) => setCurrentBlog({ ...currentBlog, image: url })}
                   folder="blogs"
+                  cropShape="rect"
+                  aspectRatio={16/9}
                 />
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-theme-text">Author Name</label>

@@ -134,6 +134,8 @@ export const ManageSkills: React.FC = () => {
                   initialValue={currentSkill.icon}
                   onUploadComplete={(url) => setCurrentSkill({ ...currentSkill, icon: url })}
                   folder="skills"
+                  cropShape="rect"
+                  aspectRatio={1}
                 />
               </div>
               <div className="space-y-2">

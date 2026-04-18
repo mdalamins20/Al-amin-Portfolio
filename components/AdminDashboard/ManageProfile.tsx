@@ -151,6 +151,8 @@ export const ManageProfile: React.FC = () => {
                   initialValue={formData.image}
                   onUploadComplete={(url) => setFormData({ ...formData, image: url })}
                   folder="profile"
+                  cropShape="round"
+                  aspectRatio={1}
                 />
               </div>
             </motion.div>
