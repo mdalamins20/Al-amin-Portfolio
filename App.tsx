@@ -47,59 +47,57 @@ function ScrollAndAnimateRoutes() {
   }, [location]);
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Public Portfolio */}
-        <Route path="/" element={<MainPortfolio />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:id" element={<BlogPostDetail />} />
-        
-        {/* Admin Auth */}
-        <Route path="/admin-login" element={<AdminLogin />} />
-        
-        {/* Protected Admin Dashboard */}
-        <Route path="/admin-dashboard" element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <DashboardOverview />
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/admin-dashboard/projects" element={
-          <ProtectedRoute>
-            <AdminLayout><ManageProjects /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/admin-dashboard/skills" element={
-          <ProtectedRoute>
-            <AdminLayout><ManageSkills /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/admin-dashboard/blogs" element={
-          <ProtectedRoute>
-            <AdminLayout><ManageBlogs /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/admin-dashboard/reviews" element={
-          <ProtectedRoute>
-            <AdminLayout><ManageReviews /></AdminLayout>
-          </ProtectedRoute>
-        } />
+    <Routes location={location}>
+      {/* Public Portfolio */}
+      <Route path="/" element={<MainPortfolio />} />
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:id" element={<BlogPostDetail />} />
+      
+      {/* Admin Auth */}
+      <Route path="/admin-login" element={<AdminLogin />} />
+      
+      {/* Protected Admin Dashboard */}
+      <Route path="/admin-dashboard" element={
+        <ProtectedRoute>
+          <AdminLayout>
+            <DashboardOverview />
+          </AdminLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin-dashboard/projects" element={
+        <ProtectedRoute>
+          <AdminLayout><ManageProjects /></AdminLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin-dashboard/skills" element={
+        <ProtectedRoute>
+          <AdminLayout><ManageSkills /></AdminLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin-dashboard/blogs" element={
+        <ProtectedRoute>
+          <AdminLayout><ManageBlogs /></AdminLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin-dashboard/reviews" element={
+        <ProtectedRoute>
+          <AdminLayout><ManageReviews /></AdminLayout>
+        </ProtectedRoute>
+      } />
 
-        <Route path="/admin-dashboard/profile" element={
-          <ProtectedRoute>
-            <AdminLayout><ManageProfile /></AdminLayout>
-          </ProtectedRoute>
-        } />
+      <Route path="/admin-dashboard/profile" element={
+        <ProtectedRoute>
+          <AdminLayout><ManageProfile /></AdminLayout>
+        </ProtectedRoute>
+      } />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AnimatePresence>
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

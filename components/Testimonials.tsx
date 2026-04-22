@@ -9,9 +9,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TESTIMONIALS as FALLBACK_TESTIMONIALS } from '../constants';
 
 const ReviewForm = () => {
-  const [formData, setFormData] = useState({ clientName: '', role: '', content: '' });
+  const [formData, setFormData] = useState({ clientName: '', role: '', content: '', rating: 5 });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   if (!isConfigured) return null;
 
@@ -26,7 +27,7 @@ const ReviewForm = () => {
         createdAt: serverTimestamp()
       });
       setSubmitted(true);
-      setFormData({ clientName: '', role: '', content: '' });
+      setFormData({ clientName: '', role: '', content: '', rating: 5 });
     } catch (error) {
       console.error('Error submitting review:', error);
     } finally {
@@ -105,6 +106,33 @@ const ReviewForm = () => {
             className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text min-h-[120px]"
             placeholder="Tell us about your experience working with Alamin..."
           />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-theme-text flex items-center justify-center gap-2 mb-2">
+            Rate Your Experience
+          </label>
+          <div className="flex justify-center gap-2 pb-4">
+            {[1, 2, 3, 4, 5].map(star => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setFormData({ ...formData, rating: star })}
+                onMouseEnter={() => setHoveredRating(star)}
+                onMouseLeave={() => setHoveredRating(0)}
+                className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
+              >
+                <Star
+                  size={36}
+                  className={`${
+                    star <= (hoveredRating || formData.rating)
+                      ? 'text-yellow-400 fill-yellow-400'
+                      : 'text-slate-200 dark:text-slate-800'
+                  } transition-colors`}
+                />
+              </button>
+            ))}
+          </div>
         </div>
 
         <button
@@ -190,9 +218,9 @@ export const Testimonials: React.FC = () => {
                 transition={{ delay: i * 0.1 }}
                 className="bg-white dark:bg-slate-900/50 p-10 shadow-lg rounded-2xl border border-slate-100 dark:border-slate-800 relative"
               >
-                <div className="flex space-x-1 mb-6 text-amber-500">
-                    {[1,2,3,4,5].map(s => (
-                        <Star key={s} size={16} fill="currentColor" />
+                <div className="flex space-x-1 mb-6 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, s) => (
+                        <Star key={s} size={16} fill={s < (t.rating || 5) ? "currentColor" : "none"} className={s < (t.rating || 5) ? "text-amber-400" : "text-slate-200 dark:text-slate-800"} />
                     ))}
                 </div>
 

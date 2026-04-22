@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { Upload, X, CheckCircle2, Loader2, ImagePlus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -15,7 +16,8 @@ interface ImageUploadProps {
 export const ImageUpload: React.FC<ImageUploadProps> = ({ 
   onUploadComplete, 
   initialValue, 
-  label
+  label,
+  cropShape = 'rect'
 }) => {
   const [preview, setPreview] = useState(initialValue || '');
   const [processing, setProcessing] = useState(false);
@@ -50,16 +52,31 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             }
           }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            // Compress to base64 JPEG
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            resolve(dataUrl);
+          if (cropShape === 'round') {
+             // For round crop, make canvas square
+             const size = Math.min(width, height);
+             canvas.width = size;
+             canvas.height = size;
+             const ctx = canvas.getContext('2d');
+             if(ctx){
+                ctx.drawImage(img, (width - size) / 2, (height - size) / 2, size, size, 0, 0, size, size);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(dataUrl);
+             } else {
+                resolve(event.target?.result as string);
+             }
           } else {
-            resolve(event.target?.result as string);
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              // Compress to base64 JPEG
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              resolve(dataUrl);
+            } else {
+              resolve(event.target?.result as string);
+            }
           }
         };
         img.onerror = (error) => reject(error);
@@ -97,60 +114,81 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const isRound = cropShape === 'round';
+
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-theme-text">{label}</label>
+    <div className="space-y-3 w-full">
+      {label && <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block">{label}</label>}
       
-      <div className="relative group">
-        {preview ? (
-          <div className="relative w-full h-40 bg-theme-bg rounded-xl overflow-hidden border border-theme-border group">
-            <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 bg-white text-black rounded-full hover:bg-brand hover:text-white transition-all shadow-lg"
-                title="Change Image"
-              >
-                <Upload size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={removeImage}
-                className="p-2 bg-white text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all shadow-lg"
-                title="Remove Image"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            {processing && (
-              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white p-4">
-                <Loader2 className="animate-spin" size={24} />
+      <div className={`relative group mx-auto ${isRound ? 'w-48 h-48' : 'w-full h-48 md:h-56'}`}>
+        <AnimatePresence mode="wait">
+          {preview ? (
+            <motion.div 
+              key="preview"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`relative w-full h-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-white/10 overflow-hidden group shadow-sm ${isRound ? 'rounded-full aspect-square' : 'rounded-3xl'}`}
+            >
+              <img src={preview} alt="Upload preview" className="w-full h-full object-cover" />
+              
+              {/* Overlay on hover */}
+              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center hover:bg-brand hover:text-white hover:scale-110 shadow-lg transition-all"
+                  title="Change Image"
+                >
+                  <Upload size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 hover:scale-110 shadow-lg transition-all"
+                  title="Remove Image"
+                >
+                  <X size={18} />
+                </button>
               </div>
-            )}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={processing}
-            className="w-full h-40 border-2 border-dashed border-theme-border rounded-xl flex flex-col items-center justify-center gap-3 text-theme-dim hover:border-brand hover:text-brand transition-all bg-theme-bg/50"
-          >
-            {processing ? (
-              <Loader2 className="animate-spin text-brand" size={32} />
-            ) : (
-              <>
-                <div className="w-12 h-12 rounded-full bg-theme-bg flex items-center justify-center">
-                  <Upload size={24} />
+              
+              {processing && (
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+                  <Loader2 className="animate-spin text-brand" size={32} />
+                  <span className="text-xs font-bold mt-2 tracking-widest uppercase">Processing</span>
                 </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold">Click to select image</p>
-                  <p className="text-[10px] opacity-60">PNG, JPG (Max 5MB)</p>
-                </div>
-              </>
-            )}
-          </button>
-        )}
+              )}
+            </motion.div>
+          ) : (
+            <motion.button
+              key="upload"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={processing}
+              className={`w-full h-full border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100 hover:border-brand dark:hover:border-brand dark:hover:bg-slate-800/80 flex flex-col items-center justify-center gap-3 text-slate-500 transition-all shadow-sm ${isRound ? 'rounded-full aspect-square' : 'rounded-3xl'}`}
+            >
+              {processing ? (
+                 <div className="flex flex-col items-center">
+                    <Loader2 className="animate-spin text-brand mb-2" size={32} />
+                    <span className="text-xs font-bold tracking-widest uppercase text-slate-400">Processing</span>
+                 </div>
+              ) : (
+                <>
+                  <div className={`w-14 h-14 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center text-brand ${isRound ? 'rounded-full' : 'rounded-2xl'}`}>
+                    <ImagePlus size={24} />
+                  </div>
+                  <div className="text-center px-4">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Choose Image</p>
+                    {isRound && <p className="text-xs mt-1 opacity-70">Will be cropped square</p>}
+                  </div>
+                </>
+              )}
+            </motion.button>
+          )}
+        </AnimatePresence>
         
         <input
           type="file"
@@ -162,9 +200,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       </div>
       
       {preview && !processing && (
-        <div className="flex items-center gap-1.5 text-[10px] text-brand font-bold uppercase tracking-wider">
-          <CheckCircle2 size={12} />
-          Image Ready
+        <div className={`flex items-center gap-1.5 text-xs text-emerald-500 font-bold uppercase tracking-wider ${isRound ? 'justify-center' : ''} mt-2`}>
+          <CheckCircle2 size={14} />
+          <span>Uploaded</span>
         </div>
       )}
     </div>

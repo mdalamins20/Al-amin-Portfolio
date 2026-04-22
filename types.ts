@@ -42,6 +42,7 @@ export interface Review {
   clientName: string;
   role: string;
   content: string;
+  rating?: number;
   isApproved: boolean;
   createdAt?: any;
 }
