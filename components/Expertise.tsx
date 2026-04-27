@@ -30,11 +30,11 @@ export const Expertise: React.FC = () => {
         if (skillsData.length > 0) {
           setSkills(skillsData);
         } else {
-          setSkills([]);
+          setSkills(FALLBACK_TOOLS);
         }
       } catch (error) {
         console.error('Error fetching skills:', error);
-        setSkills([]);
+        setSkills(FALLBACK_TOOLS);
       } finally {
         setLoading(false);
       }

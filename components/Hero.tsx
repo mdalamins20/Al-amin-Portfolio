@@ -42,10 +42,11 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-serif font-black tracking-tight text-theme-text leading-[1.05] mb-8"
+            className="text-5xl md:text-7xl lg:text-8xl font-serif font-black tracking-tight text-theme-text leading-[1.05] mb-4"
           >
             {profile.firstName}{' '}
             <span className="text-brand">{profile.lastName}.</span>
+            <span className="block text-2xl md:text-4xl text-theme-dim font-sans font-medium mt-4">Full Stack Developer</span>
           </motion.h1>
 
           <motion.p

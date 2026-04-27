@@ -30,11 +30,11 @@ export const ProjectGrid: React.FC = () => {
         if (projectsData.length > 0) {
           setProjects(projectsData);
         } else {
-          setProjects([]);
+          setProjects(FALLBACK_PROJECTS);
         }
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setProjects([]);
+        setProjects(FALLBACK_PROJECTS);
       } finally {
         setLoading(false);
       }
