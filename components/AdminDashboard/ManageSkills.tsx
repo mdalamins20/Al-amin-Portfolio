@@ -156,6 +156,8 @@ export const ManageSkills: React.FC = () => {
                     folder="skills"
                     cropShape="rect"
                     aspectRatio={1}
+                    maxWidth={256}
+                    maxHeight={256}
                   />
                   </div>
                 </div>

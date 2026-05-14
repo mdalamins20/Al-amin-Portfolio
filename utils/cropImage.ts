@@ -46,7 +46,7 @@ export default async function getCroppedImg(
     targetHeight
   );
 
-  // Return as Base64 JPEG string with strong compression (0.7 quality)
-  // This helps ensure the payload stays well under Firestore's 1MB limit per document.
-  return canvas.toDataURL('image/jpeg', 0.7);
+  // Return as Base64 WebP string with 0.8 quality
+  // WebP supports transparency and provides better compression than JPEG.
+  return canvas.toDataURL('image/webp', 0.8);
 }

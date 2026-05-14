@@ -111,6 +111,24 @@ export const ManageProfile: React.FC = () => {
                       folder="profile"
                       cropShape="round"
                       aspectRatio={1}
+                      maxWidth={400}
+                      maxHeight={400}
+                    />
+                  </div>
+                </div>
+
+                <div className="shrink-0 space-y-4">
+                  <h3 className="font-bold text-slate-900 dark:text-white">Favicon Icon</h3>
+                  <div className="w-24 sm:w-32">
+                    <ImageUpload
+                      label=""
+                      initialValue={formData.favicon}
+                      onUploadComplete={(url) => setFormData({ ...formData, favicon: url })}
+                      folder="settings"
+                      cropShape="rect"
+                      aspectRatio={1}
+                      maxWidth={128}
+                      maxHeight={128}
                     />
                   </div>
                 </div>

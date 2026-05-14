@@ -90,6 +90,7 @@ export interface Profile {
   stats: Stat[];
   services: Service[];
   process: ProcessStep[];
+  favicon?: string;
 }
 
 export interface NavItem {

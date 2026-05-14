@@ -9,6 +9,7 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  favicon?: string;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -18,6 +19,7 @@ export const SEO: React.FC<SEOProps> = ({
   image,
   url,
   type = 'website',
+  favicon,
 }) => {
   const defaultTitle = `${USER_INFO.name} | ${USER_INFO.role}`;
   const defaultDescription = `Portfolio of ${USER_INFO.name}, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions.`;
@@ -32,12 +34,18 @@ export const SEO: React.FC<SEOProps> = ({
     image: image || defaultImage,
     url: url || defaultUrl,
     type,
+    favicon: favicon || '/favicon.ico',
   };
 
   const sameAsLinks = SOCIAL_LINKS.map(link => link.url);
 
   return (
     <Helmet>
+      {/* Favicon */}
+      <link rel="icon" type="image/x-icon" href={seo.favicon} />
+      <link rel="shortcut icon" type="image/x-icon" href={seo.favicon} />
+      <link rel="apple-touch-icon" href={seo.favicon} />
+
       {/* Primary Meta Tags */}
       <title>{seo.title}</title>
       <meta name="title" content={seo.title} />

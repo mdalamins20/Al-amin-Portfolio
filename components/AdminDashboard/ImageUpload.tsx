@@ -11,13 +11,19 @@ interface ImageUploadProps {
   folder?: string;
   cropShape?: 'rect' | 'round';
   aspectRatio?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({ 
   onUploadComplete, 
   initialValue, 
   label,
-  cropShape = 'rect'
+  cropShape = 'rect',
+  maxWidth = 1000,
+  maxHeight = 1000,
+  quality = 0.7
 }) => {
   const [preview, setPreview] = useState(initialValue || '');
   const [processing, setProcessing] = useState(false);
@@ -35,21 +41,15 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           let width = img.width;
           let height = img.height;
 
-          // Auto scale down to prevent Firestore 1MB document limit error, 
-          // while preserving the original aspect ratio exactly as you uploaded.
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          // Smart scaling to prevent large files and Firestore 1MB limit.
+          // For icons/logos, lower dimensions are better.
+          const finalMaxWidth = maxWidth;
+          const finalMaxHeight = maxHeight;
 
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+          if (width > finalMaxWidth || height > finalMaxHeight) {
+            const ratio = Math.min(finalMaxWidth / width, finalMaxHeight / height);
+            width *= ratio;
+            height *= ratio;
           }
 
           if (cropShape === 'round') {
@@ -59,8 +59,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
              canvas.height = size;
              const ctx = canvas.getContext('2d');
              if(ctx){
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
                 ctx.drawImage(img, (width - size) / 2, (height - size) / 2, size, size, 0, 0, size, size);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                const dataUrl = canvas.toDataURL('image/webp', quality);
                 resolve(dataUrl);
              } else {
                 resolve(event.target?.result as string);
@@ -70,9 +72,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             if (ctx) {
+              ctx.imageSmoothingEnabled = true;
+              ctx.imageSmoothingQuality = 'high';
               ctx.drawImage(img, 0, 0, width, height);
-              // Compress to base64 JPEG
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              // Compress to base64 WebP (supports transparency and better compression)
+              const dataUrl = canvas.toDataURL('image/webp', quality);
               resolve(dataUrl);
             } else {
               resolve(event.target?.result as string);

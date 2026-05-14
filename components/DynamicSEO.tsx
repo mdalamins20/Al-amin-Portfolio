@@ -53,6 +53,7 @@ export const DynamicSEO: React.FC = () => {
       description={description}
       keywords={allKeywords}
       image={profile?.image}
+      favicon={profile?.favicon}
     />
   );
 };
