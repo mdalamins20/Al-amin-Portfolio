@@ -26,6 +26,7 @@ import { DashboardOverview } from './components/AdminDashboard/DashboardOverview
 import { BlogPage } from './components/BlogPage';
 import { BlogPostDetail } from './components/BlogPostDetail';
 import { AnimatePresence } from 'framer-motion';
+import { CVPage } from './components/CVPage';
 
 import { DynamicSEO } from './components/DynamicSEO';
 
@@ -141,6 +142,10 @@ function MainPortfolio() {
         onClose={handleClosePopup}
         onCancel={handlePermanentDismiss}
       />
+
+      <AnimatePresence>
+        {showCV && <CVPage onClose={() => setShowCV(false)} />}
+      </AnimatePresence>
     </Layout>
   );
 }

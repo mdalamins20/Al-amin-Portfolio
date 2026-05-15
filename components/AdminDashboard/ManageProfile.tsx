@@ -6,12 +6,25 @@ import { Save, Loader2, Plus, Trash2, Globe, User, BookOpen, Star, Layers, Zap, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { getIconByName, ICON_NAMES } from '../IconMapper';
 import { ImageUpload } from './ImageUpload';
+import { ConfirmationModal } from './ConfirmationModal';
 
 export const ManageProfile: React.FC = () => {
   const { profile, loading, updateProfile } = useProfile();
   const [formData, setFormData] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'about' | 'social' | 'stats' | 'services' | 'process'>('basic');
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     if (profile) {
@@ -24,10 +37,20 @@ export const ManageProfile: React.FC = () => {
     setSaving(true);
     try {
       await updateProfile(formData);
-      alert('Profile updated successfully!');
+      setModalConfig({
+        isOpen: true,
+        title: 'Success!',
+        message: 'Profile updated successfully!',
+        type: 'success'
+      });
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to update profile.');
+      setModalConfig({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to update profile. Please try again.',
+        type: 'danger'
+      });
     } finally {
       setSaving(false);
     }
@@ -654,6 +677,15 @@ export const ManageProfile: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
+
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 };

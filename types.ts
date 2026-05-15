@@ -4,7 +4,7 @@ import { LucideIcon } from 'lucide-react';
 export interface Project {
   id: string;
   title: string;
-  category: string;
+  category?: string;
   description?: string; 
   link?: string;
   tags?: string[];
@@ -25,7 +25,7 @@ export interface Tool {
   name: string;
   tag: string;
   icon: string;
-  benefit: string;
+  benefit?: string;
 }
 
 export interface Blog {

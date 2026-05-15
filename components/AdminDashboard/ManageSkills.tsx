@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
+import { db, isConfigured } from '../../firebase';
 import { 
   collection, 
   addDoc, 
@@ -15,6 +15,7 @@ import { Tool } from '../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageUpload } from './ImageUpload';
+import { ConfirmationModal } from './ConfirmationModal';
 
 export const ManageSkills: React.FC = () => {
   const [skills, setSkills] = useState<Tool[]>([]);
@@ -22,12 +23,28 @@ export const ManageSkills: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentSkill, setCurrentSkill] = useState<Partial<Tool>>({});
   const [formLoading, setFormLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     fetchSkills();
   }, []);
 
   const fetchSkills = async () => {
+    if (!isConfigured || !db) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const q = query(collection(db, 'skills'), orderBy('name', 'asc'));
@@ -46,6 +63,7 @@ export const ManageSkills: React.FC = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db) return;
     setFormLoading(true);
     try {
       if (currentSkill.id) {
@@ -57,22 +75,41 @@ export const ManageSkills: React.FC = () => {
       setIsEditing(false);
       setCurrentSkill({});
       fetchSkills();
+      setModalConfig({
+        isOpen: true,
+        title: 'Success!',
+        message: 'Skill has been saved successfully.',
+        type: 'success'
+      });
     } catch (error) {
       console.error('Error saving skill:', error);
+      setModalConfig({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to save skill. Please try again.',
+        type: 'danger'
+      });
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this skill?')) {
-      try {
-        await deleteDoc(doc(db, 'skills', id));
-        fetchSkills();
-      } catch (error) {
-        console.error('Error deleting skill:', error);
+  const handleDelete = (id: string) => {
+    if (!db) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Skill',
+      message: 'Are you sure you want to delete this skill? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'skills', id));
+          fetchSkills();
+        } catch (error) {
+          console.error('Error deleting skill:', error);
+        }
       }
-    }
+    });
   };
 
   const openEdit = (skill: Tool) => {
@@ -162,16 +199,7 @@ export const ManageSkills: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Benefit / Summary</label>
-                  <input
-                    required
-                    value={currentSkill.benefit || ''}
-                    onChange={e => setCurrentSkill({ ...currentSkill, benefit: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
-                    placeholder="e.g. Building scalable interfaces"
-                  />
-                </div>
+
 
                 <div className="md:col-span-2 flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-white/10">
                   <button
@@ -197,7 +225,12 @@ export const ManageSkills: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
+        {!isConfigured ? (
+          <div className="md:col-span-3 py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
+             <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
+             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+          </div>
+        ) : loading ? (
           Array.from({ length: 6 }).map((_, i) => (
              <div key={i} className="h-24 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-2xl border border-slate-200 dark:border-white/10" />
           ))
@@ -246,6 +279,15 @@ export const ManageSkills: React.FC = () => {
           ))
         )}
       </div>
+      
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 };

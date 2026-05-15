@@ -96,12 +96,7 @@ export const ProjectGrid: React.FC = () => {
 
               <div className="p-8 md:p-10 flex-grow flex flex-col">
                 <div className="flex justify-between items-start mb-8">
-                   <div>
-                     <span className="px-4 py-1.5 bg-theme-card dark:bg-theme-bg text-theme-dim text-[10px] font-bold uppercase tracking-widest rounded-full border border-theme-border transition-colors group-hover:bg-brand/10 group-hover:text-brand group-hover:border-brand/20">
-                        {project.category}
-                     </span>
-                     <p className="text-[10px] font-bold text-theme-dim mt-4 uppercase tracking-widest">Role: {project.role}</p>
-                   </div>
+                   <div></div>
                    <span className="text-5xl font-serif font-bold text-theme-border/30 dark:text-theme-border/20 select-none transition-colors group-hover:text-brand/10">
                       {index + 1 < 10 ? `0${index + 1}` : index + 1}
                    </span>
@@ -115,12 +110,7 @@ export const ProjectGrid: React.FC = () => {
                      {project.description}
                    </p>
                    
-                   {project.result && (
-                     <div className="flex items-center space-x-2 text-brand mb-6">
-                        <CheckCircle2 size={16} />
-                        <span className="text-xs font-bold uppercase tracking-wider">{project.result}</span>
-                     </div>
-                   )}
+
 
                    <div className="flex flex-wrap gap-2">
                      {project.techStack?.map(tech => (

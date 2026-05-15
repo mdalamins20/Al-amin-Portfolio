@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
+import { db, isConfigured } from '../../firebase';
 import { 
   collection, 
   addDoc, 
@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { ImageUpload } from './ImageUpload';
+import { ConfirmationModal } from './ConfirmationModal';
 
 export const ManageBlogs: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -24,12 +25,28 @@ export const ManageBlogs: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentBlog, setCurrentBlog] = useState<Partial<Blog>>({});
   const [formLoading, setFormLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     fetchBlogs();
   }, []);
 
   const fetchBlogs = async () => {
+    if (!isConfigured || !db) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const q = query(collection(db, 'blogs'), orderBy('date', 'desc'));
@@ -48,6 +65,7 @@ export const ManageBlogs: React.FC = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db) return;
     setFormLoading(true);
     try {
       const blogData = {
@@ -65,22 +83,41 @@ export const ManageBlogs: React.FC = () => {
       setIsEditing(false);
       setCurrentBlog({});
       fetchBlogs();
+      setModalConfig({
+        isOpen: true,
+        title: 'Success!',
+        message: 'Blog post has been published successfully.',
+        type: 'success'
+      });
     } catch (error) {
       console.error('Error saving blog:', error);
+      setModalConfig({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to save blog post. Please try again.',
+        type: 'danger'
+      });
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this blog post?')) {
-      try {
-        await deleteDoc(doc(db, 'blogs', id));
-        fetchBlogs();
-      } catch (error) {
-        console.error('Error deleting blog:', error);
+  const handleDelete = (id: string) => {
+    if (!db) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Blog Post',
+      message: 'Are you sure you want to delete this blog post? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'blogs', id));
+          fetchBlogs();
+        } catch (error) {
+          console.error('Error deleting blog:', error);
+        }
       }
-    }
+    });
   };
 
   const openEdit = (blog: Blog) => {
@@ -222,7 +259,12 @@ export const ManageBlogs: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 gap-6">
-        {loading ? (
+        {!isConfigured ? (
+          <div className="py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
+             <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
+             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+          </div>
+        ) : loading ? (
           Array.from({ length: 3 }).map((_, i) => (
              <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-slate-200 dark:border-white/10" />
           ))
@@ -287,6 +329,15 @@ export const ManageBlogs: React.FC = () => {
           ))
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 };

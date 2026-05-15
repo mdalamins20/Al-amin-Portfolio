@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, CheckCircle2, Loader2, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ConfirmationModal } from './ConfirmationModal';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -28,6 +29,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const [preview, setPreview] = useState(initialValue || '');
   const [processing, setProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   const processImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -94,7 +106,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      alert('File is too large. Maximum size is 5MB.');
+      setModalConfig({
+        isOpen: true,
+        title: 'File Too Large',
+        message: 'The selected file is too large. Maximum size allowed is 5MB.',
+        type: 'danger'
+      });
       return;
     }
 
@@ -105,7 +122,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       onUploadComplete(base64Url);
     } catch (err) {
       console.error('Error processing image:', err);
-      alert('Failed to process image');
+      setModalConfig({
+        isOpen: true,
+        title: 'Upload Error',
+        message: 'Failed to process image. Please try another file.',
+        type: 'danger'
+      });
     } finally {
       setProcessing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -209,6 +231,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <span>Uploaded</span>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
+import { db, isConfigured } from '../../firebase';
 import { 
   collection, 
   addDoc, 
@@ -15,6 +15,7 @@ import { Project } from '../../types';
 import { Plus, Trash2, Edit2, ExternalLink, Save, X, Loader2, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageUpload } from './ImageUpload';
+import { ConfirmationModal } from './ConfirmationModal';
 
 export const ManageProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -22,12 +23,28 @@ export const ManageProjects: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentProject, setCurrentProject] = useState<Partial<Project>>({});
   const [formLoading, setFormLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
   const fetchProjects = async () => {
+    if (!isConfigured || !db) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const q = query(collection(db, 'projects'), orderBy('id', 'desc'));
@@ -46,6 +63,7 @@ export const ManageProjects: React.FC = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db) return;
     setFormLoading(true);
     try {
       if (currentProject.id) {
@@ -60,22 +78,41 @@ export const ManageProjects: React.FC = () => {
       setIsEditing(false);
       setCurrentProject({});
       fetchProjects();
+      setModalConfig({
+        isOpen: true,
+        title: 'Success!',
+        message: 'Project has been saved successfully.',
+        type: 'success'
+      });
     } catch (error) {
       console.error('Error saving project:', error);
+      setModalConfig({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to save project. Please try again.',
+        type: 'danger'
+      });
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        await deleteDoc(doc(db, 'projects', id));
-        fetchProjects();
-      } catch (error) {
-        console.error('Error deleting project:', error);
+  const handleDelete = (id: string) => {
+    if (!db) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Project',
+      message: 'Are you sure you want to delete this project? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'projects', id));
+          fetchProjects();
+        } catch (error) {
+          console.error('Error deleting project:', error);
+        }
       }
-    }
+    });
   };
 
   const openEdit = (project: Project) => {
@@ -136,16 +173,7 @@ export const ManageProjects: React.FC = () => {
                   placeholder="e.g. AI Branding Tool"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Category</label>
-                <input
-                  required
-                  value={currentProject.category || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, category: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
-                  placeholder="e.g. Automation"
-                />
-              </div>
+
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Description</label>
                 <textarea
@@ -176,24 +204,7 @@ export const ManageProjects: React.FC = () => {
                   placeholder="https://..."
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Role</label>
-                <input
-                  value={currentProject.role || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, role: e.target.value })}
-                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
-                  placeholder="e.g. Lead Architect"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Result</label>
-                <input
-                  value={currentProject.result || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, result: e.target.value })}
-                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
-                  placeholder="e.g. 30% growth"
-                />
-              </div>
+
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Tech Stack (comma separated)</label>
                 <input
@@ -228,7 +239,12 @@ export const ManageProjects: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
+        {!isConfigured ? (
+          <div className="md:col-span-3 py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
+             <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
+             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+          </div>
+        ) : loading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-[400px] bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-slate-200 dark:border-white/10" />
           ))
@@ -282,11 +298,7 @@ export const ManageProjects: React.FC = () => {
                   )}
               </div>
               <div className="p-6 flex-1 flex flex-col">
-                <div className="mb-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-slate-100 dark:border-white/5">
-                    {project.category}
-                  </span>
-                </div>
+
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand transition-colors line-clamp-1">{project.title}</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-4 flex-1 font-medium">{project.description}</p>
                 
@@ -305,6 +317,15 @@ export const ManageProjects: React.FC = () => {
           ))
         )}
       </div>
+      
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 };

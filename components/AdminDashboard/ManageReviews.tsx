@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
+import { db, isConfigured } from '../../firebase';
 import { 
   collection, 
   getDocs, 
@@ -13,16 +13,33 @@ import {
 import { Review } from '../../types';
 import { Trash2, CheckCircle, XCircle, MessageSquare, User, Clock, Star, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ConfirmationModal } from './ConfirmationModal';
 
 export const ManageReviews: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     fetchReviews();
   }, []);
 
   const fetchReviews = async () => {
+    if (!isConfigured || !db) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
@@ -40,6 +57,7 @@ export const ManageReviews: React.FC = () => {
   };
 
   const toggleApproval = async (id: string, currentStatus: boolean) => {
+    if (!db) return;
     try {
       await updateDoc(doc(db, 'reviews', id), {
         isApproved: !currentStatus
@@ -50,15 +68,22 @@ export const ManageReviews: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this review?')) {
-      try {
-        await deleteDoc(doc(db, 'reviews', id));
-        fetchReviews();
-      } catch (error) {
-        console.error('Error deleting review:', error);
+  const handleDelete = (id: string) => {
+    if (!db) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Review',
+      message: 'Are you sure you want to delete this review? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'reviews', id));
+          fetchReviews();
+        } catch (error) {
+          console.error('Error deleting review:', error);
+        }
       }
-    }
+    });
   };
 
   return (
@@ -69,7 +94,12 @@ export const ManageReviews: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {loading ? (
+        {!isConfigured ? (
+          <div className="py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
+             <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
+             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+          </div>
+        ) : loading ? (
           Array.from({ length: 4 }).map((_, i) => (
              <div key={i} className="h-40 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-slate-200 dark:border-white/10" />
           ))
@@ -167,6 +197,15 @@ export const ManageReviews: React.FC = () => {
           </AnimatePresence>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 };
