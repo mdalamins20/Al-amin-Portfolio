@@ -203,9 +203,9 @@ export const Testimonials: React.FC = () => {
           <p className="text-theme-dim font-medium">Loading testimonials...</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 gap-3 md:gap-8 max-w-5xl mx-auto">
           {reviews.length === 0 ? (
-            <div className="md:col-span-2 text-center py-10 bg-theme-card rounded-3xl border border-dashed border-theme-border">
+            <div className="col-span-2 text-center py-10 bg-theme-card rounded-3xl border border-dashed border-theme-border">
               <p className="text-theme-dim italic">No reviews yet. Be the first to share your experience!</p>
             </div>
           ) : (
@@ -216,29 +216,29 @@ export const Testimonials: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white dark:bg-slate-900/50 p-10 shadow-lg rounded-2xl border border-slate-100 dark:border-slate-800 relative"
+                className="bg-white dark:bg-slate-900/50 p-4 md:p-10 shadow-lg rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 relative flex flex-col"
               >
-                <div className="flex space-x-1 mb-6 text-amber-400">
+                <div className="flex space-x-0.5 md:space-x-1 mb-2 md:mb-6 text-amber-400">
                     {Array.from({ length: 5 }).map((_, s) => (
-                        <Star key={s} size={16} fill={s < (t.rating || 5) ? "currentColor" : "none"} className={s < (t.rating || 5) ? "text-amber-400" : "text-slate-200 dark:text-slate-800"} />
+                        <Star key={s} size={16} fill={s < (t.rating || 5) ? "currentColor" : "none"} className={`w-3 h-3 md:w-4 md:h-4 ${s < (t.rating || 5) ? "text-amber-400" : "text-slate-200 dark:text-slate-800"}`} />
                     ))}
                 </div>
 
-                <p className="text-lg md:text-xl text-slate-700 dark:text-slate-300 italic mb-8 leading-relaxed">
+                <p className="text-[10px] md:text-xl text-slate-700 dark:text-slate-300 italic mb-4 md:mb-8 leading-relaxed flex-grow line-clamp-4 md:line-clamp-none">
                   "{t.content}"
                 </p>
                 
                 <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold font-serif text-xl mr-4 uppercase">
+                    <div className="w-6 h-6 md:w-10 md:h-10 bg-gradient-to-br from-brand-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold font-serif text-[10px] md:text-xl mr-2 md:mr-4 uppercase shrink-0">
                         {t.clientName.charAt(0)}
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-900 dark:text-white">{t.clientName}</p>
-                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{t.role}</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-[10px] md:text-base text-slate-900 dark:text-white truncate">{t.clientName}</p>
+                      <p className="text-[7px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest truncate">{t.role}</p>
                     </div>
                 </div>
 
-                <Quote className="absolute top-8 right-8 w-10 h-10 text-brand-100 dark:text-brand-900/20" />
+                <Quote className="absolute top-4 right-4 md:top-8 md:right-8 w-4 h-4 md:w-10 md:h-10 text-brand-100 dark:text-brand-900/20" />
               </motion.div>
             ))
           )}

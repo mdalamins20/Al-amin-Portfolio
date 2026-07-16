@@ -27,7 +27,7 @@ export const Services: React.FC = () => {
         </h3>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-2 gap-3 md:gap-8">
         {profile.services.map((service, index) => {
           return (
             <motion.div
@@ -36,25 +36,27 @@ export const Services: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="relative p-10 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 will-change-transform transform-gpu"
+              className="relative p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 will-change-transform transform-gpu flex flex-col"
             >
-              <div className="flex items-start justify-between mb-8">
-                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-all duration-500 shadow-sm">
-                  {getIconByName(service.iconName, 32)}
+              <div className="flex items-start justify-between mb-4 md:mb-8">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-50 dark:bg-slate-800 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:bg-brand-600 group-hover:text-white transition-all duration-500 shadow-sm overflow-hidden shrink-0">
+                  <div className="scale-75 md:scale-100 flex items-center justify-center">
+                    {getIconByName(service.iconName, 32)}
+                  </div>
                 </div>
-                <span className="text-6xl font-serif font-black text-slate-100 dark:text-slate-800 transition-colors group-hover:text-brand-600/10">
+                <span className="text-4xl md:text-6xl font-serif font-black text-slate-100 dark:text-slate-800 transition-colors group-hover:text-brand-600/10">
                   0{index + 1}
                 </span>
               </div>
               
-              <h4 className="text-2xl font-bold text-slate-950 dark:text-white mb-4">
+              <h4 className="text-base md:text-2xl font-bold text-slate-950 dark:text-white mb-2 md:mb-4">
                 {service.title}
               </h4>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg font-medium">
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-xs md:text-lg font-medium flex-grow line-clamp-3 md:line-clamp-none">
                 {service.description}
               </p>
               {service.benefit && (
-                <p className="mt-4 text-brand text-sm font-bold uppercase tracking-widest">
+                <p className="mt-2 md:mt-4 text-brand text-[10px] md:text-sm font-bold uppercase tracking-widest line-clamp-1 md:line-clamp-none">
                   Benefit: {service.benefit}
                 </p>
               )}

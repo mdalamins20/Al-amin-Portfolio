@@ -14,6 +14,7 @@ import { ProjectGrid } from './components/ProjectGrid';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
+import { GithubStats } from './components/GithubStats';
 import { HirePopup } from './components/HirePopup';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminLayout } from './components/AdminDashboard/AdminLayout';
@@ -129,6 +130,7 @@ function MainPortfolio() {
     <Layout onViewCV={() => setShowCV(true)}>
       <DynamicSEO />
       <Hero />
+      <GithubStats />
       <ContentSections />
       <Expertise />
       <Services />

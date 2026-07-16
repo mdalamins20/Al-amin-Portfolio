@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProfile } from '../ProfileContext';
 import { Profile, SocialLink, Stat, Service, ProcessStep } from '../../types';
-import { Save, Loader2, Plus, Trash2, Globe, User, BookOpen, Star, Layers, Zap, Mail, Phone, CheckCircle2 } from 'lucide-react';
+import { Save, Loader2, Plus, Trash2, Globe, User, BookOpen, Star, Layers, Zap, Mail, Phone, CheckCircle2, Github, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getIconByName, ICON_NAMES } from '../IconMapper';
 import { ImageUpload } from './ImageUpload';
@@ -193,6 +193,58 @@ export const ManageProfile: React.FC = () => {
                   <input
                     value={formData.phone}
                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">GitHub Repositories Count</label>
+                <div className="relative">
+                  <Github className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    value={formData.githubReposCount || ''}
+                    onChange={e => setFormData({ ...formData, githubReposCount: e.target.value })}
+                    placeholder="e.g. 14"
+                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">GitHub Total Stars</label>
+                <div className="relative">
+                  <Star className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    value={formData.githubTotalStars || ''}
+                    onChange={e => setFormData({ ...formData, githubTotalStars: e.target.value })}
+                    placeholder="e.g. 120"
+                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">GitHub Total Forks</label>
+                <div className="relative">
+                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    value={formData.githubTotalForks || ''}
+                    onChange={e => setFormData({ ...formData, githubTotalForks: e.target.value })}
+                    placeholder="e.g. 35"
+                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2 pt-2 pb-4">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">GitHub Total Contributions</label>
+                <div className="relative w-full md:w-1/2">
+                  <Activity className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    value={formData.githubTotalContributions || ''}
+                    onChange={e => setFormData({ ...formData, githubTotalContributions: e.target.value })}
+                    placeholder="e.g. 1,250+"
                     className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
                   />
                 </div>

@@ -31,7 +31,11 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       ...s,
       iconName: s.title.toLowerCase().replace(/\s+/g, '-')
     })),
-    process: PROCESS
+    process: PROCESS,
+    githubReposCount: "14",
+    githubTotalStars: "120",
+    githubTotalForks: "35",
+    githubTotalContributions: "1,250+"
   };
 
   useEffect(() => {

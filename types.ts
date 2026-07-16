@@ -91,6 +91,10 @@ export interface Profile {
   services: Service[];
   process: ProcessStep[];
   favicon?: string;
+  githubReposCount?: string;
+  githubTotalStars?: string;
+  githubTotalForks?: string;
+  githubTotalContributions?: string;
 }
 
 export interface NavItem {

@@ -55,7 +55,7 @@ export const STRATEGIC_ABOUT = {
 };
 
 export const SOCIAL_LINKS = [
-  { name: 'GitHub', url: 'https://github.com/malaminA03', icon: Github },
+  { name: 'GitHub', url: 'https://github.com/mdalamins20', icon: Github },
   { name: 'LinkedIn', url: 'https://www.linkedin.com/in/mdalamins20/', icon: Linkedin },
   { name: 'Facebook', url: 'https://www.facebook.com/mdalamins20', icon: Facebook },
   { name: 'X', url: 'https://x.com/mdalamins20', icon: Twitter },
