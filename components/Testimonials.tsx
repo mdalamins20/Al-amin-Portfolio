@@ -1,24 +1,32 @@
-
 import React, { useState, useEffect } from 'react';
-import { SectionWrapper } from './SectionWrapper';
-import { Quote, Star, Loader2, Send, User, Briefcase, MessageSquare } from 'lucide-react';
 import { db, isConfigured } from '../firebase';
-import { collection, getDocs, query, where, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
-import { Review } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
-import { TESTIMONIALS as FALLBACK_TESTIMONIALS } from '../constants';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useData } from './DataContext';
+import { motion } from 'framer-motion';
+import { Star, Loader2, Send } from 'lucide-react';
+import { Captcha } from './Captcha';
 
 const ReviewForm = () => {
   const [formData, setFormData] = useState({ clientName: '', role: '', content: '', rating: 5 });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [isCaptchaValid, setIsCaptchaValid] = useState(false);
 
   if (!isConfigured) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     if (!db) return;
     e.preventDefault();
+    setErrorMessage(null);
+
+    if (!isCaptchaValid) {
+      setErrorMessage("Please complete the Human Verification correctly.");
+      return;
+    }
+
     setLoading(true);
     try {
       await addDoc(collection(db, 'reviews'), {
@@ -30,6 +38,7 @@ const ReviewForm = () => {
       setFormData({ clientName: '', role: '', content: '', rating: 5 });
     } catch (error) {
       console.error('Error submitting review:', error);
+      setErrorMessage("An error occurred. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -37,215 +46,172 @@ const ReviewForm = () => {
 
   if (submitted) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-green-500/10 border border-green-500/20 p-8 rounded-3xl text-center max-w-2xl mx-auto mt-12"
-      >
-        <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4">
-          <Star size={32} fill="currentColor" />
+      <div className="mt-section-padding max-w-3xl mx-auto text-center">
+        <div className="glass-card p-8 md:p-12 rounded-3xl bg-green-500/10 border-green-500/20">
+          <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4">
+            <Star size={32} fill="currentColor" />
+          </div>
+          <h4 className="text-2xl font-bold text-on-surface mb-2">Thank You!</h4>
+          <p className="text-text-secondary">Your review has been submitted and is pending approval.</p>
+          <button onClick={() => setSubmitted(false)} className="mt-6 text-primary font-bold hover:underline">
+            Submit another review
+          </button>
         </div>
-        <h4 className="text-2xl font-bold text-theme-text mb-2">Thank You!</h4>
-        <p className="text-theme-dim">Your review has been submitted and is pending approval. It will be visible once reviewed by the admin.</p>
-        <button 
-          onClick={() => setSubmitted(false)}
-          className="mt-6 text-brand font-bold hover:underline"
-        >
-          Submit another review
-        </button>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <div className="mt-20 max-w-2xl mx-auto">
-      <div className="text-center mb-10">
-        <h3 className="text-2xl md:text-3xl font-serif font-bold text-theme-text mb-2">Share Your Experience</h3>
-        <p className="text-theme-dim">Your feedback helps me improve and helps others trust my work.</p>
+    <div className="mt-section-padding max-w-3xl mx-auto relative group">
+      <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-tertiary/30 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+      <div className="glass-card p-8 md:p-12 rounded-[2.5rem] relative border border-white/20 dark:border-white/5 shadow-2xl">
+        <div className="text-center mb-10">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-label-bold uppercase tracking-widest mb-4">Leave a Review</span>
+          <h3 className="font-headline-md text-headline-md text-on-surface">Share Your Experience</h3>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Your Name</label>
+              <input
+                required
+                value={formData.clientName}
+                onChange={e => setFormData({ ...formData, clientName: e.target.value })}
+                className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium"
+                placeholder="Enter Your Name"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Your Role / Company</label>
+              <input
+                required
+                value={formData.role}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium"
+                placeholder="e.g. CEO, Developer, Freelancer"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Your Feedback</label>
+            <textarea
+              required
+              value={formData.content}
+              onChange={e => setFormData({ ...formData, content: e.target.value })}
+              className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium min-h-[140px] resize-y leading-relaxed"
+              placeholder="Tell us about your experience working with Al-amin..."
+              rows={4}
+            />
+          </div>
+
+          <Captcha onValidate={setIsCaptchaValid} />
+
+          {errorMessage && (
+             <div className="p-4 bg-error-container/20 text-error text-sm rounded-lg border border-error/50 flex items-center justify-center">
+                 <span className="mr-2">⚠️</span> {errorMessage}
+             </div>
+          )}
+
+          <div className="flex flex-col items-center gap-4 pt-4 border-t border-outline-variant/20">
+            <p className="text-xs font-label-bold text-text-secondary uppercase tracking-widest">Rate Your Experience</p>
+            <div className="flex gap-3">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, rating: star })}
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                  className="focus:outline-none transition-transform hover:scale-110"
+                >
+                  <Star
+                    size={28}
+                    className={`${
+                      star <= (hoveredRating || formData.rating)
+                        ? 'text-primary fill-primary'
+                        : 'text-surface-variant'
+                    } transition-colors`}
+                  />
+                </button>
+              ))}
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full max-w-xs mt-4 py-4 bg-primary-container text-white rounded-xl font-label-bold hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+              Submit Review
+            </button>
+          </div>
+        </form>
       </div>
-      
-      <form onSubmit={handleSubmit} className="bg-theme-card border border-theme-border p-8 rounded-[2.5rem] shadow-xl space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-theme-text flex items-center gap-2">
-              <User size={14} className="text-brand" />
-              Your Name
-            </label>
-            <input
-              required
-              value={formData.clientName}
-              onChange={e => setFormData({ ...formData, clientName: e.target.value })}
-              className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-              placeholder="Enter Your Name"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-theme-text flex items-center gap-2">
-              <Briefcase size={14} className="text-brand" />
-              Your Role / Company
-            </label>
-            <input
-              required
-              value={formData.role}
-              onChange={e => setFormData({ ...formData, role: e.target.value })}
-              className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text"
-              placeholder="E.g. CEO, Developer, Freelancer"
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-theme-text flex items-center gap-2">
-            <MessageSquare size={14} className="text-brand" />
-            Your Feedback
-          </label>
-          <textarea
-            required
-            value={formData.content}
-            onChange={e => setFormData({ ...formData, content: e.target.value })}
-            className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl outline-none focus:ring-2 focus:ring-brand text-theme-text min-h-[120px]"
-            placeholder="Tell us about your experience working with Alamin..."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-theme-text flex items-center justify-center gap-2 mb-2">
-            Rate Your Experience
-          </label>
-          <div className="flex justify-center gap-2 pb-4">
-            {[1, 2, 3, 4, 5].map(star => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setFormData({ ...formData, rating: star })}
-                onMouseEnter={() => setHoveredRating(star)}
-                onMouseLeave={() => setHoveredRating(0)}
-                className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
-              >
-                <Star
-                  size={36}
-                  className={`${
-                    star <= (hoveredRating || formData.rating)
-                      ? 'text-yellow-400 fill-yellow-400'
-                      : 'text-slate-200 dark:text-slate-800'
-                  } transition-colors`}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand hover:bg-brand-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-brand/20"
-        >
-          {loading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-          Submit Review
-        </button>
-      </form>
     </div>
   );
 };
 
 export const Testimonials: React.FC = () => {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchReviews = async () => {
-      if (!isConfigured || !db) {
-        setReviews(FALLBACK_TESTIMONIALS.map(t => ({ ...t, isApproved: true })));
-        setLoading(false);
-        return;
-      }
-      try {
-        // Fetch all reviews and filter/sort in memory to avoid index requirement
-        const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const reviewsData = querySnapshot.docs
-          .map(doc => ({
-            ...doc.data(),
-            id: doc.id
-          }))
-          .filter((review: any) => review.isApproved === true) as Review[];
-        
-        if (reviewsData.length > 0) {
-          setReviews(reviewsData);
-        } else {
-          setReviews(FALLBACK_TESTIMONIALS.map(t => ({ ...t, isApproved: true })));
-        }
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
-        setReviews(FALLBACK_TESTIMONIALS.map(t => ({ ...t, isApproved: true })));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReviews();
-  }, []);
+  const { testimonials, loading } = useData();
+  const approvedReviews = testimonials.filter(r => r.isApproved === true);
 
   return (
-    <SectionWrapper id="testimonials" className="py-24">
-      <div className="text-center mb-16">
-        <h2 className="text-brand-600 dark:text-brand-400 font-bold uppercase tracking-widest text-sm mb-3">
-            Testimonials
-        </h2>
-        <h3 className="text-3xl md:text-5xl font-serif font-bold text-slate-900 dark:text-white">
-          Trusted by Industry Leaders
-        </h3>
-      </div>
-
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="animate-spin text-brand" size={48} />
-          <p className="text-theme-dim font-medium">Loading testimonials...</p>
+    <section className="py-section-padding bg-surface-container-lowest">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
+        <div className="text-center mb-stack-lg">
+          <h2 className="font-headline-lg text-headline-lg text-on-surface">Trusted by <span className="gradient-text">Industry Leaders.</span></h2>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 md:gap-8 max-w-5xl mx-auto">
-          {reviews.length === 0 ? (
-            <div className="col-span-2 text-center py-10 bg-theme-card rounded-3xl border border-dashed border-theme-border">
-              <p className="text-theme-dim italic">No reviews yet. Be the first to share your experience!</p>
-            </div>
-          ) : (
-            reviews.map((t, i) => (
-              <motion.div 
-                key={t.id || i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white dark:bg-slate-900/50 p-4 md:p-10 shadow-lg rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 relative flex flex-col"
-              >
-                <div className="flex space-x-0.5 md:space-x-1 mb-2 md:mb-6 text-amber-400">
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-primary" size={48} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-lg">
+            {approvedReviews.length === 0 ? (
+              <div className="col-span-1 md:col-span-2 text-center py-10 glass-card rounded-3xl">
+                <p className="text-text-secondary italic">No reviews yet. Be the first to share your experience!</p>
+              </div>
+            ) : (
+              approvedReviews.map((t, i) => (
+                <motion.div 
+                  key={t.id || i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="glass-card p-10 rounded-3xl relative"
+                >
+                  <span className={`material-symbols-outlined text-6xl absolute top-6 right-8 ${i % 2 === 0 ? 'text-primary/20' : 'text-secondary/20'}`}>format_quote</span>
+                  
+                  <div className="flex space-x-1 mb-6">
                     {Array.from({ length: 5 }).map((_, s) => (
-                        <Star key={s} size={16} fill={s < (t.rating || 5) ? "currentColor" : "none"} className={`w-3 h-3 md:w-4 md:h-4 ${s < (t.rating || 5) ? "text-amber-400" : "text-slate-200 dark:text-slate-800"}`} />
+                      <Star key={s} size={16} fill={s < (t.rating || 5) ? "currentColor" : "none"} className={`w-4 h-4 ${s < (t.rating || 5) ? (i % 2 === 0 ? 'text-primary' : 'text-secondary') : 'text-surface-variant'}`} />
                     ))}
-                </div>
+                  </div>
 
-                <p className="text-[10px] md:text-xl text-slate-700 dark:text-slate-300 italic mb-4 md:mb-8 leading-relaxed flex-grow line-clamp-4 md:line-clamp-none">
-                  "{t.content}"
-                </p>
-                
-                <div className="flex items-center">
-                    <div className="w-6 h-6 md:w-10 md:h-10 bg-gradient-to-br from-brand-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold font-serif text-[10px] md:text-xl mr-2 md:mr-4 uppercase shrink-0">
-                        {t.clientName.charAt(0)}
+                  <p className="font-body-lg text-body-lg text-on-surface italic relative z-10 leading-relaxed min-h-[100px]">
+                    "{t.content}"
+                  </p>
+                  
+                  <div className="flex items-center gap-4 mt-8 pt-8 border-t border-outline-variant/10">
+                    <div className={`w-14 h-14 rounded-full bg-surface-elevated overflow-hidden border-2 flex items-center justify-center font-serif text-xl text-white font-bold uppercase ${i % 2 === 0 ? 'border-primary/20 bg-primary/20' : 'border-secondary/20 bg-secondary/20'}`}>
+                      {t.clientName.charAt(0)}
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-[10px] md:text-base text-slate-900 dark:text-white truncate">{t.clientName}</p>
-                      <p className="text-[7px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest truncate">{t.role}</p>
+                    <div>
+                      <p className="font-label-bold text-label-bold text-on-surface">{t.clientName}</p>
+                      <p className="text-text-secondary text-sm">{t.role}</p>
                     </div>
-                </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        )}
 
-                <Quote className="absolute top-4 right-4 md:top-8 md:right-8 w-4 h-4 md:w-10 md:h-10 text-brand-100 dark:text-brand-900/20" />
-              </motion.div>
-            ))
-          )}
-        </div>
-      )}
-
-      <ReviewForm />
-    </SectionWrapper>
+        <ReviewForm />
+      </div>
+    </section>
   );
 };

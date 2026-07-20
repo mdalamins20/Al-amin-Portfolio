@@ -12,10 +12,11 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Project } from '../../types';
-import { Plus, Trash2, Edit2, ExternalLink, Save, X, Loader2, Briefcase } from 'lucide-react';
+import { Plus, Trash2, Edit2, ExternalLink, Save, X, Loader2, Briefcase, Sparkles, Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
+import { generateProjectFromGithub } from '../../utils/aiService';
 
 export const ManageProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -35,6 +36,8 @@ export const ManageProjects: React.FC = () => {
     message: '',
     type: 'info'
   });
+  const [githubRepoUrl, setGithubRepoUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -120,6 +123,63 @@ export const ManageProjects: React.FC = () => {
     setIsEditing(true);
   };
 
+  const handleGithubImport = async () => {
+    if (!githubRepoUrl) return;
+    setIsImporting(true);
+    try {
+      let repoPath = githubRepoUrl.replace('https://github.com/', '').replace('http://github.com/', '');
+      if (repoPath.endsWith('/')) repoPath = repoPath.slice(0, -1);
+      
+      const response = await fetch(`https://api.github.com/repos/${repoPath}`);
+      if (!response.ok) throw new Error('Could not fetch repo data. Please check the URL.');
+      const data = await response.json();
+      
+      let readme = '';
+      try {
+        const readmeRes = await fetch(`https://raw.githubusercontent.com/${data.full_name}/main/README.md`);
+        if (readmeRes.ok) readme = await readmeRes.text();
+      } catch (e) {}
+
+      if (!readme) {
+        try {
+          const readmeRes = await fetch(`https://raw.githubusercontent.com/${data.full_name}/master/README.md`);
+          if (readmeRes.ok) readme = await readmeRes.text();
+        } catch (e) {}
+      }
+      
+      const combinedData = JSON.stringify({
+        name: data.name,
+        description: data.description,
+        language: data.language,
+        topics: data.topics,
+        readme: readme.substring(0, 4000) 
+      });
+
+      const generated = await generateProjectFromGithub(combinedData);
+      
+      setCurrentProject(prev => ({
+        ...prev,
+        title: generated.title || data.name,
+        description: generated.description || data.description,
+        longDescription: generated.longDescription || readme,
+        category: generated.category || 'Other',
+        techStack: generated.techStack ? generated.techStack.split(',').map((s: string) => s.trim()) : (data.topics || []),
+        features: generated.features ? generated.features.split(',').map((s: string) => s.trim()) : [],
+        privacyPolicy: generated.privacyPolicy || '',
+        link: githubRepoUrl
+      }));
+    } catch (err: any) {
+      setModalConfig({
+        isOpen: true,
+        title: 'Import Failed',
+        message: err.message || 'Failed to import from GitHub.',
+        type: 'danger'
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -147,7 +207,7 @@ export const ManageProjects: React.FC = () => {
             exit={{ opacity: 0, y: -20, height: 0 }}
             className="overflow-hidden mb-8"
           >
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+            <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
              {/* Subtle background glow */}
              <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
               <button 
@@ -158,34 +218,64 @@ export const ManageProjects: React.FC = () => {
                 <X size={24} />
               </button>
               
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 relative z-10">
+              <h2 className="text-2xl font-bold text-on-surface mb-8 relative z-10">
                 {currentProject.id ? 'Edit Project' : 'Add New Project'}
               </h2>
 
+              {!currentProject.id && (
+                <div className="mb-6 space-y-2 md:col-span-2 bg-gradient-to-r from-brand/5 to-purple-500/5 p-5 rounded-3xl border border-brand/20 relative z-10">
+                  <label className="text-sm font-bold text-brand flex items-center gap-2">
+                    <Sparkles size={16} />
+                    AI Magic: Generate from GitHub
+                  </label>
+                  <p className="text-xs text-on-surface-variant mb-2">Paste a GitHub repository link and AI will automatically analyze the code and write a highly detailed project description for you.</p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Github className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        value={githubRepoUrl}
+                        onChange={e => setGithubRepoUrl(e.target.value)}
+                        placeholder="https://github.com/username/repo"
+                        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface shadow-sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleGithubImport}
+                      disabled={isImporting || !githubRepoUrl}
+                      className="bg-brand text-white px-6 py-3 rounded-2xl flex items-center justify-center gap-2 font-bold hover:bg-brand-700 transition-colors disabled:opacity-50 shrink-0 shadow-lg shadow-brand/20"
+                    >
+                      {isImporting ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                      Analyze Code
+                    </button>
+                  </div>
+                </div>
+              )}
+
             <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Project Title</label>
+                <label className="text-sm font-bold text-on-surface-variant">Project Title</label>
                 <input
                   required
                   value={currentProject.title || ''}
                   onChange={e => setCurrentProject({ ...currentProject, title: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="e.g. AI Branding Tool"
                 />
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Description</label>
+                <label className="text-sm font-bold text-on-surface-variant">Description</label>
                 <textarea
                   required
                   value={currentProject.description || ''}
                   onChange={e => setCurrentProject({ ...currentProject, description: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm min-h-[120px] resize-y"
+                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm min-h-[120px] resize-y"
                   placeholder="Project overview..."
                 />
               </div>
-              <div className="space-y-2 md:col-span-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="font-bold text-slate-900 dark:text-white mb-4">Project Image</h3>
+              <div className="space-y-2 md:col-span-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-outline-variant shadow-sm">
+                <h3 className="font-bold text-on-surface mb-4">Project Image</h3>
                 <ImageUpload
                   label=""
                   initialValue={currentProject.image}
@@ -196,30 +286,30 @@ export const ManageProjects: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Project Link</label>
+                <label className="text-sm font-bold text-on-surface-variant">Project Link</label>
                 <input
                   value={currentProject.link || ''}
                   onChange={e => setCurrentProject({ ...currentProject, link: e.target.value })}
-                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="https://..."
                 />
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Tech Stack (comma separated)</label>
+                <label className="text-sm font-bold text-on-surface-variant">Tech Stack (comma separated)</label>
                 <input
                   value={currentProject.techStack?.join(', ') || ''}
                   onChange={e => setCurrentProject({ ...currentProject, techStack: e.target.value.split(',').map(s => s.trim()) })}
-                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="React, Firebase, Tailwind..."
                 />
               </div>
 
-              <div className="md:col-span-2 flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-white/10">
+              <div className="md:col-span-2 flex justify-end gap-3 mt-6 pt-6 border-t border-outline-variant">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-6 py-3 rounded-2xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                  className="px-6 py-3 rounded-2xl text-on-surface-variant font-bold hover:bg-surface-variant transition-all"
                 >
                   Cancel
                 </button>
@@ -242,19 +332,19 @@ export const ManageProjects: React.FC = () => {
         {!isConfigured ? (
           <div className="md:col-span-3 py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
              <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
-             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+             <p className="text-on-surface-variant">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[400px] bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-slate-200 dark:border-white/10" />
+            <div key={i} className="h-[400px] bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-outline-variant" />
           ))
         ) : projects.length === 0 ? (
           <div className="md:col-span-3 py-20 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
               <Briefcase size={32} className="text-brand opacity-80" />
             </div>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mb-2">No projects found</p>
-            <p className="text-slate-500 dark:text-slate-400">Click "Add Project" to build your portfolio.</p>
+            <p className="text-xl font-bold text-on-surface mb-2">No projects found</p>
+            <p className="text-on-surface-variant">Click "Add Project" to build your portfolio.</p>
           </div>
         ) : (
           projects.map((project, i) => (
@@ -264,7 +354,7 @@ export const ManageProjects: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               key={project.id}
-              className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-brand/40 hover:shadow-2xl transition-all shadow-sm flex flex-col relative"
+              className="group bg-surface border border-outline-variant rounded-3xl overflow-hidden hover:border-brand/40 hover:shadow-2xl transition-all shadow-sm flex flex-col relative"
             >
               <div className="aspect-[4/3] bg-slate-100 dark:bg-slate-800 relative overflow-hidden shrink-0">
                 {project.image ? (
@@ -299,8 +389,8 @@ export const ManageProjects: React.FC = () => {
               </div>
               <div className="p-6 flex-1 flex flex-col">
 
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand transition-colors line-clamp-1">{project.title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-4 flex-1 font-medium">{project.description}</p>
+                <h3 className="text-xl font-bold text-on-surface mb-2 group-hover:text-brand transition-colors line-clamp-1">{project.title}</h3>
+                <p className="text-on-surface-variant text-sm line-clamp-2 mb-4 flex-1 font-medium">{project.description}</p>
                 
                  {project.techStack && project.techStack.length > 0 && (
                   <div className="flex gap-2 flex-wrap pt-4 border-t border-slate-100 dark:border-white/5">

@@ -25,7 +25,7 @@ export const LoadingScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#02040a] flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center overflow-hidden">
       <div className="relative z-10 flex flex-col items-center">
         
         {/* User Image with Animated Border */}

@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if the user is an admin (authenticated)
+    function isAdmin() {
+      // Allows any authenticated user to write. 
+      // Since there is no "Sign Up" page, only users you create in Firebase Console can log in.
+      // For extra security, you can change this back to: return request.auth != null && request.auth.uid == 'YOUR_ACTUAL_UID';
+      return request.auth != null; 
+    }
+
+    // Function to ensure payload is not too large (prevents massive string attacks)
+    // Limits incoming document size to ~10KB
+    function isValidSize() {
+      return request.resource.size < 10000;
+    }
+
+    // 1. Blogs Collection
+    match /blogs/{blogId} {
+      allow read: if true; // Anyone can read blogs
+      // Allow likes/shares updates from client
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'shares']) || isAdmin();
+      allow create, delete: if isAdmin();
+    }
+
+    // 2. Projects Collection
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3. Profile & Settings Collections
+    match /profile/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3.1 Additional Data Collections
+    match /skills/{skillId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /experiences/{expId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Contact Messages (Spam & Injection Protection)
+    match /messages/{messageId} {
+      // Nobody can read messages except admin (from console)
+      allow read, update, delete: if isAdmin();
+      
+      // Anyone can create a message if it has the right fields and isn't too large
+      allow create: if isValidSize() 
+                    && request.resource.data.keys().hasAll(['name', 'email', 'message', 'createdAt'])
+                    && request.resource.data.name is string
+                    && request.resource.data.email is string
+                    && request.resource.data.message is string
+                    && request.resource.data.name.size() < 100
+                    && request.resource.data.email.size() < 100
+                    && request.resource.data.message.size() < 5000; // Max 5000 chars for message
+    }
+
+    // 5. Newsletter Subscribers (Spam & Injection Protection)
+    match /subscribers/{subscriberId} {
+      // Nobody can read the subscriber list except admin
+      allow read, update, delete: if isAdmin();
+      
+      // Anyone can subscribe, must be valid email format roughly and not too large
+      allow create: if isValidSize() 
+                    && request.resource.data.keys().hasAll(['email', 'subscribedAt'])
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() < 100
+                    && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$');
+    }
+    
+    // Default deny for anything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

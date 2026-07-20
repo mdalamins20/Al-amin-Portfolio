@@ -1,106 +1,145 @@
-
-import React, { useState, useEffect } from 'react';
-import { SectionWrapper } from './SectionWrapper';
-import { motion } from 'framer-motion';
-import { db, isConfigured } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Tool } from '../types';
-import { Loader2 } from 'lucide-react';
-import { TOOLS as FALLBACK_TOOLS } from '../constants';
+import { Loader2, LayoutGrid, Globe } from 'lucide-react';
+import TagCloud from 'TagCloud';
+import { useData } from './DataContext';
 
 export const Expertise: React.FC = () => {
-  const [skills, setSkills] = useState<Tool[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { skills, loading } = useData();
+  const [viewMode, setViewMode] = useState<'grid' | '3d'>('grid');
+  const cloudContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchSkills = async () => {
-      if (!isConfigured || !db) {
-        setSkills(FALLBACK_TOOLS);
-        setLoading(false);
-        return;
-      }
-      try {
-        const q = query(collection(db, 'skills'), orderBy('name', 'asc'));
-        const querySnapshot = await getDocs(q);
-        const skillsData = querySnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        })) as Tool[];
-        
-        if (skillsData.length > 0) {
-          setSkills(skillsData);
-        } else {
-          setSkills(FALLBACK_TOOLS);
-        }
-      } catch (error) {
-        console.error('Error fetching skills:', error);
-        setSkills(FALLBACK_TOOLS);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (viewMode === '3d' && !loading && skills.length > 0 && cloudContainerRef.current) {
+      cloudContainerRef.current.innerHTML = ''; 
 
-    fetchSkills();
-  }, []);
+      const radius = window.innerWidth < 768 ? 200 : 350;
+      
+      const texts = skills.map(s => s.name);
+      
+      const tc = TagCloud([cloudContainerRef.current] as any, texts, {
+        radius: radius,
+        maxSpeed: 'fast',
+        initSpeed: 'normal',
+        keep: true,
+      });
+
+      const items = cloudContainerRef.current.querySelectorAll('.tagcloud--item');
+      items.forEach((item, i) => {
+        const skill = skills[i];
+        if (skill) {
+          item.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-3 glass-card rounded-2xl hover:-translate-y-1 transition-transform cursor-pointer">
+              <img src="${skill.icon}" alt="${skill.name}" class="w-8 h-8 md:w-10 md:h-10 object-contain mb-2" />
+              <span class="text-[10px] md:text-xs font-label-bold text-on-surface">${skill.name}</span>
+            </div>
+          `;
+        }
+      });
+
+      return () => {
+        tc.destroy();
+      };
+    }
+  }, [viewMode, loading, skills]);
 
   return (
-    <SectionWrapper id="expertise" className="bg-slate-50 dark:bg-slate-900/30 rounded-[3.5rem] my-20 p-8 md:p-16 border border-slate-100 dark:border-white/5">
-      <div className="mb-20 text-center">
-        <div className="inline-block bg-brand-600/10 dark:bg-brand-600/20 rounded-lg px-4 py-1.5 mb-6">
-           <p className="text-[10px] font-mono font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">Industry Standard Tech Stack</p>
-        </div>
-        <h2 className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs mb-4">
-          Capabilities & Arsenal
+    <section id="expertise" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+      <div className="mb-stack-lg text-center">
+        <span className="font-label-bold text-label-bold text-primary tracking-widest uppercase mb-4 block">Capabilities & Arsenal</span>
+        <h2 className="font-headline-lg text-headline-lg text-on-surface mb-8">
+          Industry Standard <span className="gradient-text">Tech Stack.</span>
         </h2>
-        <h3 className="text-4xl md:text-7xl font-serif font-bold text-slate-900 dark:text-white tracking-tighter">
-          World-Class <span className="text-brand-600">Performance.</span>
-        </h3>
+        
+        <div className="flex justify-center mb-12">
+          <div className="flex bg-surface-container p-1 rounded-full border border-surface-variant/20">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-label-bold transition-all ${
+                viewMode === 'grid' ? 'bg-primary-container text-white' : 'text-text-secondary hover:text-on-surface'
+              }`}
+            >
+              <LayoutGrid size={16} />
+              Grid View
+            </button>
+            <button
+              onClick={() => setViewMode('3d')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-label-bold transition-all ${
+                viewMode === '3d' ? 'bg-primary-container text-white' : 'text-text-secondary hover:text-on-surface'
+              }`}
+            >
+              <Globe size={16} />
+              3D Sphere
+            </button>
+          </div>
+        </div>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="animate-spin text-brand" size={48} />
-          <p className="text-theme-dim font-medium">Loading expertise...</p>
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-primary" size={48} />
         </div>
       ) : skills.length === 0 ? (
-        <div className="text-center py-20 bg-theme-bg/50 rounded-[3rem] border border-dashed border-theme-border">
-          <p className="text-theme-dim italic">No skills listed yet.</p>
+        <div className="text-center py-20 glass-card rounded-3xl">
+          <p className="text-text-secondary italic">No skills listed yet.</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-6">
+      ) : viewMode === 'grid' ? (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
+        >
           {skills.map((tool, index) => (
             <motion.div
               key={tool.id || index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
               transition={{ delay: index * 0.05 }}
-              className="flex flex-col items-center justify-center p-4 md:p-10 bg-white dark:bg-slate-900/40 rounded-2xl md:rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-xl hover:border-brand-500/30 transition-all duration-300 group relative will-change-transform"
+              className="flex flex-col items-center justify-center p-6 glass-card rounded-2xl group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
             >
-              {/* Glow Effect (Optimized) */}
-              <div className="absolute inset-0 bg-brand-600/5 rounded-2xl md:rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               
-              <div className="w-10 h-10 md:w-20 md:h-20 flex items-center justify-center mb-3 md:mb-6 relative z-10">
+              <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mb-4 relative z-10">
                 <img 
                   src={tool.icon} 
                   alt={tool.name} 
                   loading="lazy"
-                  className="w-full h-full object-contain opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 transform-gpu group-hover:drop-shadow-lg" 
+                  className="w-full h-full object-contain opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-300" 
                 />
               </div>
               <div className="text-center relative z-10">
-                <h4 className="text-xs md:text-lg font-bold text-slate-900 dark:text-white mb-0.5 md:mb-1 group-hover:text-brand-600 transition-colors line-clamp-1">
+                <h4 className="text-sm md:text-base font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
                   {tool.name}
                 </h4>
-                <p className="text-[8px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 tracking-[0.25em] uppercase line-clamp-1">
+                <p className="text-[9px] font-black text-text-secondary tracking-widest uppercase">
                   {tool.tag}
                 </p>
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
+      ) : (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="flex justify-center items-center w-full min-h-[400px] md:min-h-[600px] overflow-hidden"
+        >
+          <div ref={cloudContainerRef} className="tagcloud-wrapper flex justify-center items-center font-body-md text-on-surface relative z-10">
+             <style>{`
+               .tagcloud--item {
+                 transition: transform 0.3s ease;
+               }
+               .tagcloud--item:hover {
+                 z-index: 100 !important;
+               }
+             `}</style>
+          </div>
+        </motion.div>
       )}
-    </SectionWrapper>
+    </section>
   );
 };

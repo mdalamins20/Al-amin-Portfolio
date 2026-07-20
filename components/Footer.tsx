@@ -1,103 +1,94 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { NAV_ITEMS } from '../constants';
-import { ArrowUp, FileText, Settings, Loader2 } from 'lucide-react';
 import { useProfile } from './ProfileContext';
 import { getIconByName } from './IconMapper';
 
-export const Footer: React.FC<{ onViewCV: () => void }> = ({ onViewCV }) => {
+export const Footer: React.FC = () => {
   const { profile, loading } = useProfile();
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  if (loading || !profile) {
-    return null; // Or a simple skeleton
-  }
+  if (loading || !profile) return null;
 
   return (
-    <footer className="bg-white dark:bg-[#050505] border-t border-neutral-200 dark:border-neutral-900 pt-20 pb-10 px-6 md:px-12">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-12 mb-20">
-          
-          <div className="md:col-span-2">
-            <h2 className="text-3xl font-serif text-neutral-900 dark:text-white mb-6">
-              {profile.name}<span className="text-brand-600">.</span>
-            </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mb-8">
-              {profile.supportingLine}
+    <footer className="relative w-full py-section-padding bg-surface border-t border-surface-variant/10">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-stack-lg">
+          {/* Brand Info */}
+          <div className="md:col-span-2 space-y-6">
+            <h2 className="font-headline-md text-headline-md font-bold text-on-surface">Al-amin.</h2>
+            <p className="text-text-secondary font-body-md max-w-sm">
+              I help startups and businesses build fast, modern, conversion-focused websites that scale effortlessly. Available for freelance and full-time opportunities.
             </p>
-            <div className="flex flex-wrap gap-3">
-              {profile.socialLinks.map((link) => {
+            <div className="flex gap-4 flex-wrap">
+              {(profile.socialLinks || []).map((link, index) => {
                 return (
                   <a 
-                    key={link.name} 
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer" 
+                    key={index}
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:text-primary transition-colors"
                     title={link.name}
-                    className="w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-neutral-500 hover:text-brand-600 hover:border-brand-600 dark:hover:text-brand-400 dark:hover:border-brand-400 transition-colors"
                   >
-                    {getIconByName(link.iconName, 18)}
+                    {getIconByName(link.iconName, 20)}
                   </a>
                 );
               })}
             </div>
           </div>
 
+          {/* Sitemap */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-900 dark:text-white mb-6">Sitemap</h3>
+            <h4 className="font-label-bold text-label-bold text-on-surface uppercase mb-6 tracking-widest">Sitemap</h4>
             <ul className="space-y-4">
-              {NAV_ITEMS.map((item) => (
-                <li key={item.label}>
-                  {item.isAction ? (
-                    <button 
-                      onClick={onViewCV}
-                      className="flex items-center space-x-2 text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-                    >
-                      <FileText size={14} />
-                      <span>{item.label}</span>
-                    </button>
-                  ) : (
-                    <Link to={item.href} className="text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                      {item.label}
-                    </Link>
-                  )}
-                </li>
-              ))}
-              <li>
-                <Link to="/admin-dashboard" className="text-xs font-bold uppercase tracking-widest text-theme-dim hover:text-brand transition-colors flex items-center gap-2">
-                  <Settings size={14} />
-                  <span>Admin Panel</span>
-                </Link>
-              </li>
+              <li><Link to="/#why-me" className="text-text-secondary hover:text-primary transition-colors">Why Me</Link></li>
+              <li><Link to="/#services" className="text-text-secondary hover:text-primary transition-colors">Services</Link></li>
+              <li><Link to="/#work" className="text-text-secondary hover:text-primary transition-colors">Work</Link></li>
+              <li><Link to="/#testimonials" className="text-text-secondary hover:text-primary transition-colors">Reviews</Link></li>
+              <li><Link to="/blog" className="text-text-secondary hover:text-primary transition-colors">Blog</Link></li>
             </ul>
           </div>
 
+          {/* Contact */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-900 dark:text-white mb-6">Contact</h3>
-            <ul className="space-y-4 text-neutral-500 dark:text-neutral-400">
-              <li className="font-bold text-slate-900 dark:text-white">{profile.email}</li>
-              <li>{profile.phone}</li>
-              <li>Dhaka, Bangladesh</li>
-              <li className="pt-4 text-[10px] font-black uppercase tracking-widest">Available for Remote / Freelance</li>
+            <h4 className="font-label-bold text-label-bold text-on-surface uppercase mb-6 tracking-widest">Contact</h4>
+            <ul className="space-y-4 list-none">
+              <li className="flex items-center gap-2 text-text-secondary">
+                <span className="material-symbols-outlined text-sm">mail</span>
+                {profile.email}
+              </li>
+              <li className="flex items-center gap-2 text-text-secondary">
+                <span className="material-symbols-outlined text-sm">call</span>
+                {profile.phone}
+              </li>
+              <li className="flex items-center gap-2 text-text-secondary">
+                <span className="material-symbols-outlined text-sm">location_on</span>
+                {profile.locationText || "Dhaka, Bangladesh"}
+              </li>
+              <li className="pt-4">
+                 <span className="bg-primary-container/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter">Available for Remote</span>
+              </li>
             </ul>
+            <div className="mt-8">
+              <button className="text-primary font-label-bold border-b border-primary hover:text-on-primary-container transition-colors uppercase tracking-widest">View CV</button>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-neutral-100 dark:border-neutral-900">
-          <p className="text-xs text-neutral-400 font-mono uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} {profile.name}. All Rights Reserved.
-          </p>
+        {/* Bottom Bar */}
+        <div className="mt-20 pt-8 border-t border-surface-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-text-secondary text-sm">© {new Date().getFullYear()} Muhammad Al-amin. All Rights Reserved.</p>
+          
+          <div className="flex gap-8">
+            <Link to="#" className="text-text-secondary hover:text-on-surface text-sm">Privacy Policy</Link>
+            <Link to="#" className="text-text-secondary hover:text-on-surface text-sm">Terms of Service</Link>
+            <Link to="/admin-login" className="text-text-secondary hover:text-on-surface text-sm">Admin Panel</Link>
+          </div>
           
           <button 
-            onClick={scrollToTop} 
-            className="mt-4 md:mt-0 flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-neutral-900 dark:text-white hover:text-brand-600 transition-colors"
+            onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
+            className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors uppercase font-label-bold tracking-widest text-xs"
           >
-            <span>Back to Top</span>
-            <ArrowUp size={14} />
+            Back To Top <span className="material-symbols-outlined text-sm">arrow_upward</span>
           </button>
         </div>
       </div>

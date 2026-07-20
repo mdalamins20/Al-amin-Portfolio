@@ -12,6 +12,20 @@ export interface Project {
   role?: string;
   result?: string;
   techStack?: string[];
+  longDescription?: string;
+  features?: string[];
+  screenshots?: string[];
+  privacyPolicy?: string;
+  platformLinks?: { name: string, url: string }[];
+}
+
+export interface Experience {
+  id?: string | number;
+  role: string;
+  company: string;
+  period: string;
+  description: string;
+  technologies: string[];
 }
 
 export interface Skill {
@@ -28,6 +42,13 @@ export interface Tool {
   benefit?: string;
 }
 
+export interface BlogComment {
+  id: string;
+  name: string;
+  text: string;
+  date: string;
+}
+
 export interface Blog {
   id?: string;
   title: string;
@@ -35,6 +56,9 @@ export interface Blog {
   image: string;
   date: string;
   author: string;
+  likes?: number;
+  shares?: number;
+  comments?: BlogComment[];
 }
 
 export interface Review {
@@ -79,6 +103,8 @@ export interface Profile {
   role: string;
   email: string;
   phone: string;
+  locationText?: string;
+  mapEmbedUrl?: string;
   tagline: string;
   image: string;
   supportingLine: string;
@@ -91,6 +117,7 @@ export interface Profile {
   services: Service[];
   process: ProcessStep[];
   favicon?: string;
+  githubUsername?: string;
   githubReposCount?: string;
   githubTotalStars?: string;
   githubTotalForks?: string;

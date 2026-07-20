@@ -45,7 +45,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+          className="relative w-full max-w-md bg-surface rounded-[2.5rem] shadow-2xl border border-outline-variant overflow-hidden"
         >
           {/* Header/Icon */}
           <div className="p-8 pb-4 text-center">
@@ -59,8 +59,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                <AlertCircle size={40} />}
             </div>
             
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
-            <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{message}</p>
+            <h3 className="text-2xl font-bold text-on-surface mb-2">{title}</h3>
+            <p className="text-on-surface-variant font-medium leading-relaxed">{message}</p>
           </div>
 
           {/* Footer Buttons */}
@@ -68,7 +68,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {!isAlert && (
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-4 rounded-2xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-all order-2 sm:order-1"
+                className="flex-1 px-6 py-4 rounded-2xl text-on-surface-variant font-bold hover:bg-surface-variant transition-all order-2 sm:order-1"
               >
                 {cancelText}
               </button>

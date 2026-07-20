@@ -4,32 +4,39 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { ThemeProvider } from './components/ThemeContext';
 import { AuthProvider } from './components/AuthContext';
 import { ProfileProvider } from './components/ProfileContext';
+import { DataProvider } from './components/DataContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Hero } from './components/Hero';
 import { ContentSections } from './components/ContentSections';
 import { Expertise } from './components/Expertise';
+import { ExperienceTimeline } from './components/ExperienceTimeline';
 import { Services } from './components/Services';
 import { ProjectGrid } from './components/ProjectGrid';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { GithubStats } from './components/GithubStats';
-import { HirePopup } from './components/HirePopup';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminLayout } from './components/AdminDashboard/AdminLayout';
 import { ManageProjects } from './components/AdminDashboard/ManageProjects';
+import { ManageExperience } from './components/AdminDashboard/ManageExperience';
 import { ManageSkills } from './components/AdminDashboard/ManageSkills';
 import { ManageBlogs } from './components/AdminDashboard/ManageBlogs';
 import { ManageReviews } from './components/AdminDashboard/ManageReviews';
 import { ManageProfile } from './components/AdminDashboard/ManageProfile';
+import { NotFound } from './components/NotFound';
+import { ProjectDetails } from './components/ProjectDetails';
 import { DashboardOverview } from './components/AdminDashboard/DashboardOverview';
 import { BlogPage } from './components/BlogPage';
 import { BlogPostDetail } from './components/BlogPostDetail';
+import { VisitorLog } from './components/VisitorLog';
 import { AnimatePresence } from 'framer-motion';
 import { CVPage } from './components/CVPage';
-
 import { DynamicSEO } from './components/DynamicSEO';
+import { CustomCursor } from './components/CustomCursor';
+import { PageTransition } from './components/PageTransition';
+import { WhatsAppButton } from './components/WhatsAppButton';
 
 function ScrollAndAnimateRoutes() {
   const location = useLocation();
@@ -37,113 +44,103 @@ function ScrollAndAnimateRoutes() {
   useEffect(() => {
     if (location.hash) {
       const id = location.hash.substring(1);
-      setTimeout(() => {
+      // Because AnimatePresence mode="wait" delays the mount of the new route,
+      // we need to wait until the old route exits and the new one renders.
+      const scrollToElement = () => {
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100);
+      };
+      
+      // Try after a short delay (if already on the page)
+      setTimeout(scrollToElement, 100);
+      // Try again after route transition is definitely done
+      setTimeout(scrollToElement, 600);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Defer scrolling to individual components so the exit animation doesn't jump to top
     }
   }, [location]);
 
   return (
-    <Routes location={location}>
-      {/* Public Portfolio */}
-      <Route path="/" element={<MainPortfolio />} />
-      <Route path="/blog" element={<BlogPage />} />
-      <Route path="/blog/:id" element={<BlogPostDetail />} />
-      
-      {/* Admin Auth */}
-      <Route path="/admin-login" element={<AdminLogin />} />
-      
-      {/* Protected Admin Dashboard */}
-      <Route path="/admin-dashboard" element={
-        <ProtectedRoute>
-          <AdminLayout>
-            <DashboardOverview />
-          </AdminLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin-dashboard/projects" element={
-        <ProtectedRoute>
-          <AdminLayout><ManageProjects /></AdminLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin-dashboard/skills" element={
-        <ProtectedRoute>
-          <AdminLayout><ManageSkills /></AdminLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin-dashboard/blogs" element={
-        <ProtectedRoute>
-          <AdminLayout><ManageBlogs /></AdminLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin-dashboard/reviews" element={
-        <ProtectedRoute>
-          <AdminLayout><ManageReviews /></AdminLayout>
-        </ProtectedRoute>
-      } />
+    <AnimatePresence mode="wait">
+      <VisitorLog />
+      <Routes location={location} key={location.pathname}>
+        {/* Public Portfolio */}
+        <Route path="/" element={<PageTransition><MainPortfolio /></PageTransition>} />
+        <Route path="/project/:id" element={<PageTransition><ProjectDetails /></PageTransition>} />
+        <Route path="/blog" element={<PageTransition><BlogPage /></PageTransition>} />
+        <Route path="/blog/:id" element={<PageTransition><BlogPostDetail /></PageTransition>} />
+        
+        {/* Admin Auth */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        
+        {/* Protected Admin Dashboard */}
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <DashboardOverview />
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin-dashboard/projects" element={
+          <ProtectedRoute>
+            <AdminLayout><ManageProjects /></AdminLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin-dashboard/experience" element={
+          <ProtectedRoute>
+            <AdminLayout><ManageExperience /></AdminLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin-dashboard/skills" element={
+          <ProtectedRoute>
+            <AdminLayout><ManageSkills /></AdminLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin-dashboard/blogs" element={
+          <ProtectedRoute>
+            <AdminLayout><ManageBlogs /></AdminLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin-dashboard/reviews" element={
+          <ProtectedRoute>
+            <AdminLayout><ManageReviews /></AdminLayout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/admin-dashboard/profile" element={
-        <ProtectedRoute>
-          <AdminLayout><ManageProfile /></AdminLayout>
-        </ProtectedRoute>
-      } />
+        <Route path="/admin-dashboard/profile" element={
+          <ProtectedRoute>
+            <AdminLayout><ManageProfile /></AdminLayout>
+          </ProtectedRoute>
+        } />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
   );
 }
 
 function MainPortfolio() {
   const [showCV, setShowCV] = useState(false);
-  const [isHirePopupVisible, setIsHirePopupVisible] = useState(false);
-  const [isPermanentlyDismissed, setIsPermanentlyDismissed] = useState(() => {
-    return localStorage.getItem('hire-popup-dismissed') === 'true';
-  });
-
-  useEffect(() => {
-    if (!isPermanentlyDismissed) {
-      const timer = setTimeout(() => {
-        setIsHirePopupVisible(true);
-      }, 30000);
-      return () => clearTimeout(timer);
-    }
-  }, [isPermanentlyDismissed]);
-
-  const handleClosePopup = () => setIsHirePopupVisible(false);
-  const handlePermanentDismiss = () => {
-    setIsHirePopupVisible(false);
-    setIsPermanentlyDismissed(true);
-    localStorage.setItem('hire-popup-dismissed', 'true');
-  };
 
   return (
     <Layout onViewCV={() => setShowCV(true)}>
-      <DynamicSEO />
-      <Hero />
+      <Hero onViewCV={() => setShowCV(true)} />
       <GithubStats />
       <ContentSections />
       <Expertise />
+      <ExperienceTimeline />
       <Services />
       <ProjectGrid />
       <Testimonials />
       <ContactSection />
-      <Footer onViewCV={() => setShowCV(true)} />
-      
-      <HirePopup 
-        isVisible={isHirePopupVisible} 
-        onClose={handleClosePopup}
-        onCancel={handlePermanentDismiss}
-      />
 
       <AnimatePresence>
         {showCV && <CVPage onClose={() => setShowCV(false)} />}
@@ -157,9 +154,14 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <ProfileProvider>
-          <Router>
-            <ScrollAndAnimateRoutes />
-          </Router>
+          <DataProvider>
+            <Router>
+              <CustomCursor />
+              <WhatsAppButton />
+              <DynamicSEO />
+              <ScrollAndAnimateRoutes />
+            </Router>
+          </DataProvider>
         </ProfileProvider>
       </AuthProvider>
     </ThemeProvider>

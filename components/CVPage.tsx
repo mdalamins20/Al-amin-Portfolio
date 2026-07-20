@@ -2,56 +2,36 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { USER_INFO, ABOUT_ME, TOOLS, PROJECTS, STRATEGIC_ABOUT } from '../constants';
-import { Mail, Phone, MapPin, Printer, ArrowLeft, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Printer, ArrowLeft, Loader2, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import { useProfile } from './ProfileContext';
-import { db, isConfigured } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Project, Tool } from '../types';
+import { useData } from './DataContext';
 
 export const CVPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { profile } = useProfile();
-  const [dynamicProjects, setDynamicProjects] = useState<Project[]>([]);
-  const [dynamicSkills, setDynamicSkills] = useState<Tool[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { projects: dynamicProjects, skills: dynamicSkills, loading } = useData();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!isConfigured || !db) {
-        setDynamicProjects(PROJECTS);
-        setDynamicSkills(TOOLS);
-        setLoading(false);
-        return;
-      }
+  const [isDownloading, setIsDownloading] = useState(false);
 
-      try {
-        const projectsQuery = query(collection(db, 'projects'), orderBy('id', 'desc'));
-        const projectsSnap = await getDocs(projectsQuery);
-        const projectsData = projectsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Project[];
-        
-        const skillsQuery = query(collection(db, 'skills'), orderBy('name', 'asc'));
-        const skillsSnap = await getDocs(skillsQuery);
-        const skillsData = skillsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Tool[];
-
-        setDynamicProjects(projectsData.length > 0 ? projectsData : PROJECTS);
-        setDynamicSkills(skillsData.length > 0 ? skillsData : TOOLS);
-      } catch (error) {
-        console.error('Error fetching CV data:', error);
-        setDynamicProjects(PROJECTS);
-        setDynamicSkills(TOOLS);
-      } finally {
-        setLoading(false);
-      }
+  const handlePrint = async () => {
+    setIsDownloading(true);
+    const element = document.getElementById('cv-content-container');
+    const opt = {
+      margin:       [10, 0, 10, 0] as [number, number, number, number],
+      filename:     `${cvProfile.name.replace(/\s+/g, '_')}_Resume.pdf`,
+      image:        { type: 'jpeg' as const, quality: 1 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     };
 
-    fetchData();
-  }, []);
-
-  const handlePrint = () => {
-    document.body.classList.add('is-printing-cv');
-    window.print();
-    setTimeout(() => {
-        document.body.classList.remove('is-printing-cv');
-    }, 1000);
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const cvProfile = profile || {
@@ -120,9 +100,9 @@ export const CVPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         }
       `}</style>
 
-      <div className="max-w-[210mm] min-h-[297mm] mx-auto py-12 px-10 md:px-16 bg-white relative cv-container shadow-2xl my-10 print:my-0">
+      <div id="cv-content-container" className="max-w-[210mm] min-h-[297mm] mx-auto py-12 px-10 md:px-16 bg-white relative cv-container shadow-2xl my-10 print:my-0">
         
-        <div className="flex justify-between items-center mb-10 print-hidden">
+        <div data-html2canvas-ignore className="flex justify-between items-center mb-10 print-hidden">
           <button 
             onClick={onClose}
             className="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
@@ -132,10 +112,11 @@ export const CVPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </button>
           <button 
             onClick={handlePrint}
-            className="bg-brand-600 text-white px-6 py-3 rounded-full flex items-center space-x-2 text-xs font-bold uppercase tracking-widest hover:bg-brand-700 transition-all shadow-lg shadow-brand-600/20"
+            disabled={isDownloading}
+            className="bg-brand-600 text-white px-6 py-3 rounded-full flex items-center space-x-2 text-xs font-bold uppercase tracking-widest hover:bg-brand-700 transition-all shadow-lg shadow-brand-600/20 disabled:opacity-50"
           >
-            <Printer size={16} />
-            <span>Save as PDF / Print</span>
+            {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            <span>{isDownloading ? 'Generating...' : 'Download Resume'}</span>
           </button>
         </div>
 

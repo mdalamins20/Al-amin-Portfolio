@@ -112,7 +112,17 @@ export const PROJECTS: Project[] = [
     result: 'Reduced manual design time by 65%.',
     techStack: ['Python', 'AI Integration', 'Node.js'],
     link: '#project-01',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
+    longDescription: '<h2>Overview</h2><p>AI Auto Branding Tool is a revolutionary platform designed to completely automate the graphic design and branding process for small to medium businesses. By leveraging state-of-the-art machine learning models, it generates pixel-perfect social media posts, logos, and banners based on a simple text prompt.</p><h3>The Challenge</h3><p>Design teams often spend countless hours doing repetitive tasks. Our goal was to create an autonomous engine that could handle the heavy lifting while maintaining brand consistency.</p>',
+    features: ['Real-time AI Asset Generation', 'Brand Color Extraction', 'Automated Social Media Scheduling', 'Analytics Dashboard'],
+    screenshots: [
+      'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&q=80&w=800'
+    ],
+    platformLinks: [
+      { name: 'Live Web App', url: 'https://example.com' },
+      { name: 'App Store', url: '#' }
+    ]
   },
   { 
     id: '02', 
@@ -209,6 +219,33 @@ export const STATS: Stat[] = [
   { value: "25", suffix: "+", label: "Projects Delivered" },
   { value: "100", suffix: "%", label: "Client Satisfaction" }, 
   { value: "24", suffix: "/7", label: "Strategic Support" }, 
+];
+
+export const EXPERIENCE = [
+  {
+    id: 1,
+    role: "Full Stack Developer",
+    company: "Freelance / Independent",
+    period: "2022 - Present",
+    description: "Architecting and developing custom web applications, specialized portfolios, and business solutions using React, Node.js, and Firebase.",
+    technologies: ["React", "TypeScript", "Node.js", "Firebase", "Tailwind CSS"]
+  },
+  {
+    id: 2,
+    role: "Frontend Web Developer",
+    company: "Tech Solutions BD",
+    period: "2021 - 2022",
+    description: "Developed highly responsive, interactive user interfaces for various client projects ensuring pixel-perfect designs.",
+    technologies: ["JavaScript", "React", "CSS3", "HTML5"]
+  },
+  {
+    id: 3,
+    role: "Security Enthusiast & Scripter",
+    company: "Self-Taught",
+    period: "2020 - 2021",
+    description: "Explored cybersecurity concepts, wrote automation scripts in Python, and managed Linux servers.",
+    technologies: ["Python", "Bash", "Linux", "Kali"]
+  }
 ];
 
 export const PROCESS = [

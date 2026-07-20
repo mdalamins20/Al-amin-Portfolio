@@ -14,9 +14,14 @@ import {
   X,
   User,
   ShieldAlert,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon,
+  Key
 } from 'lucide-react';
+import { useTheme } from '../ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AISettingsModal } from './AISettingsModal';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -24,8 +29,10 @@ interface AdminLayoutProps {
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleMode } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -46,7 +53,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] flex text-slate-800 dark:text-slate-200 font-sans selection:bg-brand/30">
+    <div className="min-h-screen bg-background flex text-on-surface font-sans selection:bg-brand/30">
       {/* Decorative Background Glows */}
       <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-brand/20 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none mix-blend-screen" />
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none mix-blend-screen" />
@@ -54,7 +61,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Mobile Sidebar Toggle */}
       <button 
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-4 right-4 z-50 p-2.5 bg-white dark:bg-slate-900 text-brand rounded-xl border border-slate-200 dark:border-white/10 shadow-lg backdrop-blur-md"
+        className="lg:hidden fixed top-4 right-4 z-50 p-2.5 bg-surface text-brand rounded-xl border border-outline-variant shadow-lg backdrop-blur-md"
       >
         {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -75,7 +82,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:sticky top-0 left-0 h-screen z-40
-        w-72 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200 dark:border-white/10
+        w-72 bg-surface/80 backdrop-blur-xl border-r border-outline-variant
         transform transition-transform duration-500 ease-out shadow-2xl lg:shadow-none
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
@@ -84,7 +91,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="flex items-center gap-4 mb-12">
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand to-purple-500 rounded-2xl blur opacity-70 group-hover:opacity-100 transition duration-200"></div>
-              <div className="w-12 h-12 relative rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-brand font-black text-2xl border border-slate-100 dark:border-white/10 shadow-inner">
+              <div className="w-12 h-12 relative rounded-2xl bg-surface flex items-center justify-center text-brand font-black text-2xl border border-outline-variant shadow-inner">
                 A
               </div>
             </div>
@@ -109,7 +116,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300
                     ${isActive 
                       ? 'bg-gradient-to-r from-brand/10 to-transparent dark:from-brand/20 dark:to-brand/5 border border-brand/20 text-brand shadow-sm shadow-brand/5' 
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white border border-transparent'}
+                      : 'text-on-surface-variant hover:bg-surface-variant hover:text-slate-900 dark:hover:text-white border border-transparent'}
                   `}
                 >
                   <div className="flex items-center gap-3">
@@ -122,20 +129,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             })}
           </nav>
 
-          <div className="mt-auto pt-6 border-t border-slate-200 dark:border-white/10">
+          <div className="mt-auto pt-6 border-t border-outline-variant">
+            <button
+              onClick={toggleMode}
+              className="w-full mb-3 flex items-center justify-between px-4 py-3 rounded-xl bg-surface-variant text-on-surface-variant font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-sm"
+            >
+              <span>{mode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+              {mode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <button
+              onClick={() => setIsAISettingsOpen(true)}
+              className="w-full mb-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand to-purple-600 text-white font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-brand/20"
+            >
+              <Key size={16} />
+              API Settings
+            </button>
             <Link 
-              to="/" 
-              className="w-full mb-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-black/10 dark:shadow-white/10"
+              to="/"  
+              className="w-full mb-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-on-surface text-surface font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-black/10 dark:shadow-white/10"
             >
               View Live Site
             </Link>
             
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 mb-3">
-              <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-variant border border-outline-variant mb-3">
+              <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-outline-variant flex items-center justify-center text-slate-500">
                 <User size={14} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Admin Account</p>
+                <p className="text-xs font-bold text-on-surface truncate">Admin Account</p>
                 <p className="text-[10px] text-slate-500 truncate">{auth.currentUser?.email}</p>
               </div>
             </div>
@@ -163,6 +184,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </motion.div>
         </div>
       </main>
+      <AISettingsModal isOpen={isAISettingsOpen} onClose={() => setIsAISettingsOpen(false)} />
     </div>
   );
 };

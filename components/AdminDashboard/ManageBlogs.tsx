@@ -12,12 +12,13 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Blog } from '../../types';
-import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
+import { generateFullBlogPost } from '../../utils/aiService';
 
 export const ManageBlogs: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -37,6 +38,7 @@ export const ManageBlogs: React.FC = () => {
     message: '',
     type: 'info'
   });
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   useEffect(() => {
     fetchBlogs();
@@ -125,16 +127,47 @@ export const ManageBlogs: React.FC = () => {
     setIsEditing(true);
   };
 
+  const handleAIGenerateBlog = async () => {
+    if (!currentBlog.title) {
+      setModalConfig({
+        isOpen: true,
+        title: 'Topic Required',
+        message: 'Please enter a topic in the Blog Title field first!',
+        type: 'danger'
+      });
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const generated = await generateFullBlogPost(currentBlog.title);
+      setCurrentBlog(prev => ({
+        ...prev,
+        title: generated.title,
+        content: generated.content,
+        image: prev.image || generated.image || ''
+      }));
+    } catch (err: any) {
+      setModalConfig({
+        isOpen: true,
+        title: 'Generation Failed',
+        message: err.message || 'Failed to generate blog.',
+        type: 'danger'
+      });
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Manage Blogs</h1>
-          <p className="text-slate-500 dark:text-slate-400">Share your thoughts, articles, and latest updates.</p>
+          <h1 className="text-3xl font-bold text-on-surface mb-2">Manage Blogs</h1>
+          <p className="text-on-surface-variant">Share your thoughts, articles, and latest updates.</p>
         </div>
         <button
           onClick={() => {
-            setCurrentBlog({});
+            setCurrentBlog({ author: 'Muhammad Al-amin' });
             setIsEditing(true);
           }}
           className="bg-brand hover:scale-105 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-transform shadow-lg shadow-brand/20 active:scale-95"
@@ -154,7 +187,7 @@ export const ManageBlogs: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-sm relative mb-8 overflow-hidden">
+            <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm relative mb-8 overflow-hidden">
              {/* Subtle background glow */}
              <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
               <button 
@@ -165,25 +198,36 @@ export const ManageBlogs: React.FC = () => {
                 <X size={24} />
               </button>
               
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 relative z-10">
+              <h2 className="text-2xl font-bold text-on-surface mb-8 relative z-10">
                 {currentBlog.id ? 'Edit Blog Post' : 'Write New Blog Post'}
               </h2>
 
               <form onSubmit={handleSave} className="grid grid-cols-1 gap-6 relative z-10">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Blog Title</label>
+                  <div className="flex justify-between items-end mb-2">
+                    <label className="text-sm font-bold text-on-surface-variant">Blog Title / Topic</label>
+                    <button
+                      type="button"
+                      onClick={handleAIGenerateBlog}
+                      disabled={aiGenerating}
+                      className="text-xs flex items-center gap-1.5 bg-gradient-to-r from-brand/10 to-purple-500/10 text-brand px-3 py-1.5 rounded-lg hover:from-brand hover:to-purple-600 hover:text-white transition-all font-bold"
+                    >
+                      {aiGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                      AI Write Full Blog
+                    </button>
+                  </div>
                   <input
                     required
                     value={currentBlog.title || ''}
                     onChange={e => setCurrentBlog({ ...currentBlog, title: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm text-lg font-bold"
+                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm text-lg font-bold"
                     placeholder="e.g. The Future of AI in Web Development"
                   />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h3 className="font-bold text-slate-900 dark:text-white mb-4">Blog Feature Image</h3>
+                  <div className="space-y-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-outline-variant shadow-sm">
+                    <h3 className="font-bold text-on-surface mb-4">Blog Feature Image</h3>
                     <ImageUpload
                       label=""
                       initialValue={currentBlog.image}
@@ -195,18 +239,18 @@ export const ManageBlogs: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Author Name</label>
+                    <label className="text-sm font-bold text-on-surface-variant">Author Name</label>
                     <input
                       value={currentBlog.author || ''}
                       onChange={e => setCurrentBlog({ ...currentBlog, author: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                       placeholder="Enter Author Name"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Content (Rich Text Editor)</label>
+                  <label className="text-sm font-bold text-on-surface-variant">Content (Rich Text Editor)</label>
                   <div className="bg-white text-black rounded-2xl border border-slate-200 overflow-hidden min-h-[350px]">
                     <ReactQuill 
                       theme="snow"
@@ -235,11 +279,11 @@ export const ManageBlogs: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-outline-variant">
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-6 py-3 rounded-2xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                    className="px-6 py-3 rounded-2xl text-on-surface-variant font-bold hover:bg-surface-variant transition-all"
                   >
                     Cancel
                   </button>
@@ -262,19 +306,19 @@ export const ManageBlogs: React.FC = () => {
         {!isConfigured ? (
           <div className="py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
              <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
-             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+             <p className="text-on-surface-variant">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-             <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-slate-200 dark:border-white/10" />
+             <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-outline-variant" />
           ))
         ) : blogs.length === 0 ? (
           <div className="py-20 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
               <BookOpen size={32} className="text-brand opacity-80" />
             </div>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mb-2">No blog posts yet</p>
-            <p className="text-slate-500 dark:text-slate-400">Click "New Post" to write your first article.</p>
+            <p className="text-xl font-bold text-on-surface mb-2">No blog posts yet</p>
+            <p className="text-on-surface-variant">Click "New Post" to write your first article.</p>
           </div>
         ) : (
           blogs.map((blog, i) => (
@@ -284,7 +328,7 @@ export const ManageBlogs: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               key={blog.id}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 flex flex-col md:flex-row gap-6 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm relative overflow-hidden"
+              className="bg-surface border border-outline-variant rounded-3xl p-6 flex flex-col md:flex-row gap-6 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm relative overflow-hidden"
             >
               <div className="w-full md:w-56 overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 group-hover:shadow-md transition-shadow">
                 <div className="w-full h-full relative" style={{ paddingBottom: '70%' }}>
@@ -292,20 +336,20 @@ export const ManageBlogs: React.FC = () => {
                 </div>
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <div className="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5 whitespace-nowrap bg-slate-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                <div className="flex items-center gap-4 text-xs font-bold text-on-surface-variant mb-3 uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 whitespace-nowrap bg-surface-variant px-2.5 py-1 rounded-md">
                     <Calendar size={14} className="text-brand" />
                     <span>{blog.date}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 whitespace-nowrap bg-slate-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                  <div className="flex items-center gap-1.5 whitespace-nowrap bg-surface-variant px-2.5 py-1 rounded-md">
                     <User size={14} className="text-brand" />
                     <span>{blog.author}</span>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-brand transition-colors line-clamp-2">{blog.title}</h3>
+                <h3 className="text-2xl font-bold text-on-surface mb-3 group-hover:text-brand transition-colors line-clamp-2">{blog.title}</h3>
                 
                 {/* Text stripping for preview */}
-                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base leading-relaxed line-clamp-2">
+                <p className="text-on-surface-variant text-sm md:text-base leading-relaxed line-clamp-2">
                     {blog.content ? blog.content.replace(/<[^>]+>/g, '').substring(0, 150) + '...' : ''}
                 </p>
               </div>

@@ -103,7 +103,7 @@ export const getIconByName = (name: string, size = 20, className = "") => {
     home: Home
   };
 
-  const IconComponent = icons[name.toLowerCase().replace(/\s+/g, '')] || Globe;
+  const IconComponent = icons[(name || '').toLowerCase().replace(/\s+/g, '')] || Globe;
   return <IconComponent size={size} className={className} />;
 };
 

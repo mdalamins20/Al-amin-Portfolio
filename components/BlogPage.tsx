@@ -1,45 +1,51 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, User, ArrowRight, Loader2, BookOpen } from 'lucide-react';
-import { db, isConfigured } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { Blog } from '../types';
+import { Mail, ArrowRight, Calendar } from 'lucide-react';
 import { Layout } from './Layout';
 import { SectionWrapper } from './SectionWrapper';
 import { Link, useNavigate } from 'react-router-dom';
 import { SEO } from './SEO';
+import { useData } from './DataContext';
+import { db, isConfigured } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { Blog } from '../types';
 
 export const BlogPage: React.FC = () => {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { blogs, loading } = useData();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      if (!isConfigured || !db) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const q = query(collection(db, 'blogs'), orderBy('date', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const blogsData = querySnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        })) as Blog[];
-        setBlogs(blogsData);
-      } catch (error) {
-        console.error('Error fetching blogs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [email, setEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
-    fetchBlogs();
-  }, []);
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !isConfigured) return;
+    
+    // Rate Limiting (Spam Protection)
+    const lastSubscribed = localStorage.getItem('lastSubscribed');
+    if (lastSubscribed && Date.now() - parseInt(lastSubscribed) < 60000 * 60) {
+      alert("You have already subscribed recently. Please try again later.");
+      return;
+    }
 
-  // Safe HTML stripping to avoid regex catastrophic backtracking
+    setSubscribing(true);
+    try {
+      await addDoc(collection(db, 'subscribers'), {
+        email,
+        source: 'blog_page_banner',
+        subscribedAt: serverTimestamp()
+      });
+      setSubscribed(true);
+      setEmail('');
+      localStorage.setItem('lastSubscribed', Date.now().toString());
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   const stripHtmlAndTruncate = (html: string, maxLength: number) => {
     if (!html) return '';
     try {
@@ -50,87 +56,340 @@ export const BlogPage: React.FC = () => {
     }
   };
 
+  const getReadingTime = (content: string) => {
+    return Math.max(1, Math.ceil((content || '').replace(/<[^>]*>?/gm, '').split(/\s+/).length / 200));
+  };
+
+  const getCategoryColor = (index: number) => {
+    const colors = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'];
+    return colors[index % colors.length];
+  };
+
+  const featuredBlog = blogs[0];
+  const bentoGridBlogs = blogs.slice(1, 5); // Next 4 posts for bento grid
+  const standardBlogs = blogs.slice(5); // Remaining posts
+
+  const NewsletterBanner = () => (
+    <div className="bg-brand rounded-3xl overflow-hidden relative mb-16 md:mb-24 shadow-xl border border-brand/20 w-full max-w-[1200px] mx-auto">
+      {/* Desktop Newsletter */}
+      <div className="hidden md:flex items-center justify-between p-12">
+        <div className="z-10 w-[55%] text-white">
+          <h3 className="text-3xl font-serif font-bold mb-4">Stay ahead of the Vibe.</h3>
+          <p className="text-white/90 mb-8 leading-relaxed text-[15px]">
+            Get weekly insights into the future of software engineering, system architecture, and tech leadership delivered to your inbox. No spam, promise!
+          </p>
+          
+          {subscribed ? (
+            <div className="bg-white/20 text-white px-6 py-4 rounded-xl font-bold inline-block border border-white/30 backdrop-blur-sm">
+              Thanks for subscribing! 🎉
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribe} className="flex gap-3 w-full max-w-md">
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Your email address" 
+                className="flex-1 bg-white dark:bg-slate-900 rounded-xl px-5 py-4 text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-brand/30 font-medium"
+                required
+              />
+              <button 
+                type="submit" 
+                disabled={subscribing}
+                className="bg-slate-900 dark:bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-black transition-colors shrink-0 disabled:opacity-50"
+              >
+                {subscribing ? 'Wait...' : 'Subscribe Here'}
+              </button>
+            </form>
+          )}
+        </div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[20%] opacity-[0.07] pointer-events-none">
+          <Mail size={380} />
+        </div>
+      </div>
+
+      {/* Mobile Newsletter */}
+      <div className="md:hidden p-8 text-center text-white relative z-10 flex flex-col items-center">
+        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm border border-white/20">
+          <Mail size={32} />
+        </div>
+        <h3 className="text-2xl font-serif font-bold mb-4">Stay ahead of the Vibe.</h3>
+        <p className="text-white/90 text-sm mb-8 leading-relaxed">
+          Get weekly insights into the future of tech and leadership delivered to your inbox.
+        </p>
+        
+        {subscribed ? (
+          <div className="bg-white/20 text-white w-full px-6 py-4 rounded-xl font-bold border border-white/30">
+            Thanks! 🎉
+          </div>
+        ) : (
+          <form onSubmit={handleSubscribe} className="flex flex-col gap-3 w-full">
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Your email address" 
+              className="w-full bg-theme-bg dark:bg-slate-900 rounded-xl px-5 py-4 text-theme-text dark:text-white outline-none text-center font-medium"
+              required
+            />
+            <button 
+              type="submit" 
+              disabled={subscribing}
+              className="w-full bg-brand-50 text-brand py-4 rounded-xl font-bold transition-colors disabled:opacity-50 text-base hover:bg-white"
+            >
+              {subscribing ? 'Wait...' : 'Subscribe Here'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <Layout onViewCV={() => {}}>
       <SEO 
-        title="Journal & Blogs" 
-        description="Read the latest articles, tutorials, and insights by Muhammad Al-amin, an expert Full Stack Web Developer."
+        title="The Journal - Blog & Insights" 
+        description="প্রযুক্তি এবং ডিজাইনের ভবিষ্যৎ নিয়ে আমাদের চিন্তা, টিউটোরিয়াল এবং অন্তর্দৃষ্টি।"
       />
-      <div className="pt-32 pb-20">
-        <SectionWrapper id="blog-header">
-          <div className="text-center mb-20">
-            <h2 className="text-brand font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs mb-3">Insights & Thoughts</h2>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-theme-text">
-              The Digital <span className="text-brand">Journal.</span>
-            </h1>
-            <p className="text-theme-dim mt-6 max-w-2xl mx-auto">Sharing my experiences, tutorials, and thoughts on the future of technology and design.</p>
-          </div>
+      <div className="pt-2 md:pt-16 pb-20 w-full overflow-hidden bg-theme-bg">
+        
+        {/* Header */}
+        <div className="text-center mb-10 md:mb-16 px-4">
+          <h1 className="text-[40px] md:text-[64px] font-serif font-black text-theme-text tracking-tight mb-2 md:mb-4">
+            The Journal<span className="text-brand">.</span>
+          </h1>
+          <p className="text-theme-dim text-sm md:text-base">Thoughts, tutorials, and insights on the future of tech and design.</p>
+        </div>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="animate-spin text-brand" size={48} />
-              <p className="text-theme-dim font-medium">Loading articles...</p>
-            </div>
-          ) : blogs.length === 0 ? (
-            <div className="text-center py-20 bg-theme-card rounded-[3rem] border border-dashed border-theme-border">
-              <BookOpen size={48} className="mx-auto text-theme-dim mb-4 opacity-20" />
-              <p className="text-theme-dim">No articles published yet. Stay tuned!</p>
-              <Link to="/" className="mt-6 inline-flex items-center gap-2 text-brand font-bold hover:underline">
-                Back to Home
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {blogs.map((blog, index) => (
-                <motion.article
-                  key={blog.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group bg-theme-card border border-theme-border rounded-[2.5rem] overflow-hidden hover:border-brand/50 transition-all duration-300 flex flex-col cursor-pointer will-change-transform"
-                  onClick={() => navigate(`/blog/${blog.id}`)}
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
+          </div>
+        ) : blogs.length === 0 ? (
+          <div className="text-center py-20 text-theme-dim">No articles published yet.</div>
+        ) : (
+          <div className="max-w-[1200px] mx-auto px-4 md:px-8">
+            
+            {/* FEATURED POST */}
+            {featuredBlog && (
+              <motion.article
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group cursor-pointer mb-16 md:mb-24 relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-theme-card shadow-2xl w-full mx-auto aspect-[1.1] md:aspect-[2.2] border border-theme-border"
+                onClick={() => navigate(`/blog/${featuredBlog.id}`)}
+              >
+                <img 
+                  src={featuredBlog.image} 
+                  alt={featuredBlog.title} 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80 md:opacity-100"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-14 z-10 flex flex-col items-start md:w-[70%]">
+                  <span className="bg-brand text-white px-3 py-1.5 text-[10px] md:text-xs font-bold rounded mb-4 md:mb-6 uppercase tracking-widest">
+                    Featured Article
+                  </span>
+                  <h2 className="text-2xl md:text-[44px] font-serif font-bold text-white mb-3 md:mb-6 leading-[1.2] drop-shadow-md">
+                    {featuredBlog.title}
+                  </h2>
+                  <p className="text-white/80 text-sm md:text-lg mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 font-bengali leading-relaxed drop-shadow">
+                    {stripHtmlAndTruncate(featuredBlog.content, 200)}
+                  </p>
+                  <button className="hidden md:flex bg-theme-card text-theme-text px-6 py-3 rounded-full font-bold text-xs tracking-wider items-center gap-2 hover:bg-theme-bg transition-colors shadow-lg border border-theme-border">
+                    READ FULL ARTICLE <ArrowRight size={16} />
+                  </button>
+                </div>
+              </motion.article>
+            )}
+
+            {/* DESKTOP BENTO GRID (Hidden on mobile) */}
+            {bentoGridBlogs.length >= 4 && (
+              <div className="hidden md:grid grid-cols-12 grid-rows-2 gap-8 mb-24">
+                {/* 1. Tall Left Card (Span 4 cols, 2 rows) */}
+                <article 
+                  className="col-span-4 row-span-2 group cursor-pointer bg-theme-card rounded-[2rem] overflow-hidden shadow-lg border border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  onClick={() => navigate(`/blog/${bentoGridBlogs[0].id}`)}
                 >
-                  <div className="aspect-[16/10] overflow-hidden relative">
-                    <img 
-                      src={blog.image} 
-                      alt={blog.title} 
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 transform-gpu"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="w-full h-[50%] overflow-hidden mb-6 bg-theme-border/20">
+                    <img src={bentoGridBlogs[0].image} alt={bentoGridBlogs[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
-                  <div className="p-8 flex-1 flex flex-col">
-                    <div className="flex items-center gap-4 text-[10px] font-bold text-theme-dim uppercase tracking-widest mb-4">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar size={12} className="text-brand" />
-                        <span>{blog.date}</span>
+                  <div className="px-8 pb-8">
+                    <span style={{color: getCategoryColor(0)}} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">
+                      {(bentoGridBlogs[0] as any).category || 'Technology'}
+                    </span>
+                    <h3 className="text-[26px] font-serif font-bold text-theme-text mb-4 leading-[1.3] group-hover:text-brand transition-colors">
+                      {bentoGridBlogs[0].title}
+                    </h3>
+                    <p className="text-theme-dim line-clamp-3 leading-relaxed mb-6 font-bengali text-[15px]">
+                      {stripHtmlAndTruncate(bentoGridBlogs[0].content, 150)}
+                    </p>
+                    <span className="text-[#8B5CF6] font-bold text-xs flex items-center gap-2 group-hover:gap-3 transition-all uppercase tracking-widest">
+                      READ <ArrowRight size={14} />
+                    </span>
+                  </div>
+                </article>
+
+                {/* 2. Top Middle Square (Span 4 cols, 1 row) */}
+                <article 
+                  className="col-span-4 row-span-1 group cursor-pointer bg-theme-card rounded-[2rem] overflow-hidden shadow-lg border border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  onClick={() => navigate(`/blog/${bentoGridBlogs[1].id}`)}
+                >
+                  <div className="w-full aspect-video overflow-hidden bg-theme-border/20 shrink-0">
+                    <img src={bentoGridBlogs[1].image} alt={bentoGridBlogs[1].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  </div>
+                  <div className="px-6 py-5 flex-1 flex flex-col justify-center">
+                    <span style={{color: getCategoryColor(1)}} className="font-bold text-[10px] uppercase tracking-widest mb-2 block">
+                      {(bentoGridBlogs[1] as any).category || 'Development'}
+                    </span>
+                    <h3 className="text-xl font-serif font-bold text-theme-text line-clamp-2 leading-snug group-hover:text-brand transition-colors mb-2">
+                      {bentoGridBlogs[1].title}
+                    </h3>
+                    <p className="text-theme-dim text-sm line-clamp-2 font-bengali">
+                      {stripHtmlAndTruncate(bentoGridBlogs[1].content, 100)}
+                    </p>
+                  </div>
+                </article>
+
+                {/* 3. Top Right Square (Span 4 cols, 1 row) */}
+                <article 
+                  className="col-span-4 row-span-1 group cursor-pointer bg-theme-card rounded-[2rem] overflow-hidden shadow-lg border border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  onClick={() => navigate(`/blog/${bentoGridBlogs[2].id}`)}
+                >
+                  <div className="w-full aspect-video overflow-hidden bg-theme-border/20 shrink-0">
+                    <img src={bentoGridBlogs[2].image} alt={bentoGridBlogs[2].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  </div>
+                  <div className="px-6 py-5 flex-1 flex flex-col justify-center">
+                    <span style={{color: getCategoryColor(2)}} className="font-bold text-[10px] uppercase tracking-widest mb-2 block">
+                      {(bentoGridBlogs[2] as any).category || 'UI/UX'}
+                    </span>
+                    <h3 className="text-xl font-serif font-bold text-theme-text line-clamp-2 leading-snug group-hover:text-brand transition-colors mb-2">
+                      {bentoGridBlogs[2].title}
+                    </h3>
+                    <p className="text-theme-dim text-sm line-clamp-2 font-bengali">
+                      {stripHtmlAndTruncate(bentoGridBlogs[2].content, 100)}
+                    </p>
+                  </div>
+                </article>
+
+                {/* 4. Bottom Wide Card (Span 8 cols, 1 row) */}
+                <article 
+                  className="col-span-8 row-span-1 group cursor-pointer flex gap-8 items-center bg-theme-card p-4 rounded-[2rem] shadow-lg border border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  onClick={() => navigate(`/blog/${bentoGridBlogs[3].id}`)}
+                >
+                  <div className="w-2/5 aspect-[4/3] rounded-2xl overflow-hidden bg-theme-border/20 shrink-0">
+                    <img src={bentoGridBlogs[3].image} alt={bentoGridBlogs[3].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  </div>
+                  <div className="w-3/5 py-4 pr-8">
+                    <span style={{color: getCategoryColor(3)}} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">
+                      {(bentoGridBlogs[3] as any).category || 'Backend'}
+                    </span>
+                    <h3 className="text-[28px] font-serif font-bold text-theme-text mb-4 leading-[1.2] group-hover:text-brand transition-colors">
+                      {bentoGridBlogs[3].title}
+                    </h3>
+                    <p className="text-theme-dim line-clamp-2 leading-relaxed mb-6 text-sm font-bengali">
+                      {stripHtmlAndTruncate(bentoGridBlogs[3].content, 120)}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-[10px] uppercase shrink-0">
+                        {bentoGridBlogs[3].author?.charAt(0) || 'A'}
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <User size={12} className="text-brand" />
-                        <span>{blog.author}</span>
-                      </div>
+                      <span className="text-xs text-theme-dim font-bold">{bentoGridBlogs[3].author || 'Al-amin'} • {getReadingTime(bentoGridBlogs[3].content)} min read</span>
                     </div>
-                    <h3 className="text-2xl font-serif font-bold text-theme-text mb-4 group-hover:text-brand transition-colors line-clamp-2 break-words">
+                  </div>
+                </article>
+              </div>
+            )}
+
+            {/* MOBILE VERTICAL LIST (Hidden on desktop) */}
+            <div className="md:hidden flex flex-col gap-10 mb-16">
+              {bentoGridBlogs.map((blog, idx) => (
+                <article key={blog.id} className="group cursor-pointer" onClick={() => navigate(`/blog/${blog.id}`)}>
+                  <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 bg-theme-border/20 shadow-sm">
+                    <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="px-1">
+                    <span 
+                      style={{ color: getCategoryColor(idx), backgroundColor: `${getCategoryColor(idx)}15` }} 
+                      className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mb-3 inline-block"
+                    >
+                      {(blog as any).category || 'Technology'}
+                    </span>
+                    <h3 className="text-[22px] font-serif font-bold text-theme-text mb-2 leading-snug">
                       {blog.title}
                     </h3>
-                    <p className="text-theme-dim text-sm line-clamp-3 mb-6 flex-1 font-bengali break-words">
-                       {stripHtmlAndTruncate(blog.content, 150)}
+                    <p className="text-theme-dim text-sm line-clamp-2 leading-relaxed mb-3 font-bengali">
+                      {stripHtmlAndTruncate(blog.content, 100)}
                     </p>
-                    <Link 
-                      to={`/blog/${blog.id}`}
-                      className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-theme-text group-hover:text-brand transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Read Article
-                      <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    <div className="flex items-center gap-2 text-xs text-theme-dim font-bold">
+                      <Calendar size={12} /> {blog.date}
+                    </div>
                   </div>
-                </motion.article>
+                </article>
               ))}
             </div>
-          )}
-        </SectionWrapper>
+
+            {/* NEWSLETTER BANNER */}
+            <NewsletterBanner />
+
+            {/* MOBILE: READ BY CATEGORY (Only mobile) */}
+            {standardBlogs.length > 0 && (
+              <div className="md:hidden mb-16 px-1">
+                <h3 className="text-xl font-serif font-bold text-theme-text flex items-center justify-between mb-6 border-b border-theme-border pb-4">
+                  Read by Category <ArrowRight size={20} className="text-[#8B5CF6]" />
+                </h3>
+                <div className="flex flex-col gap-4">
+                  {standardBlogs.slice(0, 3).map((blog, i) => (
+                    <div 
+                      key={blog.id} 
+                      className="flex gap-4 items-center bg-theme-card p-3 rounded-2xl shadow-sm cursor-pointer"
+                      onClick={() => navigate(`/blog/${blog.id}`)}
+                    >
+                      <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-theme-border/20">
+                        <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <span style={{ color: getCategoryColor(i) }} className="text-[10px] font-bold uppercase tracking-widest mb-1 block">
+                          {(blog as any).category || 'Article'}
+                        </span>
+                        <h4 className="font-bold text-theme-text text-sm leading-snug line-clamp-2 font-bengali">
+                          {blog.title}
+                        </h4>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* BOTTOM STANDARD GRID */}
+            {standardBlogs.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+                {standardBlogs.map((blog, idx) => (
+                  <article key={blog.id} className="group cursor-pointer bg-theme-card rounded-2xl shadow-sm overflow-hidden border border-transparent hover:shadow-md transition-all flex flex-col h-full" onClick={() => navigate(`/blog/${blog.id}`)}>
+                    <div className="w-full aspect-[4/3] overflow-hidden bg-theme-border/20">
+                      <img src={blog.image} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col">
+                      <span style={{ color: getCategoryColor(idx) }} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">
+                        {(blog as any).category || 'Technology'}
+                      </span>
+                      <h3 className="text-xl font-serif font-bold text-theme-text mb-3 leading-snug group-hover:text-brand transition-colors">
+                        {blog.title}
+                      </h3>
+                      <p className="text-theme-dim text-sm line-clamp-2 leading-relaxed font-bengali mb-4">
+                        {stripHtmlAndTruncate(blog.content, 100)}
+                      </p>
+                      <div className="mt-auto text-xs font-bold text-theme-dim flex items-center gap-2">
+                        <Calendar size={12}/> {blog.date}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+          </div>
+        )}
       </div>
     </Layout>
   );

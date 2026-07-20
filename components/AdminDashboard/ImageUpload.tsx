@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, CheckCircle2, Loader2, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
@@ -28,6 +28,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
   const [preview, setPreview] = useState(initialValue || '');
   const [processing, setProcessing] = useState(false);
+
+  // Update preview when initialValue changes from outside
+  useEffect(() => {
+    setPreview(initialValue || '');
+  }, [initialValue]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;

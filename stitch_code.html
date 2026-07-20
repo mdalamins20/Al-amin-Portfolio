@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CyberStream Platform | DevMastery Portfolio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#89ceff",
+                    "on-surface-variant": "#c2c6d6",
+                    "on-error": "#690005",
+                    "primary-fixed": "#d8e2ff",
+                    "on-primary-fixed-variant": "#004395",
+                    "on-tertiary-container": "#002d43",
+                    "surface-variant": "#2d3449",
+                    "surface-bright": "#31394d",
+                    "primary-container": "#4d8eff",
+                    "surface-container-highest": "#2d3449",
+                    "inverse-surface": "#dae2fd",
+                    "on-secondary-container": "#c4abff",
+                    "on-error-container": "#ffdad6",
+                    "on-primary": "#002e6a",
+                    "secondary-fixed-dim": "#d0bcff",
+                    "on-tertiary": "#00344d",
+                    "surface-container-lowest": "#060e20",
+                    "surface-container": "#171f33",
+                    "on-secondary-fixed": "#23005c",
+                    "surface-tint": "#adc6ff",
+                    "outline": "#8c909f",
+                    "secondary": "#d0bcff",
+                    "on-surface": "#dae2fd",
+                    "on-tertiary-fixed-variant": "#004c6e",
+                    "on-primary-fixed": "#001a42",
+                    "secondary-container": "#571bc1",
+                    "on-tertiary-fixed": "#001e2f",
+                    "on-background": "#dae2fd",
+                    "on-secondary": "#3c0091",
+                    "error-container": "#93000a",
+                    "tertiary-container": "#009ada",
+                    "on-primary-container": "#00285d",
+                    "outline-variant": "#424754",
+                    "tertiary": "#89ceff",
+                    "on-secondary-fixed-variant": "#5516be",
+                    "surface-dim": "#0b1326",
+                    "surface-container-low": "#131b2e",
+                    "tertiary-fixed": "#c9e6ff",
+                    "surface": "#0b1326",
+                    "error": "#ffb4ab",
+                    "surface-container-high": "#222a3d",
+                    "secondary-fixed": "#e9ddff",
+                    "inverse-primary": "#005ac2",
+                    "inverse-on-surface": "#283044",
+                    "background": "#0b1326",
+                    "primary": "#adc6ff",
+                    "primary-fixed-dim": "#adc6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "stack-lg": "48px",
+                    "stack-md": "24px",
+                    "stack-sm": "12px",
+                    "margin-mobile": "20px",
+                    "container-max": "1200px",
+                    "gutter": "24px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "code-sm": ["JetBrains Mono"],
+                    "headline-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "code-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .glass-card {
+            background: rgba(23, 31, 51, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(173, 198, 255, 0.3);
+            box-shadow: 0 0 40px rgba(173, 198, 255, 0.05);
+        }
+
+        .bloom-effect {
+            position: relative;
+        }
+        .bloom-effect::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(circle, rgba(173, 198, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .bloom-effect:hover::after {
+            opacity: 1;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .obsidian-gradient {
+            background: linear-gradient(135deg, rgba(11, 19, 38, 1) 0%, rgba(6, 14, 32, 1) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface obsidian-gradient selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="bg-surface-container/60 dark:bg-surface-container/60 backdrop-blur-xl docked full-width top-0 sticky border-b border-white/10 shadow-md z-50">
+<div class="flex justify-between items-center w-full px-margin-desktop py-unit max-w-container-max mx-auto">
+<div class="flex items-center gap-unit">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">DevMastery</span>
+</div>
+<div class="hidden md:flex items-center gap-stack-md">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md hover:scale-105 transition-all duration-300" href="#">Projects</a>
+<a class="text-on-surface-variant font-medium font-body-md text-body-md hover:scale-105 hover:text-primary transition-all duration-300" href="#">Experience</a>
+<a class="text-on-surface-variant font-medium font-body-md text-body-md hover:scale-105 hover:text-primary transition-all duration-300" href="#">Tech Stack</a>
+<a class="text-on-surface-variant font-medium font-body-md text-body-md hover:scale-105 hover:text-primary transition-all duration-300" href="#">About</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-caps text-label-caps transition-transform active:scale-95 hover:brightness-110 shadow-lg">
+                Hire Me
+            </button>
+</div>
+</nav>
+<main class="w-full">
+<!-- Hero Section -->
+<section class="relative h-[819px] w-full overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-1000 hover:scale-105" data-alt="A sprawling, hyper-realistic futuristic cityscape at night with glowing violet and cyan neon lights reflecting off rainy asphalt streets. Massive digital billboards display flowing code and abstract stream data. The mood is cinematic, high-tech, and immersive, with deep obsidian shadows and atmospheric haze using a dark minimalist aesthetic with vibrant light leaks." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_xXrYvlazOLQ-FAYmnBbQ6Y81PnBukasjr9Vmi5NT7XOftlPAqafPBYiTTespe31ONgMGlDePwaXRQyyv1itzOGGrwmSs-Umz5LyMWt52ykrenbI2xXVdJO4nTf_GKwLc2DP_7v3NBZu_mnJUsU4O0qLUoh9YVPgzMlmONlPhzKQDCUFD7F3QCJ-f9m56djDGMjrEf4B-7fVlvzqGp5-H9jLLyOseKfg_VhjBVlWpAcH4vEk8CQ4d-TA2gZEaftwIgmwj69Raxw')"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background"></div>
+</div>
+<div class="relative z-10 h-full flex items-end px-margin-desktop pb-24 max-w-container-max mx-auto">
+<div class="glass-card p-stack-md rounded-xl max-w-2xl border border-white/20">
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-stack-sm leading-tight">CyberStream Platform</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant opacity-90 max-w-lg">Next-generation real-time data orchestration for distributed systems. Built for the future of cloud computing.</p>
+</div>
+</div>
+</section>
+<!-- Main Content Area -->
+<div class="max-w-container-max mx-auto px-margin-desktop py-stack-lg flex flex-col md:flex-row gap-gutter">
+<!-- Left Column: Content -->
+<div class="flex-1 space-y-stack-lg">
+<!-- About Section -->
+<section id="about">
+<div class="flex items-center gap-stack-sm mb-stack-md">
+<span class="w-8 h-[2px] bg-primary"></span>
+<h2 class="font-headline-md text-headline-md">About the Project</h2>
+</div>
+<div class="space-y-stack-sm">
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            CyberStream is an enterprise-grade solution designed to handle massive throughput with sub-millisecond latency. Born from the need to synchronize complex state across edge nodes, it utilizes a proprietary consensus algorithm optimized for low-power environments.
+                        </p>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                            The architecture leverages a reactive stream-processing engine that allows developers to define complex data pipelines using a visual DSL. This reduces the time-to-market for data-intensive applications by 60% while maintaining industry-leading security protocols.
+                        </p>
+</div>
+</section>
+<!-- Key Features Bento Grid -->
+<section id="features">
+<h2 class="font-headline-md text-headline-md mb-stack-md">Key Features</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-sm">
+<div class="glass-card p-stack-md rounded-xl flex flex-col gap-unit bloom-effect">
+<span class="material-symbols-outlined text-primary text-3xl mb-stack-sm">bolt</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Performance</h3>
+<p class="font-code-sm text-code-sm text-on-surface-variant">Optimized Rust core delivering 10M+ ops/sec per cluster node with zero garbage collection overhead.</p>
+</div>
+<div class="glass-card p-stack-md rounded-xl flex flex-col gap-unit bloom-effect">
+<span class="material-symbols-outlined text-secondary text-3xl mb-stack-sm">security</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Security</h3>
+<p class="font-code-sm text-code-sm text-on-surface-variant">End-to-end mTLS encryption with automated rotation and hardware security module integration.</p>
+</div>
+<div class="glass-card p-stack-md rounded-xl flex flex-col gap-unit bloom-effect">
+<span class="material-symbols-outlined text-tertiary text-3xl mb-stack-sm">grid_view</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Scalability</h3>
+<p class="font-code-sm text-code-sm text-on-surface-variant">Elastic sharding horizontal growth. Scale from a single raspberry pi to a global data center mesh.</p>
+</div>
+</div>
+</section>
+<!-- Gallery Section -->
+<section id="gallery">
+<h2 class="font-headline-md text-headline-md mb-stack-md">Project Gallery</h2>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-unit md:gap-gutter">
+<div class="col-span-2 row-span-2 overflow-hidden rounded-xl border border-white/10 group">
+<div class="w-full h-full aspect-[4/3] bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="A detailed high-resolution screenshot of a dark-mode data visualization dashboard. It shows glowing 3D heatmaps and intricate node-based connectivity graphs. The UI is minimalist with glassmorphic cards and sharp typography in electric blue and charcoal. High-end developer aesthetic with blurred motion effects." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCXGp-dw2LN5HGqTzLz9SqWCTU4fVP0LtopqVX2VV55SRUiMTWIwYGAzjKJjgDluKZf4IHOFAeIHY_szgrlFXqae208w0bYQHFuvJYKkyxvsVflprjhPull3IJLSfUgjduYV64i_l_QTxxIk8Tsb7xPNaSWgj1FqWWq1GvtNwWVKcjkIEUWcPnAAikAJdCTO3LQI-bKbMH-VjSzLU258MRxOaup67LJmkmjKonNOzMvXzDrPSznN_PL9y-aDZXpqHm9x4nyJfQ7dg')"></div>
+</div>
+<div class="overflow-hidden rounded-xl border border-white/10 group">
+<div class="w-full h-full aspect-square bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Close up of a professional code editor showing advanced Rust programming language syntax. The theme is high-contrast obsidian with neon syntax highlighting. Subtle glow on the text and a blurred terminal background showing build success logs. Cinematic lighting and focus on the code precision." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBIeTHExL8WozdhtJ9jh9-gpMLI_jKiRaiVNKgWKYCjyRG6z4oF16d2d_CaEe0r9mEZj5WnOnKrpQD2t0auGP7tVr_yF_8N0sjlfJEjvuaHJRe5TnMKhGZKZUxj0NSaEQniPGOHie1eXwd7yoeccQIEXka-KKb-cSUxq1Dq9DqdOAMoRCZYihHhbe8jVxSnoUrQWLkLKAZvYr3qzjIdiHL-4Wp3HKzr82D7Mlpj63JZVlDp63zcEF8Yv4YNgWIdaTVRdhQ6YcrP0w')"></div>
+</div>
+<div class="overflow-hidden rounded-xl border border-white/10 group">
+<div class="w-full h-full aspect-square bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Abstract architectural diagram of a cloud computing network. Stylized glowing lines connect floating translucent cubes in a dark void. The cubes represent server nodes and the lines represent high-speed data streams. Precision geometry and deep blue lighting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC9YRkIlNguvErgpzTr6u0YBrizYQMp6aevHVZeX2RCAb0zxgwMx8NmnQgt6OoIg7x5NWG0_UHjUeosYpsMB5Hx4uWlbCH4BTJPFvUyxND4byyGokJ2pGemsJkgCh9_JbNPlHgSXJdif-V6FUGFJZ8viQSPSKiXLd8ozN03pyi85OvB644Zw2-DBvuWOMYkmBhO8DdFrXVRkqCxobQBQzWQixHSa6msvUCbiCLmY5XmFqO-LvWUtNFg9DxBfcYD25dbBTahmuun2A')"></div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Sidebar -->
+<aside class="w-full md:w-80 space-y-stack-md">
+<div class="bg-surface-container-low/40 backdrop-blur-lg rounded-xl border border-white/10 p-stack-md sticky top-24 space-y-stack-md">
+<!-- Stats Card -->
+<div class="flex justify-between items-center bg-surface-container p-stack-sm rounded-lg border border-white/5">
+<div class="text-center flex-1">
+<p class="font-label-caps text-label-caps text-on-surface-variant">STARS</p>
+<p class="font-headline-sm text-headline-sm text-primary">12.4k</p>
+</div>
+<div class="w-[1px] h-8 bg-white/10"></div>
+<div class="text-center flex-1">
+<p class="font-label-caps text-label-caps text-on-surface-variant">FORKS</p>
+<p class="font-headline-sm text-headline-sm text-secondary">842</p>
+</div>
+</div>
+<!-- Tech Stack -->
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-unit">TECH STACK</h4>
+<div class="flex flex-wrap gap-2">
+<span class="bg-primary/10 text-primary-fixed-dim font-code-sm text-code-sm px-3 py-1 rounded-full border border-primary/20">React</span>
+<span class="bg-secondary/10 text-secondary-fixed-dim font-code-sm text-code-sm px-3 py-1 rounded-full border border-secondary/20">TypeScript</span>
+<span class="bg-tertiary/10 text-tertiary-fixed-dim font-code-sm text-code-sm px-3 py-1 rounded-full border border-tertiary/20">Tailwind</span>
+<span class="bg-surface-variant text-on-surface-variant font-code-sm text-code-sm px-3 py-1 rounded-full">Node.js</span>
+<span class="bg-surface-variant text-on-surface-variant font-code-sm text-code-sm px-3 py-1 rounded-full">PostgreSQL</span>
+</div>
+</div>
+<!-- Action Links -->
+<div class="flex flex-col gap-unit pt-unit border-t border-white/10">
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-headline-sm text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all active:scale-95 shadow-lg">
+<span class="material-symbols-outlined text-xl">open_in_new</span>
+                            Live Demo
+                        </button>
+<button class="w-full py-3 bg-surface-container-highest text-on-surface rounded-xl font-headline-sm text-sm border border-white/10 flex items-center justify-center gap-2 hover:bg-surface-variant transition-all active:scale-95">
+<span class="material-symbols-outlined text-xl">code</span>
+                            View Source
+                        </button>
+</div>
+<!-- Sidebar Navigation (Project Metadata) -->
+<div class="pt-unit space-y-unit">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-unit">METADATA</h4>
+<div class="space-y-stack-sm">
+<div class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer group">
+<span class="material-symbols-outlined group-hover:text-primary">info</span>
+<span class="font-code-sm text-code-sm">Overview</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer group">
+<span class="material-symbols-outlined group-hover:text-primary">account_tree</span>
+<span class="font-code-sm text-code-sm">Architecture</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer group">
+<span class="material-symbols-outlined group-hover:text-primary">code</span>
+<span class="font-code-sm text-code-sm">Code Snippets</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest full-width mt-stack-lg border-t border-white/5">
+<div class="w-full py-stack-lg px-margin-desktop flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto gap-stack-md">
+<div class="flex items-center gap-unit">
+<span class="material-symbols-outlined text-primary">terminal</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">DevMastery</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-80 text-center md:text-left">
+                © 2024 Developer Portfolio. Built with Precision.
+            </p>
+<div class="flex gap-stack-md">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Email</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">LinkedIn</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">GitHub</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for gallery hover
+        document.querySelectorAll('.group').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.boxShadow = '0 0 30px rgba(173, 198, 255, 0.2)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.boxShadow = 'none';
+            });
+        });
+
+        // Navigation Highlight Logic
+        const sections = document.querySelectorAll('section[id]');
+        window.addEventListener('scroll', () => {
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 120) {
+                    current = section.getAttribute('id');
+                }
+            });
+            // Example of dynamic highlighting (logic only)
+            console.log("Current visible section:", current);
+        });
+    </script>
+</body></html>

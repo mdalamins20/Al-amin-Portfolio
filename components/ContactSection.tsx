@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, Send, Loader2, CheckCircle, X } from 'lucide-react';
+import { Check, Send, Loader2, CheckCircle, X } from 'lucide-react';
+import { Captcha } from './Captcha';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfile } from './ProfileContext';
 
@@ -9,9 +9,9 @@ export const ContactSection: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  
+  const [isCaptchaValid, setIsCaptchaValid] = useState(false);
 
-  // Auto-hide success toast after 5 seconds
   useEffect(() => {
     if (isSuccess) {
       const timer = setTimeout(() => {
@@ -25,19 +25,23 @@ export const ContactSection: React.FC = () => {
     return null;
   }
 
-  // WhatsApp Link Construction
   const whatsappNumber = profile.phone.replace(/\+/g, ''); 
   const whatsappMessage = encodeURIComponent("Hello, I visited your portfolio and would like to contact you.");
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(profile.email);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isCaptchaValid) {
+      setErrorMessage("Please complete the Human Verification correctly.");
+      return;
+    }
+
+    const lastSent = localStorage.getItem('lastMessageSent');
+    if (lastSent && Date.now() - parseInt(lastSent) < 60000 * 30) {
+      setErrorMessage("You have already sent a message recently. Please try again later.");
+      return;
+    }
+
     const form = e.currentTarget;
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -55,7 +59,8 @@ export const ContactSection: React.FC = () => {
 
       if (response.ok) {
         setIsSuccess(true);
-        form.reset(); // Clear the form fields
+        form.reset();
+        localStorage.setItem('lastMessageSent', Date.now().toString());
       } else {
         const data = await response.json();
         if (Object.prototype.hasOwnProperty.call(data, 'errors')) {
@@ -72,213 +77,141 @@ export const ContactSection: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-20 md:py-32 px-6 bg-slate-50 dark:bg-[#0b1121] transition-colors duration-500 relative">
-      <div className="max-w-7xl mx-auto">
-        
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
-          
-          {/* Left Column: Info */}
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-brand-600 dark:text-brand-400 font-bold uppercase tracking-widest text-sm mb-4">
-               Get in Touch
-            </h2>
-            <h3 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 dark:text-white mb-6 leading-tight">
-               Let's build your <br/> next big thing.
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 text-lg mb-12 max-w-md leading-relaxed">
-               I’m currently available for freelance work. If you have a project that needs some creative injection, I'd love to discuss it.
-            </p>
+    <section id="contact" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto relative">
+      <div className="mb-stack-lg text-center md:text-left">
+        <span className="font-label-bold text-label-bold text-primary tracking-widest uppercase mb-4 block">GET IN TOUCH</span>
+        <h1 className="font-display-xl-mobile md:font-headline-lg text-display-xl-mobile md:text-headline-lg mb-6 text-on-surface">
+          Let's build your <br/><span className="gradient-text">next big thing.</span>
+        </h1>
+        <p className="font-body-lg text-body-lg text-text-secondary max-w-2xl">
+          I'm currently available for freelance work. If you have a project that needs some creative injection, I'd love to discuss it.
+        </p>
+      </div>
 
-            <div className="space-y-8">
-                <div className="flex items-start gap-5 group">
-                    <a 
-                      href={`mailto:${profile.email}`} 
-                      className="w-14 h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105"
-                    >
-                        <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" 
-                          alt="Gmail" 
-                          className="w-8 h-8 object-contain"
-                        />
-                    </a>
-                    <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-1">Email</p>
-                        <div className="flex items-center gap-3">
-                             <a href={`mailto:${profile.email}`} className="text-lg md:text-xl font-medium text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors break-all">
-                                 {profile.email}
-                             </a>
-                             <button 
-                                onClick={handleCopy} 
-                                className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-slate-700 rounded-md transition-all relative flex-shrink-0"
-                                title="Copy Email"
-                             >
-                                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-start gap-5 group">
-                    <a 
-                      href={whatsappLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-14 h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105"
-                    >
-                        <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" 
-                          alt="WhatsApp" 
-                          className="w-8 h-8 object-contain"
-                        />
-                    </a>
-                    <div>
-                        <p className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-1">WhatsApp</p>
-                        <a 
-                          href={whatsappLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-lg md:text-xl font-medium text-slate-900 dark:text-white hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer"
-                        >
-                           {profile.phone}
-                        </a>
-                    </div>
-                </div>
-
-                <div className="flex items-start gap-5 group">
-                    <a 
-                      href="https://maps.google.com/?q=Dhaka,Bangladesh" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-14 h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105"
-                    >
-                        <img 
-                          src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" 
-                          alt="Google Maps" 
-                          className="w-8 h-8 object-contain"
-                        />
-                    </a>
-                    <div>
-                        <p className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-1">Location</p>
-                        <a 
-                          href="https://maps.google.com/?q=Dhaka,Bangladesh" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-lg md:text-xl font-medium text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-                        >
-                           Dhaka, Bangladesh
-                        </a>
-                    </div>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {/* Info Column */}
+        <div className="lg:col-span-5 space-y-8">
+          <div className="glass-card p-8 rounded-xl flex items-start gap-6 group">
+            <div className="w-14 h-14 bg-primary-container/20 rounded-lg flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-3xl">mail</span>
             </div>
-          </motion.div>
+            <div>
+              <h3 className="font-headline-md text-[20px] mb-1 text-on-surface">Email</h3>
+              <p className="text-text-secondary mb-2">{profile.email}</p>
+              <a className="text-primary font-label-bold text-label-bold flex items-center gap-1 group-hover:gap-2 transition-all" href={`mailto:${profile.email}`}>
+                Send a mail <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
 
-          {/* Right Column: Form Area */}
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-blue-500"></div>
+          <div className="glass-card p-8 rounded-xl flex items-start gap-6 group">
+            <div className="w-14 h-14 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-3xl">chat</span>
+            </div>
+            <div>
+              <h3 className="font-headline-md text-[20px] mb-1 text-on-surface">WhatsApp</h3>
+              <p className="text-text-secondary mb-2">{profile.phone}</p>
+              <a className="text-secondary font-label-bold text-label-bold flex items-center gap-1 group-hover:gap-2 transition-all" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                Chat now <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Send a Message</h3>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">Name</label>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            name="name" 
-                            required
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Enter Your Name"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            required
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Enter Your Email"
-                        />
-                    </div>
-                </div>
+          <div className="glass-card p-8 rounded-xl flex items-start gap-6 group">
+            <div className="w-14 h-14 bg-tertiary/20 rounded-lg flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform shrink-0">
+              <span className="material-symbols-outlined text-3xl">location_on</span>
+            </div>
+            <div>
+              <h3 className="font-headline-md text-[20px] mb-1 text-on-surface">Location</h3>
+              <p className="text-text-secondary mb-2">{profile.locationText || 'Dhaka, Bangladesh'}</p>
+              <p className="text-tertiary text-xs bg-tertiary/10 inline-block px-2 py-1 rounded">Available for Remote</p>
+            </div>
+          </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</label>
-                        <input 
-                            type="tel" 
-                            id="phone" 
-                            name="phone" 
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Enter Your Phone Number"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label htmlFor="subject" className="text-sm font-medium text-slate-700 dark:text-slate-300">Subject</label>
-                        <input 
-                            type="text" 
-                            id="subject" 
-                            name="subject" 
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                            placeholder="Enter Subject"
-                        />
-                    </div>
-                </div>
+          {profile.mapEmbedUrl && (
+            <div className="glass-card p-2 rounded-xl group relative overflow-hidden h-[200px]">
+              <iframe
+                src={profile.mapEmbedUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0, borderRadius: '0.5rem' }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+              ></iframe>
+            </div>
+          )}
+        </div>
 
+        {/* Form Column */}
+        <div className="lg:col-span-7 relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-tertiary/30 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <form onSubmit={handleSubmit} className="glass-card p-8 md:p-12 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl relative overflow-hidden bg-surface-deep/30 dark:bg-surface-deep/10 backdrop-blur-md">
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-[100px] rounded-full"></div>
+            
+            <div className="relative z-10">
+              <h2 className="font-headline-md text-headline-md mb-8 text-on-surface">Send a Message</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-2">
-                    <label htmlFor="message" className="text-sm font-medium text-slate-700 dark:text-slate-300">Message</label>
-                    <textarea 
-                        id="message" 
-                        name="message" 
-                        required
-                        rows={4}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all resize-y min-h-[120px]"
-                        placeholder="Write your message here..."
-                    />
+                  <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Name</label>
+                  <input name="name" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Your Name" type="text"/>
                 </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Email</label>
+                  <input name="email" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Your Email" type="email"/>
+                </div>
+              </div>
 
-                {errorMessage && (
-                    <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-200 dark:border-red-800 flex items-center">
-                        <span className="mr-2">⚠️</span> {errorMessage}
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-2">
+                  <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Phone</label>
+                  <input name="phone" className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Your Phone Number" type="tel"/>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Subject</label>
+                  <input name="subject" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Subject" type="text"/>
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-6">
+                <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Message</label>
+                <textarea name="message" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface min-h-[140px] resize-y leading-relaxed" placeholder="Write your message here..." rows={5}></textarea>
+              </div>
+
+              <div className="mb-8">
+                <Captcha onValidate={setIsCaptchaValid} />
+              </div>
+
+              {errorMessage && (
+                  <div className="p-4 bg-error-container/20 text-error text-sm rounded-lg border border-error/50 flex items-center justify-center mb-6">
+                      <span className="mr-2">⚠️</span> {errorMessage}
+                  </div>
+              )}
+
+              <button disabled={isSubmitting} className="w-full bg-primary-container text-white py-4 rounded-lg font-headline-md text-[18px] flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-xl shadow-primary-container/30 disabled:opacity-70" type="submit">
+                {isSubmitting ? (
+                    <>
+                        <Loader2 size={20} className="animate-spin" />
+                        Sending...
+                    </>
+                ) : (
+                    <>
+                        Send Message
+                        <span className="material-symbols-outlined">send</span>
+                    </>
                 )}
-
-                <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-brand-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white font-bold py-4 rounded-lg shadow-lg hover:shadow-brand-500/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 size={20} className="animate-spin" />
-                            <span>Sending...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span>Send Message</span>
-                            <Send size={20} />
-                        </>
-                    )}
-                </button>
-            </form>
-          </motion.div>
+              </button>
+              
+              <p className="text-center text-text-secondary font-medium text-sm mt-6">
+                I usually respond within 12-24 hours.
+              </p>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* SUCCESS TOAST POPUP (Bottom Center) */}
       <AnimatePresence>
         {isSuccess && (
           <motion.div 
@@ -288,22 +221,16 @@ export const ContactSection: React.FC = () => {
               className="fixed bottom-10 left-1/2 z-[150] w-[90%] max-w-md"
           >
               <div className="w-full bg-[#00c87b] p-6 rounded-2xl flex items-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,200,123,0.5)] border border-white/20">
-                  {/* Status Icon */}
                   <div className="mr-4 flex-shrink-0 text-white">
                      <CheckCircle size={32} />
                   </div>
-                  
-                  {/* Content */}
                   <div className="flex-1 text-white">
                      <h4 className="text-xl font-bold leading-tight mb-1">Successfully sent!</h4>
                      <p className="text-sm opacity-90">Your message has been sent successfully.</p>
                   </div>
-
-                  {/* Dismiss Button */}
                   <button 
                       onClick={() => setIsSuccess(false)}
                       className="ml-4 p-1 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                      aria-label="Dismiss"
                   >
                      <X size={20} />
                   </button>
