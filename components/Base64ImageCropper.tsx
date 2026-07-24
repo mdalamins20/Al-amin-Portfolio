@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -140,7 +141,8 @@ export const Base64ImageCropper: React.FC<Base64ImageCropperProps> = ({
       </div>
 
       {/* Cropper Modal */}
-      <AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
         {isModalOpen && imageSrc && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div 
@@ -226,7 +228,9 @@ export const Base64ImageCropper: React.FC<Base64ImageCropperProps> = ({
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </>
   );
 };

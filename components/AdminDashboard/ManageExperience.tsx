@@ -15,6 +15,7 @@ import { Plus, Trash2, Edit2, Save, X, Loader2, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
 import { AIAssistantInput } from './AIAssistantInput';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 export const ManageExperience: React.FC = () => {
   const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -80,6 +81,8 @@ export const ManageExperience: React.FC = () => {
       setIsEditing(false);
       setCurrentExp({});
       fetchExperiences();
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
       setModalConfig({
         isOpen: true,
         title: 'Success!',
@@ -110,6 +113,8 @@ export const ManageExperience: React.FC = () => {
         try {
           await deleteDoc(doc(db, 'experiences', id.toString()));
           fetchExperiences();
+          // Background Sync to Gist
+          compileAndSyncToGist().catch(console.error);
         } catch (error) {
           console.error('Error deleting experience:', error);
         }
@@ -164,7 +169,7 @@ export const ManageExperience: React.FC = () => {
                     required
                     value={currentExp.role || ''}
                     onChange={e => setCurrentExp({ ...currentExp, role: e.target.value })}
-                    className=""
+                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                     placeholder="e.g. Senior Frontend Developer"
                    />
                 </div>
@@ -175,7 +180,7 @@ export const ManageExperience: React.FC = () => {
                     required
                     value={currentExp.company || ''}
                     onChange={e => setCurrentExp({ ...currentExp, company: e.target.value })}
-                    className=""
+                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                     placeholder="e.g. Google, Remote, etc."
                    />
                 </div>
@@ -186,7 +191,7 @@ export const ManageExperience: React.FC = () => {
                     required
                     value={currentExp.period || ''}
                     onChange={e => setCurrentExp({ ...currentExp, period: e.target.value })}
-                    className=""
+                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                     placeholder="e.g. Jan 2021 - Present"
                    />
                 </div>

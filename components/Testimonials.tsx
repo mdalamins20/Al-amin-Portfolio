@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, isConfigured } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useData } from './DataContext';
+import { useDataStore } from './stores/useDataStore';
 import { motion } from 'framer-motion';
 import { Star, Loader2, Send } from 'lucide-react';
 import { Captcha } from './Captcha';
@@ -77,7 +77,7 @@ const ReviewForm = () => {
                 required
                 value={formData.clientName}
                 onChange={e => setFormData({ ...formData, clientName: e.target.value })}
-                className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium"
+                className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium"
                 placeholder="Enter Your Name"
               />
             </div>
@@ -87,7 +87,7 @@ const ReviewForm = () => {
                 required
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
-                className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium"
+                className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium"
                 placeholder="e.g. CEO, Developer, Freelancer"
               />
             </div>
@@ -99,7 +99,7 @@ const ReviewForm = () => {
               required
               value={formData.content}
               onChange={e => setFormData({ ...formData, content: e.target.value })}
-              className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium min-h-[140px] resize-y leading-relaxed"
+              className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium min-h-[140px] resize-y leading-relaxed"
               placeholder="Tell us about your experience working with Al-amin..."
               rows={4}
             />
@@ -153,11 +153,11 @@ const ReviewForm = () => {
 };
 
 export const Testimonials: React.FC = () => {
-  const { testimonials, loading } = useData();
+  const { testimonials, loading } = useDataStore();
   const approvedReviews = testimonials.filter(r => r.isApproved === true);
 
   return (
-    <section className="py-section-padding bg-surface-container-lowest">
+    <section id="testimonials" className="py-section-padding bg-surface-container-lowest">
       <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
         <div className="text-center mb-stack-lg">
           <h2 className="font-headline-lg text-headline-lg text-on-surface">Trusted by <span className="gradient-text">Industry Leaders.</span></h2>
@@ -183,7 +183,7 @@ export const Testimonials: React.FC = () => {
                   transition={{ delay: i * 0.1 }}
                   className="glass-card p-10 rounded-3xl relative"
                 >
-                  <span className={`material-symbols-outlined text-6xl absolute top-6 right-8 ${i % 2 === 0 ? 'text-primary/20' : 'text-secondary/20'}`}>format_quote</span>
+                  <span className="material-symbols-outlined text-6xl absolute top-6 right-8 text-on-surface/10 dark:text-white/10">format_quote</span>
                   
                   <div className="flex space-x-1 mb-6">
                     {Array.from({ length: 5 }).map((_, s) => (
@@ -191,13 +191,13 @@ export const Testimonials: React.FC = () => {
                     ))}
                   </div>
 
-                  <p className="font-body-lg text-body-lg text-on-surface italic relative z-10 leading-relaxed min-h-[100px]">
+                  <p className="font-body-lg text-body-lg text-on-surface italic relative z-10 leading-relaxed min-h-[100px] break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere' }}>
                     "{t.content}"
                   </p>
                   
                   <div className="flex items-center gap-4 mt-8 pt-8 border-t border-outline-variant/10">
-                    <div className={`w-14 h-14 rounded-full bg-surface-elevated overflow-hidden border-2 flex items-center justify-center font-serif text-xl text-white font-bold uppercase ${i % 2 === 0 ? 'border-primary/20 bg-primary/20' : 'border-secondary/20 bg-secondary/20'}`}>
-                      {t.clientName.charAt(0)}
+                    <div className={`w-14 h-14 rounded-full overflow-hidden border-2 flex items-center justify-center font-display text-2xl font-bold uppercase ${i % 2 === 0 ? 'border-primary/20 bg-primary/10 text-primary dark:text-primary-300' : 'border-secondary/20 bg-secondary/10 text-secondary dark:text-secondary-300'}`}>
+                      {t.clientName?.charAt(0) || 'A'}
                     </div>
                     <div>
                       <p className="font-label-bold text-label-bold text-on-surface">{t.clientName}</p>

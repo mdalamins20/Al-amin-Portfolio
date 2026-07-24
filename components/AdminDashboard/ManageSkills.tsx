@@ -14,8 +14,9 @@ import {
 import { Tool } from '../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
+import { ImageUpload } from './ImageUpload';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 export const ManageSkills: React.FC = () => {
   const [skills, setSkills] = useState<Tool[]>([]);
@@ -75,6 +76,8 @@ export const ManageSkills: React.FC = () => {
       setIsEditing(false);
       setCurrentSkill({});
       fetchSkills();
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
       setModalConfig({
         isOpen: true,
         title: 'Success!',
@@ -105,6 +108,8 @@ export const ManageSkills: React.FC = () => {
         try {
           await deleteDoc(doc(db, 'skills', id));
           fetchSkills();
+          // Background Sync to Gist
+          compileAndSyncToGist().catch(console.error);
         } catch (error) {
           console.error('Error deleting skill:', error);
         }
@@ -168,7 +173,7 @@ export const ManageSkills: React.FC = () => {
                     required
                     value={currentSkill.name || ''}
                     onChange={e => setCurrentSkill({ ...currentSkill, name: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
                     placeholder="e.g. React.js"
                   />
                 </div>
@@ -178,7 +183,7 @@ export const ManageSkills: React.FC = () => {
                     required
                     value={currentSkill.tag || ''}
                     onChange={e => setCurrentSkill({ ...currentSkill, tag: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
                     placeholder="e.g. ENTERPRISE"
                   />
                 </div>

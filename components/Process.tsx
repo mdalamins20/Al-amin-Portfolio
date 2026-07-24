@@ -1,10 +1,10 @@
 import React from 'react';
 import { SectionWrapper } from './SectionWrapper';
-import { useProfile } from './ProfileContext';
+import { useProfileStore } from './stores/useProfileStore';
 import { Loader2 } from 'lucide-react';
 
 export const Process: React.FC = () => {
-  const { profile, loading } = useProfile();
+  const { profile, loading } = useProfileStore();
 
   if (loading || !profile) {
     return null;

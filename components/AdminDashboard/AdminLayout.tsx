@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation, Outlet } from 'react-router-dom';
 import { auth } from '../../firebase';
 import { signOut } from 'firebase/auth';
 import { 
@@ -17,14 +17,15 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  Key
+  Key,
+  Activity
 } from 'lucide-react';
-import { useTheme } from '../ThemeContext';
+import { useThemeStore } from '../stores/useThemeStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AISettingsModal } from './AISettingsModal';
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
@@ -32,12 +33,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { mode, toggleMode } = useTheme();
+  const { mode, toggleMode } = useThemeStore();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/admin-login');
+      navigate('/admin');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -49,11 +57,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: Wrench, label: 'Skills', path: '/admin-dashboard/skills' },
     { icon: BookOpen, label: 'Blogs', path: '/admin-dashboard/blogs' },
     { icon: MessageSquare, label: 'Reviews', path: '/admin-dashboard/reviews' },
+    { icon: Activity, label: 'Analytics', path: '/admin-dashboard/analytics' },
     { icon: User, label: 'Profile', path: '/admin-dashboard/profile' },
   ];
 
   return (
-    <div className="min-h-screen bg-background flex text-on-surface font-sans selection:bg-brand/30">
+    <div className="h-screen w-full overflow-hidden bg-background flex text-on-surface font-sans selection:bg-brand/30">
       {/* Decorative Background Glows */}
       <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-brand/20 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none mix-blend-screen" />
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] -z-10 opacity-50 pointer-events-none mix-blend-screen" />
@@ -81,13 +90,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:sticky top-0 left-0 h-screen z-40
-        w-72 bg-surface/80 backdrop-blur-xl border-r border-outline-variant
+        fixed lg:static top-0 left-0 h-full z-40 flex-shrink-0
+        w-72 bg-surface lg:bg-surface/80 backdrop-blur-xl border-r border-outline-variant
         transform transition-transform duration-500 ease-out shadow-2xl lg:shadow-none
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        <div className="h-full flex flex-col pt-8 pb-6 px-6">
+        <div className="h-full flex flex-col pt-8 pb-6 px-6 overflow-y-auto overflow-x-hidden">
           <div className="flex items-center gap-4 mb-12">
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-brand to-purple-500 rounded-2xl blur opacity-70 group-hover:opacity-100 transition duration-200"></div>
@@ -112,6 +121,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => setIsSidebarOpen(false)}
                   className={`
                     group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300
                     ${isActive 
@@ -173,14 +183,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 overflow-auto relative z-10 w-full">
-        <div className="p-6 md:p-8 lg:p-12 max-w-7xl mx-auto min-h-screen">
+      <main ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto w-full scroll-smooth">
+        <div className="p-6 md:p-8 lg:p-12 max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            {children}
+            {children || <Outlet />}
           </motion.div>
         </div>
       </main>

@@ -14,6 +14,7 @@ import { Review } from '../../types';
 import { Trash2, CheckCircle, XCircle, MessageSquare, User, Clock, Star, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 export const ManageReviews: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -63,6 +64,8 @@ export const ManageReviews: React.FC = () => {
         isApproved: !currentStatus
       });
       fetchReviews();
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
     } catch (error) {
       console.error('Error updating review:', error);
     }
@@ -79,6 +82,8 @@ export const ManageReviews: React.FC = () => {
         try {
           await deleteDoc(doc(db, 'reviews', id));
           fetchReviews();
+          // Background Sync to Gist
+          compileAndSyncToGist().catch(console.error);
         } catch (error) {
           console.error('Error deleting review:', error);
         }

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useTheme } from './ThemeContext';
+import { useThemeStore } from './stores/useThemeStore';
 import { Navigation } from './Navigation';
 import { Footer } from './Footer';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +12,7 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, onViewCV, hideNavigation }) => {
-  const { language, mode } = useTheme();
+  const { language, mode } = useThemeStore();
 
   return (
     <div className="min-h-screen relative bg-background text-on-surface transition-colors duration-500 overflow-x-hidden">

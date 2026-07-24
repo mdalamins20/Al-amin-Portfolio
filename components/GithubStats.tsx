@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useProfile } from './ProfileContext';
+import { useProfileStore } from './stores/useProfileStore';
 import { fetchGithubContributions } from '../utils/githubService';
 
 export const GithubStats: React.FC = () => {
   const username = "mdalamins20";
-  const { profile } = useProfile();
+  const { profile } = useProfileStore();
   
   const [githubData, setGithubData] = useState<any>(null);
   const [loadingGraph, setLoadingGraph] = useState(true);
@@ -17,7 +17,9 @@ export const GithubStats: React.FC = () => {
         const data = await fetchGithubContributions(githubUser);
         setGithubData(data);
       } catch (err: any) {
-        console.error("Failed to load GitHub contributions:", err);
+        if (!err.message?.includes('No GitHub token found')) {
+          console.error("Failed to load GitHub contributions:", err);
+        }
       } finally {
         setLoadingGraph(false);
       }

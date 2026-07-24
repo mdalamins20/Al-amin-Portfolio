@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { getAIAutocomplete, getAIBlogGeneration } from '../../utils/aiService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -68,7 +69,7 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder || 'Write your content here (supports markdown/HTML)...'}
             rows={12}
-            className="w-full px-5 py-4 rounded-2xl bg-surface text-on-surface border border-outline-variant focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all pr-12 resize-y min-h-[300px] leading-relaxed shadow-sm font-medium"
+            className="w-full text-base px-5 py-4 rounded-2xl bg-surface text-on-surface border border-outline-variant focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all pr-12 resize-y min-h-[300px] leading-relaxed shadow-sm font-medium"
           />
         ) : type === 'textarea' ? (
           <textarea
@@ -76,7 +77,7 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={rows}
-            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all pr-12 resize-y"
+            className="w-full text-base px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all pr-12 resize-y"
           />
         ) : (
           <input
@@ -84,7 +85,7 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-outline-variant focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all pr-12 shadow-sm text-on-surface"
+            className="w-full text-base px-5 py-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-outline-variant focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all pr-12 shadow-sm text-on-surface"
           />
         )}
 
@@ -150,11 +151,12 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
       </div>
       
       {/* Click outside listener overlay for menu */}
-      {showMenu && (
+      {showMenu && createPortal(
         <div 
           className="fixed inset-0 z-40"
           onClick={() => setShowMenu(false)}
-        />
+        />,
+        document.body
       )}
     </div>
   );

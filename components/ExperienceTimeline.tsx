@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, Loader2 } from 'lucide-react';
-import { useData } from './DataContext';
+import { useDataStore } from './stores/useDataStore';
 
 export const ExperienceTimeline: React.FC = () => {
-  const { experiences, loading } = useData();
+  const { experiences, loading } = useDataStore();
 
   const sortedExperiences = [...experiences].reverse();
   
@@ -44,7 +44,7 @@ export const ExperienceTimeline: React.FC = () => {
               transition={{ delay: index * 0.1, duration: 0.5 }}
               className={`relative flex flex-col md:flex-row items-start ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
             >
-              <div className="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-surface-deep border-4 border-primary flex items-center justify-center transform -translate-x-1/2 mt-1 md:mt-0 shadow-[0_0_15px_rgba(210,187,255,0.4)] z-10">
+              <div className="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-surface-deep border-4 border-primary flex items-center justify-center transform -translate-x-1/2 mt-1 md:mt-0 shadow-[0_0_15px_rgba(var(--accent-rgb),0.4)] z-10">
                 <Briefcase size={12} className="text-primary" />
               </div>
 
@@ -55,7 +55,7 @@ export const ExperienceTimeline: React.FC = () => {
                   </span>
                   <h3 className="text-xl md:text-2xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">{exp.role}</h3>
                   <h4 className="text-sm font-label-bold text-text-secondary uppercase tracking-wider mb-4">{exp.company}</h4>
-                  <p className="text-sm text-text-secondary leading-relaxed mb-6">
+                  <p className="text-sm text-text-secondary leading-relaxed mb-6 break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere' }}>
                     {exp.description}
                   </p>
                   

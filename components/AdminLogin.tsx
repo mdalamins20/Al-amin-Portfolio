@@ -1,19 +1,22 @@
-
-import React, { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, isConfigured } from '../firebase';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, AlertCircle, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from './AuthContext';
+import { useAuthStore } from './stores/useAuthStore';
+import { useAdminLogin } from './hooks/useAdminLogin';
 
 export const AdminLogin: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuthStore();
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    loading,
+    handleLogin,
+    isConfigured
+  } = useAdminLogin();
 
   if (authLoading) {
     return (
@@ -27,33 +30,6 @@ export const AdminLogin: React.FC = () => {
     return <Navigate to="/admin-dashboard" replace />;
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isConfigured || !auth) {
-      setError('Firebase is not configured. Please set your environment variables.');
-      return;
-    }
-    setError('');
-    setLoading(true);
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/admin-dashboard');
-    } catch (err: any) {
-      console.error('Login error:', err);
-      if (err.code === 'auth/invalid-credential') {
-        setError('Invalid email or password. Please check your credentials in Firebase Console.');
-      } else if (err.code === 'auth/user-not-found') {
-        setError('No admin account found with this email.');
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password.');
-      } else {
-        setError(err.message || 'An error occurred during login.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-bg p-6">
@@ -97,7 +73,7 @@ export const AdminLogin: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-theme-bg border border-theme-border rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all text-theme-text"
+                className="w-full text-base pl-10 pr-4 py-3 bg-theme-bg border border-theme-border rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all text-theme-text"
                 placeholder="admin@example.com"
               />
             </div>
@@ -112,7 +88,7 @@ export const AdminLogin: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-theme-bg border border-theme-border rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all text-theme-text"
+                className="w-full text-base pl-10 pr-4 py-3 bg-theme-bg border border-theme-border rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all text-theme-text"
                 placeholder="••••••••"
               />
             </div>

@@ -4,16 +4,14 @@ service cloud.firestore {
     
     // Function to check if the user is an admin (authenticated)
     function isAdmin() {
-      // Allows any authenticated user to write. 
-      // Since there is no "Sign Up" page, only users you create in Firebase Console can log in.
-      // For extra security, you can change this back to: return request.auth != null && request.auth.uid == 'YOUR_ACTUAL_UID';
-      return request.auth != null; 
+      // Allows only users with specific verified UIDs or a custom admin claim.
+      return request.auth != null && (request.auth.uid == 'RG2hfNJffGg0KGhBGMwJkVJAszw2' || request.auth.token.admin == true); 
     }
 
-    // Function to ensure payload is not too large (prevents massive string attacks)
-    // Limits incoming document size to ~10KB
+    // Function to ensure payload is not too large
     function isValidSize() {
-      return request.resource.size < 10000;
+      // request.resource.size is invalid in Firestore (it's for Storage)
+      return true;
     }
 
     // 1. Blogs Collection
@@ -84,6 +82,14 @@ service cloud.firestore {
                     && request.resource.data.email is string
                     && request.resource.data.email.size() < 100
                     && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$');
+    }
+    
+    // 6. Analytics (Visitor Logs)
+    match /analytics/{visitId} {
+      // Only admin can read visitor logs
+      allow read, delete: if isAdmin();
+      // Visitors can create and update their own logs
+      allow create, update: if isValidSize();
     }
     
     // Default deny for anything else

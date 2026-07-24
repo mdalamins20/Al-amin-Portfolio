@@ -8,11 +8,16 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorFallback } from './components/ErrorFallback';
+
 const app = (
   <React.StrictMode>
-    <HelmetProvider>
-      <App />
-    </HelmetProvider>
+    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 

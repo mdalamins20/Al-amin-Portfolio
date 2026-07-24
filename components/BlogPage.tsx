@@ -5,13 +5,13 @@ import { Layout } from './Layout';
 import { SectionWrapper } from './SectionWrapper';
 import { Link, useNavigate } from 'react-router-dom';
 import { SEO } from './SEO';
-import { useData } from './DataContext';
+import { useDataStore } from './stores/useDataStore';
 import { db, isConfigured } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Blog } from '../types';
 
 export const BlogPage: React.FC = () => {
-  const { blogs, loading } = useData();
+  const { blogs, loading } = useDataStore();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -161,11 +161,7 @@ export const BlogPage: React.FC = () => {
           <p className="text-theme-dim text-sm md:text-base">Thoughts, tutorials, and insights on the future of tech and design.</p>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
-          </div>
-        ) : blogs.length === 0 ? (
+        {blogs.length === 0 && !loading ? (
           <div className="text-center py-20 text-theme-dim">No articles published yet.</div>
         ) : (
           <div className="max-w-[1200px] mx-auto px-4 md:px-8">
@@ -175,29 +171,37 @@ export const BlogPage: React.FC = () => {
               <motion.article
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group cursor-pointer mb-16 md:mb-24 relative rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-theme-card shadow-2xl w-full mx-auto aspect-[1.1] md:aspect-[2.2] border border-theme-border"
+                className="group cursor-pointer mb-16 md:mb-24 flex flex-col rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-theme-card shadow-lg border border-theme-border transition-all hover:shadow-xl hover:-translate-y-1 w-full mx-auto"
                 onClick={() => navigate(`/blog/${featuredBlog.id}`)}
               >
-                <img 
-                  src={featuredBlog.image} 
-                  alt={featuredBlog.title} 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80 md:opacity-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                <div className="w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden relative border-b border-theme-border/50">
+                  <img 
+                    src={featuredBlog.image} 
+                    alt={featuredBlog.title} 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                  />
+                </div>
                 
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-14 z-10 flex flex-col items-start md:w-[70%]">
-                  <span className="bg-brand text-white px-3 py-1.5 text-[10px] md:text-xs font-bold rounded mb-4 md:mb-6 uppercase tracking-widest">
+                <div className="p-6 md:p-12 flex flex-col items-start w-full">
+                  <span className="bg-brand/10 text-brand px-4 py-1.5 text-[10px] md:text-xs font-bold rounded-full mb-4 md:mb-6 uppercase tracking-widest">
                     Featured Article
                   </span>
-                  <h2 className="text-2xl md:text-[44px] font-serif font-bold text-white mb-3 md:mb-6 leading-[1.2] drop-shadow-md">
+                  <h2 className="text-2xl md:text-[40px] font-serif font-bold text-theme-text mb-4 md:mb-6 leading-[1.3] group-hover:text-brand transition-colors">
                     {featuredBlog.title}
                   </h2>
-                  <p className="text-white/80 text-sm md:text-lg mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 font-bengali leading-relaxed drop-shadow">
-                    {stripHtmlAndTruncate(featuredBlog.content, 200)}
-                  </p>
-                  <button className="hidden md:flex bg-theme-card text-theme-text px-6 py-3 rounded-full font-bold text-xs tracking-wider items-center gap-2 hover:bg-theme-bg transition-colors shadow-lg border border-theme-border">
-                    READ FULL ARTICLE <ArrowRight size={16} />
-                  </button>
+                  
+                  <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-6 mt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-theme-bg border border-theme-border flex items-center justify-center font-bold text-sm uppercase text-theme-text shrink-0">
+                        {featuredBlog.author?.charAt(0) || 'A'}
+                      </div>
+                      <span className="text-sm text-theme-dim font-bold">{featuredBlog.author || 'Al-amin'} • {getReadingTime(featuredBlog.content)} min read</span>
+                    </div>
+                    
+                    <button className="bg-brand text-white px-8 py-3.5 rounded-full font-bold text-xs tracking-wider flex items-center justify-center gap-2 hover:bg-brand-700 transition-colors shadow-md">
+                      READ FULL ARTICLE <ArrowRight size={16} />
+                    </button>
+                  </div>
                 </div>
               </motion.article>
             )}
@@ -217,13 +221,10 @@ export const BlogPage: React.FC = () => {
                     <span style={{color: getCategoryColor(0)}} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">
                       {(bentoGridBlogs[0] as any).category || 'Technology'}
                     </span>
-                    <h3 className="text-[26px] font-serif font-bold text-theme-text mb-4 leading-[1.3] group-hover:text-brand transition-colors">
+                    <h3 className="text-[26px] font-serif font-bold text-theme-text mb-6 leading-[1.3] group-hover:text-brand transition-colors">
                       {bentoGridBlogs[0].title}
                     </h3>
-                    <p className="text-theme-dim line-clamp-3 leading-relaxed mb-6 font-bengali text-[15px]">
-                      {stripHtmlAndTruncate(bentoGridBlogs[0].content, 150)}
-                    </p>
-                    <span className="text-[#8B5CF6] font-bold text-xs flex items-center gap-2 group-hover:gap-3 transition-all uppercase tracking-widest">
+                    <span className="text-[#8B5CF6] font-bold text-xs flex items-center gap-2 group-hover:gap-3 transition-all uppercase tracking-widest mt-auto">
                       READ <ArrowRight size={14} />
                     </span>
                   </div>
@@ -241,12 +242,9 @@ export const BlogPage: React.FC = () => {
                     <span style={{color: getCategoryColor(1)}} className="font-bold text-[10px] uppercase tracking-widest mb-2 block">
                       {(bentoGridBlogs[1] as any).category || 'Development'}
                     </span>
-                    <h3 className="text-xl font-serif font-bold text-theme-text line-clamp-2 leading-snug group-hover:text-brand transition-colors mb-2">
+                    <h3 className="text-xl font-serif font-bold text-theme-text line-clamp-3 leading-snug group-hover:text-brand transition-colors mb-2">
                       {bentoGridBlogs[1].title}
                     </h3>
-                    <p className="text-theme-dim text-sm line-clamp-2 font-bengali">
-                      {stripHtmlAndTruncate(bentoGridBlogs[1].content, 100)}
-                    </p>
                   </div>
                 </article>
 
@@ -262,12 +260,9 @@ export const BlogPage: React.FC = () => {
                     <span style={{color: getCategoryColor(2)}} className="font-bold text-[10px] uppercase tracking-widest mb-2 block">
                       {(bentoGridBlogs[2] as any).category || 'UI/UX'}
                     </span>
-                    <h3 className="text-xl font-serif font-bold text-theme-text line-clamp-2 leading-snug group-hover:text-brand transition-colors mb-2">
+                    <h3 className="text-xl font-serif font-bold text-theme-text line-clamp-3 leading-snug group-hover:text-brand transition-colors mb-2">
                       {bentoGridBlogs[2].title}
                     </h3>
-                    <p className="text-theme-dim text-sm line-clamp-2 font-bengali">
-                      {stripHtmlAndTruncate(bentoGridBlogs[2].content, 100)}
-                    </p>
                   </div>
                 </article>
 
@@ -283,12 +278,9 @@ export const BlogPage: React.FC = () => {
                     <span style={{color: getCategoryColor(3)}} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">
                       {(bentoGridBlogs[3] as any).category || 'Backend'}
                     </span>
-                    <h3 className="text-[28px] font-serif font-bold text-theme-text mb-4 leading-[1.2] group-hover:text-brand transition-colors">
+                    <h3 className="text-[28px] font-serif font-bold text-theme-text mb-6 leading-[1.2] group-hover:text-brand transition-colors">
                       {bentoGridBlogs[3].title}
                     </h3>
-                    <p className="text-theme-dim line-clamp-2 leading-relaxed mb-6 text-sm font-bengali">
-                      {stripHtmlAndTruncate(bentoGridBlogs[3].content, 120)}
-                    </p>
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-[10px] uppercase shrink-0">
                         {bentoGridBlogs[3].author?.charAt(0) || 'A'}
@@ -314,14 +306,13 @@ export const BlogPage: React.FC = () => {
                     >
                       {(blog as any).category || 'Technology'}
                     </span>
-                    <h3 className="text-[22px] font-serif font-bold text-theme-text mb-2 leading-snug">
+                    <h3 className="text-[22px] font-serif font-bold text-theme-text mb-4 leading-snug line-clamp-3">
                       {blog.title}
                     </h3>
-                    <p className="text-theme-dim text-sm line-clamp-2 leading-relaxed mb-3 font-bengali">
-                      {stripHtmlAndTruncate(blog.content, 100)}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-theme-dim font-bold">
-                      <Calendar size={12} /> {blog.date}
+                    <div className="flex items-center gap-2 text-xs text-theme-dim font-bold mt-auto">
+                      <Calendar size={12} /> {blog.date} 
+                      <span className="mx-1">•</span>
+                      {blog.author || 'Al-amin'}
                     </div>
                   </div>
                 </article>
@@ -373,14 +364,15 @@ export const BlogPage: React.FC = () => {
                       <span style={{ color: getCategoryColor(idx) }} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">
                         {(blog as any).category || 'Technology'}
                       </span>
-                      <h3 className="text-xl font-serif font-bold text-theme-text mb-3 leading-snug group-hover:text-brand transition-colors">
+                      <h3 className="text-xl font-serif font-bold text-theme-text mb-4 leading-snug line-clamp-3 group-hover:text-brand transition-colors">
                         {blog.title}
                       </h3>
-                      <p className="text-theme-dim text-sm line-clamp-2 leading-relaxed font-bengali mb-4">
-                        {stripHtmlAndTruncate(blog.content, 100)}
-                      </p>
-                      <div className="mt-auto text-xs font-bold text-theme-dim flex items-center gap-2">
-                        <Calendar size={12}/> {blog.date}
+                      <div className="mt-auto text-xs font-bold text-theme-dim flex items-center gap-2 flex-wrap">
+                        <span className="flex items-center gap-1"><Calendar size={12}/> {blog.date}</span>
+                        <span className="mx-1">•</span>
+                        <span>{blog.author || 'Al-amin'}</span>
+                        <span className="mx-1">•</span>
+                        <span>{getReadingTime(blog.content)} min</span>
                       </div>
                     </div>
                   </article>

@@ -17,6 +17,8 @@ export interface Project {
   screenshots?: string[];
   privacyPolicy?: string;
   platformLinks?: { name: string, url: string }[];
+  appLink?: string;
+  appVersion?: string;
 }
 
 export interface Experience {
@@ -110,6 +112,7 @@ export interface Profile {
   supportingLine: string;
   aboutMe: string;
   whoIHelp: string;
+  cvSummary?: string;
   problemsSolved: string;
   trustFactor: string;
   socialLinks: SocialLink[];
@@ -122,6 +125,7 @@ export interface Profile {
   githubTotalStars?: string;
   githubTotalForks?: string;
   githubTotalContributions?: string;
+  cvFileUrl?: string;
 }
 
 export interface NavItem {

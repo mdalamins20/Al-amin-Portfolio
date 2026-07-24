@@ -1,7 +1,7 @@
 
 import React from 'react';
 // Fix: Removed non-existent ThemeType and unused motion import to clean up the component.
-import { useTheme } from './ThemeContext';
+import { useThemeStore } from './stores/useThemeStore';
 import { Check, Palette, Monitor, Zap, Shield, Terminal } from 'lucide-react';
 
 // Fix: Aligned THEMES IDs with the valid accentColor IDs defined in ThemeContext.tsx
@@ -15,7 +15,7 @@ const THEMES = [
 
 export const ThemeSelector: React.FC<{ onSelect?: () => void }> = ({ onSelect }) => {
   // Fix: Changed 'theme' to 'accentColor' and 'setTheme' to 'setAccentColor' to match the ThemeContextType definition.
-  const { accentColor, setAccentColor } = useTheme();
+  const { accentColor, setAccentColor } = useThemeStore();
 
   return (
     <div className="p-4 bg-theme-bg">

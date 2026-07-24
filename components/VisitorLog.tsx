@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, arrayUnion } from 'firebase/firestore';
 import { db, isConfigured } from '../firebase';
 
 export const VisitorLog: React.FC = () => {
@@ -29,10 +29,12 @@ export const VisitorLog: React.FC = () => {
         let ipData = JSON.parse(sessionStorage.getItem('ip_data') || 'null');
         
         if (!ipData) {
-          const res = await fetch('https://ipapi.co/json/');
+          const res = await fetch('https://ipwho.is/');
           if (res.ok) {
             ipData = await res.json();
-            sessionStorage.setItem('ip_data', JSON.stringify(ipData));
+            if (ipData.success) {
+              sessionStorage.setItem('ip_data', JSON.stringify(ipData));
+            }
           }
         }
 
@@ -40,16 +42,19 @@ export const VisitorLog: React.FC = () => {
         const isMobile = /Mobi|Android/i.test(navigator.userAgent);
         
         // 3. Push to Firebase
-        // We will log each page visit as an array or just update the current document for this session
-        await setDoc(doc(db, 'analytics', visitId), {
+        const sessionRef = doc(db, 'analytics', visitId);
+        const timestamp = new Date().toISOString();
+        const pageVisit = { page: location.pathname, timestamp };
+
+        await setDoc(sessionRef, {
           ip: ipData?.ip || 'Unknown',
           city: ipData?.city || 'Unknown',
-          country: ipData?.country_name || 'Unknown',
-          isp: ipData?.org || 'Unknown',
+          country: (ipData?.country || ipData?.country_name) || 'Unknown',
+          isp: (ipData?.connection?.org || ipData?.org) || 'Unknown',
           device: isMobile ? 'Mobile' : 'Desktop',
+          lastActive: timestamp,
           lastPageVisited: location.pathname,
-          lastActive: new Date().toISOString(),
-          // Don't overwrite entry time if it already exists
+          history: arrayUnion(pageVisit)
         }, { merge: true });
 
       } catch (error) {

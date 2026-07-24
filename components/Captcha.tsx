@@ -118,7 +118,7 @@ export const Captcha: React.FC<CaptchaProps> = ({ onValidate }) => {
         onChange={handleInputChange}
         required
         maxLength={6}
-        className="w-full md:w-2/3 mx-auto block px-5 py-3.5 bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-bold text-center tracking-widest uppercase"
+        className="w-full md:w-2/3 mx-auto block px-5 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-bold text-center tracking-widest uppercase text-slate-900 dark:text-white"
         placeholder="Type characters above"
       />
     </div>

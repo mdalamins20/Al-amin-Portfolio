@@ -15,7 +15,7 @@ const BRANDS = [
 
 export const MarqueeBanner: React.FC = () => {
   return (
-    <div className="py-24 bg-white dark:bg-deep-950 overflow-hidden border-y border-slate-100 dark:border-white/5 relative">
+    <div className="py-12 bg-white dark:bg-deep-950 overflow-hidden border-y border-slate-100 dark:border-white/5 relative">
       <div className="max-w-7xl mx-auto px-6 mb-12 flex justify-center">
         <div className="inline-flex items-center space-x-3 bg-slate-50 dark:bg-white/5 px-6 py-3 rounded-full border border-slate-100 dark:border-white/10 shadow-sm">
           <div className="w-2 h-2 rounded-full bg-brand-600 animate-pulse"></div>

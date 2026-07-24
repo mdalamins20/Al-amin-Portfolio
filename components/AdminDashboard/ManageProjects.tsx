@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
 import { generateProjectFromGithub } from '../../utils/aiService';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 export const ManageProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -81,6 +82,10 @@ export const ManageProjects: React.FC = () => {
       setIsEditing(false);
       setCurrentProject({});
       fetchProjects();
+      
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
+      
       setModalConfig({
         isOpen: true,
         title: 'Success!',
@@ -111,6 +116,8 @@ export const ManageProjects: React.FC = () => {
         try {
           await deleteDoc(doc(db, 'projects', id));
           fetchProjects();
+          // Background Sync to Gist
+          compileAndSyncToGist().catch(console.error);
         } catch (error) {
           console.error('Error deleting project:', error);
         }
@@ -236,7 +243,7 @@ export const ManageProjects: React.FC = () => {
                         value={githubRepoUrl}
                         onChange={e => setGithubRepoUrl(e.target.value)}
                         placeholder="https://github.com/username/repo"
-                        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface shadow-sm"
+                        className="w-full text-base pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface shadow-sm"
                       />
                     </div>
                     <button
@@ -255,11 +262,12 @@ export const ManageProjects: React.FC = () => {
             <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">Project Title</label>
-                <input
+                <textarea
                   required
+                  rows={2}
                   value={currentProject.title || ''}
                   onChange={e => setCurrentProject({ ...currentProject, title: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                  className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm resize-none"
                   placeholder="e.g. AI Branding Tool"
                 />
               </div>
@@ -270,7 +278,7 @@ export const ManageProjects: React.FC = () => {
                   required
                   value={currentProject.description || ''}
                   onChange={e => setCurrentProject({ ...currentProject, description: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm min-h-[120px] resize-y"
+                  className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm min-h-[120px] resize-y"
                   placeholder="Project overview..."
                 />
               </div>
@@ -290,8 +298,32 @@ export const ManageProjects: React.FC = () => {
                 <input
                   value={currentProject.link || ''}
                   onChange={e => setCurrentProject({ ...currentProject, link: e.target.value })}
-                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                   className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-on-surface-variant flex items-center justify-between">
+                  <span>Mobile App Link (Google Drive)</span>
+                  <span className="text-[10px] font-normal text-text-secondary bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-wider">Optional</span>
+                </label>
+                <input
+                  value={currentProject.appLink || ''}
+                  onChange={e => setCurrentProject({ ...currentProject, appLink: e.target.value })}
+                  className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                  placeholder="https://drive.google.com/..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-on-surface-variant flex items-center justify-between">
+                  <span>App Version</span>
+                  <span className="text-[10px] font-normal text-text-secondary bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-wider">Optional</span>
+                </label>
+                <input
+                  value={currentProject.appVersion || ''}
+                  onChange={e => setCurrentProject({ ...currentProject, appVersion: e.target.value })}
+                  className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                  placeholder="e.g. v1.0.2"
                 />
               </div>
 
@@ -300,7 +332,7 @@ export const ManageProjects: React.FC = () => {
                 <input
                   value={currentProject.techStack?.join(', ') || ''}
                   onChange={e => setCurrentProject({ ...currentProject, techStack: e.target.value.split(',').map(s => s.trim()) })}
-                   className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                   className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="React, Firebase, Tailwind..."
                 />
               </div>
@@ -368,14 +400,14 @@ export const ManageProjects: React.FC = () => {
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-[-10px] group-hover:translate-y-0 transition-all duration-300 z-10">
                   <button
                     onClick={() => openEdit(project)}
-                    className="p-2.5 bg-white text-slate-700 hover:text-brand hover:scale-110 rounded-xl shadow-lg transition-all"
+                    className="p-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-brand dark:hover:text-brand hover:scale-110 rounded-xl shadow-lg transition-all"
                     title="Edit project"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(project.id)}
-                    className="p-2.5 bg-white text-red-500 hover:scale-110 rounded-xl shadow-lg transition-all"
+                    className="p-2.5 bg-white dark:bg-slate-800 text-red-500 hover:text-red-400 hover:scale-110 rounded-xl shadow-lg transition-all"
                     title="Delete project"
                   >
                     <Trash2 size={16} />

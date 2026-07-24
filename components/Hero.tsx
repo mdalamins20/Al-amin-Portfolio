@@ -1,15 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useProfile } from './ProfileContext';
+import { useProfileStore } from './stores/useProfileStore';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface HeroProps {
-  onViewCV?: () => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ onViewCV }) => {
-  const { profile, loading } = useProfile();
+export const Hero: React.FC = () => {
+  const { profile, loading } = useProfileStore();
   
   if (loading || !profile) {
     return (
@@ -23,7 +19,7 @@ export const Hero: React.FC<HeroProps> = ({ onViewCV }) => {
   const yearsExp = profile.stats.find(s => s.label.toLowerCase().includes('year'))?.value || '5';
 
   return (
-    <section className="relative pt-40 pb-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+    <section id="hero" className="relative pt-4 md:pt-16 pb-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
       <div className="hero-glow -top-20 -left-20"></div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg items-center">
@@ -74,10 +70,27 @@ export const Hero: React.FC<HeroProps> = ({ onViewCV }) => {
               <span className="material-symbols-outlined">event</span>
               Strategy Session
             </Link>
-            <button onClick={onViewCV} className="flex items-center gap-2 px-8 py-4 border border-outline text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-elevated transition-all">
-              <span className="material-symbols-outlined">chat_bubble</span>
-              View CV
-            </button>
+            {profile.cvFileUrl ? (
+              <a 
+                href={profile.cvFileUrl}
+                download={`${profile.firstName}_CV.pdf`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-8 py-4 border border-outline text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-elevated transition-all"
+              >
+                <span className="material-symbols-outlined">download</span>
+                Download PDF
+              </a>
+            ) : (
+              <button 
+                disabled
+                className="flex items-center gap-2 px-8 py-4 border border-outline text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-elevated transition-all opacity-50 cursor-not-allowed"
+                title="CV not uploaded yet"
+              >
+                <span className="material-symbols-outlined">download</span>
+                Download PDF
+              </button>
+            )}
           </motion.div>
         </div>
         
@@ -95,7 +108,7 @@ export const Hero: React.FC<HeroProps> = ({ onViewCV }) => {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="absolute -bottom-6 -right-6 z-20 bg-surface border border-outline-variant p-6 rounded-2xl shadow-xl flex flex-col items-center">
+          <div className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 z-20 bg-surface border border-outline-variant p-4 sm:p-6 rounded-2xl shadow-xl flex flex-col items-center scale-75 sm:scale-100 origin-bottom-right">
             <span className="font-headline-lg text-headline-lg text-on-surface font-black">{yearsExp}+</span>
             <span className="font-label-bold text-label-bold text-text-secondary uppercase">Years Exp.</span>
           </div>

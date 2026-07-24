@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Key, Save, AlertCircle } from 'lucide-react';
 import { getApiKey, saveApiKey, removeApiKey } from '../../utils/aiService';
 import { getGithubToken, saveGithubToken, removeGithubToken } from '../../utils/githubService';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 interface AISettingsModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
   const [apiKey, setApiKey] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,7 +44,23 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
     }, 1000);
   };
 
-  return (
+  const handleManualSync = async () => {
+    if (!githubToken.trim() && !getGithubToken()) {
+      alert("Please save a GitHub token first.");
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      await compileAndSyncToGist();
+      alert("Successfully synced all data to GitHub Gist!");
+    } catch (err: any) {
+      alert("Failed to sync: " + err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -73,7 +92,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
               </div>
               <h2 className="text-xl font-bold text-on-surface">AI & API Settings</h2>
               <p className="text-sm text-on-surface-variant mt-1">
-                Enter your Google Gemini API Key for AI features and an optional GitHub Token for importing private repos.
+                Enter your Google Gemini API Key for AI features, and a GitHub Token for importing repos & syncing data to Gist.
               </p>
             </div>
 
@@ -90,7 +109,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
               </div>
 
               <div>
-                <label className="text-sm font-bold text-on-surface-variant block mb-2">GitHub Personal Access Token (Optional)</label>
+                <label className="text-sm font-bold text-on-surface-variant block mb-2">GitHub Personal Access Token (Requires 'gist' scope)</label>
                 <input
                   type="password"
                   value={githubToken}
@@ -105,17 +124,29 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                 <p>Your API key is stored securely in your browser's local storage and is never sent to our servers.</p>
               </div>
 
-              <button
-                onClick={handleSave}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-brand to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              >
-                {isSaved ? 'Saved!' : 'Save Key'}
-                {!isSaved && <Save size={18} />}
-              </button>
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={handleSave}
+                  className="flex-1 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                >
+                  {isSaved ? 'Saved!' : 'Save Keys'}
+                  {!isSaved && <Save size={18} />}
+                </button>
+
+                <button
+                  onClick={handleManualSync}
+                  disabled={isSyncing}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isSyncing ? 'Syncing...' : 'Force Sync to Gist'}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };

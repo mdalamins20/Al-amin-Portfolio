@@ -1,6 +1,6 @@
 import { SEO } from './SEO';
-import { useProfile } from './ProfileContext';
-import { useData } from './DataContext';
+import { useProfileStore } from './stores/useProfileStore';
+import { useDataStore } from './stores/useDataStore';
 
 interface DynamicSEOProps {
   title?: string;
@@ -8,8 +8,8 @@ interface DynamicSEOProps {
 }
 
 export const DynamicSEO: React.FC<DynamicSEOProps> = ({ title: customTitle, description: customDescription }) => {
-  const { profile } = useProfile();
-  const { projects, skills } = useData();
+  const { profile } = useProfileStore();
+  const { projects, skills } = useDataStore();
 
   const pNames = projects.map(p => p.title).join(', ');
   const sNames = skills.map(s => s.name).join(', ');

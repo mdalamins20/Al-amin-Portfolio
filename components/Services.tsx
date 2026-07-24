@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useProfile } from './ProfileContext';
+import { useProfileStore } from './stores/useProfileStore';
 import { getIconByName } from './IconMapper';
 import { Loader2 } from 'lucide-react';
 
 export const Services: React.FC = () => {
-  const { profile, loading } = useProfile();
+  const { profile, loading } = useProfileStore();
 
   if (loading || !profile) {
     return (

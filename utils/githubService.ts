@@ -157,3 +157,47 @@ export const fetchGithubContributions = async (username: string) => {
     }
   };
 };
+
+export const syncToGist = async (data: any, existingGistId?: string): Promise<string> => {
+  const token = getGithubToken();
+  if (!token) {
+    throw new Error('No GitHub token found. Please add it in AI Settings.');
+  }
+
+  const gistContent = {
+    description: "Portfolio Data JSON",
+    public: true,
+    files: {
+      "portfolio_data.json": {
+        content: JSON.stringify(data, null, 2)
+      }
+    }
+  };
+
+  const headers = {
+    'Authorization': `token ${token}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+
+  if (existingGistId) {
+    // Update existing Gist
+    const res = await fetch(`https://api.github.com/gists/${existingGistId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(gistContent)
+    });
+    if (!res.ok) throw new Error(`Failed to update Gist: ${res.statusText}`);
+    return existingGistId;
+  } else {
+    // Create new Gist
+    const res = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(gistContent)
+    });
+    if (!res.ok) throw new Error(`Failed to create Gist: ${res.statusText}`);
+    const resData = await res.json();
+    return resData.id;
+  }
+};

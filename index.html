@@ -54,9 +54,15 @@
                         "theme-text": "var(--text-primary)",
                         "theme-dim": "var(--text-secondary)",
                         "theme-border": "var(--border-color)",
-                        "brand": "var(--accent)",
-                        "brand-hover": "var(--accent-hover)",
-                        "brand-50": "var(--accent-50)",
+                        "brand": {
+                            "DEFAULT": "var(--accent)",
+                            "50": "var(--accent-50)",
+                            "400": "var(--accent-hover)",
+                            "500": "var(--accent)",
+                            "600": "var(--accent)",
+                            "700": "var(--accent-hover)",
+                            "hover": "var(--accent-hover)"
+                        },
                         "secondary-fixed-dim": "#adc6ff",
                         "tertiary-container": "#007184",
                         "surface-container": "var(--surface-container)",
@@ -66,12 +72,12 @@
                         "error-container": "#93000a",
                         "on-tertiary-container": "#b7efff",
                         "on-error": "#690005",
-                        "surface-tint": "#d2bbff",
+                        "surface-tint": "var(--accent)",
                         "on-error-container": "#ffdad6",
                         "surface": "var(--surface)",
                         "error": "#ffb4ab",
                         "on-secondary-fixed": "#001a42",
-                        "inverse-primary": "#732ee4",
+                        "inverse-primary": "var(--accent)",
                         "text-primary": "var(--text-primary)",
                         "on-surface-variant": "var(--on-surface-variant)",
                         "on-secondary": "#002e6a",
@@ -79,33 +85,33 @@
                         "on-tertiary-fixed-variant": "#004e5c",
                         "tertiary-fixed-dim": "#4cd7f6",
                         "tertiary": "#4cd7f6",
-                        "accent-glow": "rgba(124, 58, 237, 0.15)",
+                        "accent-glow": "rgba(var(--accent-rgb), 0.15)",
                         "surface-container-low": "var(--surface-container-low)",
                         "surface-container-lowest": "var(--surface-container-lowest)",
                         "inverse-surface": "#dae2fd",
                         "primary-fixed": "#eaddff",
                         "tertiary-fixed": "#acedff",
-                        "primary-fixed-dim": "#d2bbff",
+                        "primary-fixed-dim": "var(--accent)",
                         "background": "var(--background)",
                         "on-tertiary-fixed": "#001f26",
-                        "primary-container": "#7c3aed",
+                        "primary-container": "var(--accent)",
                         "surface-container-highest": "var(--surface-container-highest)",
                         "secondary": "#adc6ff",
                         "surface-deep": "var(--surface-deep)",
-                        "primary": "#d2bbff",
+                        "primary": "var(--accent)",
                         "on-background": "var(--on-background)",
                         "text-secondary": "var(--text-secondary)",
                         "surface-elevated": "var(--surface-elevated)",
-                        "on-primary-fixed-variant": "#5a00c6",
+                        "on-primary-fixed-variant": "var(--accent-hover)",
                         "surface-dim": "var(--surface-dim)",
-                        "on-primary-fixed": "#25005a",
+                        "on-primary-fixed": "var(--accent-hover)",
                         "surface-bright": "var(--surface-bright)",
                         "surface-variant": "var(--surface-variant)",
                         "outline-variant": "var(--outline-variant)",
                         "on-surface": "var(--on-surface)",
                         "outline": "var(--outline)",
                         "on-secondary-container": "#e6ecff",
-                        "on-primary": "#3f008e",
+                        "on-primary": "var(--accent-50)",
                         "secondary-container": "#0566d9",
                         "on-secondary-fixed-variant": "#004395",
                         "surface-container-high": "var(--surface-container-high)"
@@ -262,10 +268,12 @@
         border: none !important;
       }
 
-      body {
+      html, body {
         background-color: var(--bg-primary);
         color: var(--text-primary);
         font-family: var(--font-main), sans-serif;
+        overflow-x: hidden;
+        width: 100%;
       }
 
       .section-container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
@@ -307,6 +315,25 @@
         font-style: italic;
         margin: 2rem 0;
         color: var(--text-secondary);
+      }
+      .blog-content pre,
+      .blog-content .ql-syntax,
+      .blog-content .ql-code-block-container,
+      .blog-content .ql-code-block {
+        max-width: 100%;
+        width: 100%;
+        overflow-x: auto !important;
+        white-space: pre !important;
+        word-wrap: normal !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0.5rem;
+      }
+      .blog-content pre code,
+      .blog-content .ql-syntax code,
+      .blog-content .ql-code-block {
+        white-space: inherit !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
       }
     </style>
     

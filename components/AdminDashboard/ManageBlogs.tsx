@@ -19,6 +19,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
 import { generateFullBlogPost } from '../../utils/aiService';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 export const ManageBlogs: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -85,6 +86,8 @@ export const ManageBlogs: React.FC = () => {
       setIsEditing(false);
       setCurrentBlog({});
       fetchBlogs();
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
       setModalConfig({
         isOpen: true,
         title: 'Success!',
@@ -115,6 +118,8 @@ export const ManageBlogs: React.FC = () => {
         try {
           await deleteDoc(doc(db, 'blogs', id));
           fetchBlogs();
+          // Background Sync to Gist
+          compileAndSyncToGist().catch(console.error);
         } catch (error) {
           console.error('Error deleting blog:', error);
         }
@@ -140,11 +145,18 @@ export const ManageBlogs: React.FC = () => {
     setAiGenerating(true);
     try {
       const generated = await generateFullBlogPost(currentBlog.title);
+      
+      // Use the AI-generated English image prompt to get a highly relevant image
+      // Fallback to title if the prompt is missing
+      const rawPrompt = (generated as any).imagePrompt || generated.title;
+      const encodedPrompt = encodeURIComponent(rawPrompt.replace(/\s+/g, '-'));
+      const aiImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=600&nologo=true`;
+
       setCurrentBlog(prev => ({
         ...prev,
         title: generated.title,
         content: generated.content,
-        image: prev.image || generated.image || ''
+        image: prev.image || aiImageUrl
       }));
     } catch (err: any) {
       setModalConfig({
@@ -216,11 +228,12 @@ export const ManageBlogs: React.FC = () => {
                       AI Write Full Blog
                     </button>
                   </div>
-                  <input
+                  <textarea
                     required
+                    rows={2}
                     value={currentBlog.title || ''}
-                    onChange={e => setCurrentBlog({ ...currentBlog, title: e.target.value })}
-                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm text-lg font-bold"
+                    onChange={e => setCurrentBlog(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm text-lg font-bold resize-none"
                     placeholder="e.g. The Future of AI in Web Development"
                   />
                 </div>
@@ -231,7 +244,7 @@ export const ManageBlogs: React.FC = () => {
                     <ImageUpload
                       label=""
                       initialValue={currentBlog.image}
-                      onUploadComplete={(url) => setCurrentBlog({ ...currentBlog, image: url })}
+                      onUploadComplete={(url) => setCurrentBlog(prev => ({ ...prev, image: url }))}
                       folder="blogs"
                       cropShape="rect"
                       aspectRatio={16/9}
@@ -242,8 +255,8 @@ export const ManageBlogs: React.FC = () => {
                     <label className="text-sm font-bold text-on-surface-variant">Author Name</label>
                     <input
                       value={currentBlog.author || ''}
-                      onChange={e => setCurrentBlog({ ...currentBlog, author: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                      onChange={e => setCurrentBlog(prev => ({ ...prev, author: e.target.value }))}
+                      className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                       placeholder="Enter Author Name"
                     />
                   </div>
@@ -251,11 +264,11 @@ export const ManageBlogs: React.FC = () => {
                 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-on-surface-variant">Content (Rich Text Editor)</label>
-                  <div className="bg-white text-black rounded-2xl border border-slate-200 overflow-hidden min-h-[350px]">
+                  <div className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden min-h-[350px]">
                     <ReactQuill 
                       theme="snow"
                       value={currentBlog.content || ''}
-                      onChange={(content) => setCurrentBlog({ ...currentBlog, content })}
+                      onChange={(content) => setCurrentBlog(prev => ({ ...prev, content }))}
                       className="h-[300px] border-none"
                       modules={{
                         toolbar: [
@@ -336,22 +349,17 @@ export const ManageBlogs: React.FC = () => {
                 </div>
               </div>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <div className="flex items-center gap-4 text-xs font-bold text-on-surface-variant mb-3 uppercase tracking-wider">
+                <div className="flex items-center flex-wrap gap-4 text-xs font-bold text-on-surface-variant mb-3 uppercase tracking-wider">
                   <div className="flex items-center gap-1.5 whitespace-nowrap bg-surface-variant px-2.5 py-1 rounded-md">
                     <Calendar size={14} className="text-brand" />
                     <span>{blog.date}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 whitespace-nowrap bg-surface-variant px-2.5 py-1 rounded-md">
-                    <User size={14} className="text-brand" />
-                    <span>{blog.author}</span>
+                  <div className="flex items-center gap-1.5 bg-surface-variant px-2.5 py-1 rounded-md max-w-full">
+                    <User size={14} className="text-brand shrink-0" />
+                    <span className="truncate">{blog.author}</span>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-on-surface mb-3 group-hover:text-brand transition-colors line-clamp-2">{blog.title}</h3>
-                
-                {/* Text stripping for preview */}
-                <p className="text-on-surface-variant text-sm md:text-base leading-relaxed line-clamp-2">
-                    {blog.content ? blog.content.replace(/<[^>]+>/g, '').substring(0, 150) + '...' : ''}
-                </p>
+                <h3 className="text-2xl font-bold text-on-surface mb-0 group-hover:text-brand transition-colors line-clamp-2">{blog.title}</h3>
               </div>
               <div className="flex md:flex-col gap-2 shrink-0 md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-white/5 pt-4 md:pt-0 md:pl-6 mt-4 md:mt-0">
                 <button

@@ -70,7 +70,15 @@ The user is currently writing the "${fieldType}" field and has typed the followi
 
 "${currentText}"
 
-Please complete the text smoothly. Ensure your tone is professional, engaging, and suitable for a portfolio. Output ONLY the completed text (what comes after the user's input), without any explanations, quotes, or formatting. If the user wrote in Bengali, complete in Bengali. If in English, complete in English.`;
+Please complete the text smoothly. Ensure your tone is professional, engaging, and suitable for a portfolio. 
+If the field type is "Project Description" or "longDescription", structure your completion as a "Deep Case Study" using the following format and headings:
+<h2>Problem:</h2> <p>What was the client's problem?</p>
+<h2>Solution:</h2> <p>How did you solve it?</p>
+<h2>Impact/Result:</h2> <p>What was the measurable outcome (e.g., speed increased by X%, sales boosted by Y%)?</p>
+
+If the field type is "CV Professional Summary", write a powerful 3-4 sentence Executive Summary for a CV. It should highlight core skills, total years of experience, and main value proposition. Do NOT use HTML tags.
+
+Output ONLY the completed text (what comes after the user's input), without any explanations, quotes, or formatting. If the user wrote in Bengali, complete in Bengali. If in English, complete in English.`;
 
   return generateText(prompt);
 };
@@ -83,7 +91,7 @@ Use HTML formatting (e.g. <h2>, <p>, <ul>, <li>, <strong>) because this will be 
   return generateText(prompt);
 };
 
-export const generateFullBlogPost = async (topic: string): Promise<{title: string, content: string, image?: string}> => {
+export const generateFullBlogPost = async (topic: string): Promise<{title: string, content: string, imagePrompt?: string}> => {
   const prompt = `You are a world-class tech blogger and senior software engineer. The user wants to write a complete, massive, and highly detailed blog post based on this topic or hint: "${topic}".
   
   Please generate a highly professional, engaging, human-like, and very detailed blog post. Explain concepts clearly with examples, as if you are teaching another developer. 
@@ -95,23 +103,41 @@ export const generateFullBlogPost = async (topic: string): Promise<{title: strin
   4. INLINE IMAGES: You MUST include at least 2 or 3 images inside the content to make it visually appealing. For images, MUST use URLs like this: <img src="https://image.pollinations.ai/prompt/YOUR-KEYWORD-HERE?width=800&height=400&nologo=true" alt="Descriptive alt text" style="border-radius: 12px; margin: 20px 0; max-width: 100%;" />. Replace YOUR-KEYWORD-HERE with 2-3 words related to the section (e.g., coding-workspace, python-code, tech-server). CRITICAL: You MUST use hyphens (-) instead of spaces in the URL. Spaces will break the image! DO NOT use loremflickr or unsplash.
   5. LINKS: If you refer to any external resources, official documentation, or tools, please include relevant hyperlinks using <a href="..." target="_blank" rel="noopener noreferrer">...</a> tags.
   
-  Return your response EXACTLY in the following JSON format:
-  {
-    "title": "A highly engaging, catchy, and professional title for the blog post",
-    "content": "The full, massive blog post content formatted as beautiful HTML. MUST include paragraphs, lists, code blocks, hyperlinks, and at least 2-3 inline pollinations images.",
-    "image": "https://image.pollinations.ai/prompt/YOUR-MAIN-TOPIC?width=1200&height=600&nologo=true"
-  }
+  Return your response EXACTLY in the following custom format (do NOT use JSON):
   
-  CRITICAL RULE FOR "image": The "image" field MUST be a valid URL string only. Replace YOUR-MAIN-TOPIC with the main topic of the blog using hyphens. Do NOT include any extra text in the URL.
-  Output ONLY valid JSON starting with { and ending with }. Do not include markdown formatting like \`\`\`json.`;
+  ---TITLE---
+  A highly engaging, catchy, and professional title for the blog post
+  ---IMAGE_PROMPT---
+  3 to 5 English words describing the blog's main theme, separated by hyphens. (Example: dark-coding-workspace-developer)
+  ---CONTENT---
+  The full, massive blog post content formatted as beautiful HTML. MUST include paragraphs, lists, code blocks, hyperlinks, and at least 2-3 inline pollinations images.`;
   
   const text = await generateText(prompt);
   try {
-    const parsed = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
-    return parsed;
-  } catch (e) {
-    console.error("AI JSON Parse Error:", e, "Raw Text:", text);
-    throw new Error('Failed to parse AI response into JSON');
+    const titleMatch = text.match(/---TITLE---\s*([\s\S]*?)\s*---IMAGE_PROMPT---/);
+    const imagePromptMatch = text.match(/---IMAGE_PROMPT---\s*([\s\S]*?)\s*---CONTENT---/);
+    const contentMatch = text.match(/---CONTENT---\s*([\s\S]*)/);
+    
+    if (!titleMatch || !contentMatch || !imagePromptMatch) {
+      // Fallback: if it still tried to output JSON by mistake, let's catch it
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error(`AI didn't return valid data. It said: "${text.substring(0, 100)}..."`);
+    }
+    
+    return {
+      title: titleMatch[1].trim(),
+      imagePrompt: imagePromptMatch[1].trim(),
+      content: contentMatch[1].trim()
+    };
+  } catch (e: any) {
+    console.error("AI Parse Error:", e, "Raw Text:", text);
+    if (e.message.includes("AI didn't return valid data")) {
+      throw e;
+    }
+    throw new Error('AI generated invalid format. Please try a different topic or click Generate again.');
   }
 };
 
@@ -128,7 +154,7 @@ Return your response EXACTLY in the following JSON format:
 {
   "title": "A clean, professional, and catchy title for the project.",
   "description": "An engaging 3-4 line short description highlighting the main value proposition.",
-  "longDescription": "A massive, highly detailed, professional blog-style description of the project. Must be at least 3-4 paragraphs. Format beautifully with HTML (<h2>, <p>, <ul>, <li>, <strong>). Explain the architecture, problems solved, how it works, and why it's amazing.",
+  "longDescription": "A massive, highly detailed, professional blog-style description of the project. MUST be structured as a 'Deep Case Study'. Format beautifully with HTML. You MUST include these three sections with <h2> tags: <h2>Problem</h2> (What problem did this project solve?), <h2>Solution</h2> (How did you architect and solve it?), and <h2>Impact/Result</h2> (What was the measurable outcome, performance gain, or business impact?). Explain the architecture and why it's amazing.",
   "category": "One of: Frontend, Backend, Full-Stack, Mobile App, Other",
   "techStack": "A comma-separated string of ALL technologies used (e.g., 'React, TypeScript, Tailwind CSS, Node.js, MongoDB'). DO NOT use an array.",
   "features": "A comma-separated string of 5-8 key features (e.g., 'Real-time Chat, User Authentication, Stripe Integration'). DO NOT use an array.",
@@ -138,10 +164,16 @@ Output ONLY valid JSON starting with { and ending with }. Do not include markdow
 
   const text = await generateText(prompt);
   try {
-    const parsed = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
-    return parsed;
-  } catch (e) {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) {
+      throw new Error(`AI didn't return valid data. It said: "${text.substring(0, 100)}..."`);
+    }
+    return JSON.parse(match[0]);
+  } catch (e: any) {
     console.error("AI JSON Parse Error (GitHub):", e, "Raw Text:", text);
-    throw new Error('Failed to parse AI response into JSON');
+    if (e.message.includes("AI didn't return valid data")) {
+      throw e;
+    }
+    throw new Error('AI generated invalid format. Please try again.');
   }
 };

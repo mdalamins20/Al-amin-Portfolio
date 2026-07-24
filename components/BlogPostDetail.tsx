@@ -10,6 +10,8 @@ import { doc, getDoc, updateDoc, increment, arrayUnion, collection, addDoc, serv
 import { Blog, BlogComment } from '../types';
 import { Layout } from './Layout';
 import { SEO } from './SEO';
+import { useProfileStore } from './stores/useProfileStore';
+import { useDataStore } from './stores/useDataStore';
 
 const stripHtmlAndTruncate = (html: string, maxLength: number) => {
   const tmp = document.createElement('DIV');
@@ -74,7 +76,7 @@ const NewsletterCard = ({ isMobile = false }: { isMobile?: boolean }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address" 
-              className="w-full bg-theme-bg text-theme-text border border-theme-border rounded-xl px-5 py-3.5 text-sm outline-none focus:border-brand transition-colors"
+              className="w-full bg-theme-bg text-theme-text border border-theme-border rounded-xl px-5 py-3.5 text-base outline-none focus:border-brand transition-colors"
               disabled={loading}
             />
             <button 
@@ -111,7 +113,7 @@ const NewsletterCard = ({ isMobile = false }: { isMobile?: boolean }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address" 
-            className="w-full bg-theme-bg border border-theme-border rounded-xl px-4 py-3 text-sm outline-none focus:border-brand"
+            className="w-full bg-theme-bg border border-theme-border rounded-xl px-4 py-3 text-base outline-none focus:border-brand"
             disabled={loading}
           />
           <button 
@@ -128,13 +130,22 @@ const NewsletterCard = ({ isMobile = false }: { isMobile?: boolean }) => {
 };
 
 const AuthorCard = ({ author, isMobile = false }: { author: string, isMobile?: boolean }) => {
+  const { profile } = useProfileStore();
+  const profileImage = profile?.image;
+
   if (isMobile) {
     return (
       <div className="flex flex-col items-center text-center p-8 bg-theme-bg/50 border border-theme-border rounded-2xl mb-12">
-        <img src="https://al-amin.dev/assets/images/profile.jpg" alt={author} className="w-20 h-20 rounded-xl object-cover mb-4 shadow-sm" />
+        {profileImage ? (
+          <img src={profileImage} alt={author} className="w-20 h-20 rounded-xl object-cover mb-4 shadow-sm" />
+        ) : (
+          <div className="w-20 h-20 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-bold text-3xl mb-4 shadow-sm">
+            {author.charAt(0)}
+          </div>
+        )}
         <h3 className="font-bold text-lg text-theme-text mb-1">{author}</h3>
         <p className="text-sm text-theme-dim mb-4 leading-relaxed">
-          Software Architect and Technical Maker focused on the intersection of AI and Human Cognition. Building the next generation of developer experiences.
+          {profile?.tagline || 'Digital Solution Architect specializing in modern enterprise systems and software engineering.'}
         </p>
         <div className="flex gap-4 text-brand">
           <a href="#" className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center hover:bg-brand hover:text-white transition-colors"><Bookmark size={14} /></a>
@@ -147,14 +158,21 @@ const AuthorCard = ({ author, isMobile = false }: { author: string, isMobile?: b
 
   return (
     <div className="bg-theme-card border border-theme-border rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
-      <div className="w-16 h-16 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-bold text-xl mb-4">
-        {author.charAt(0)}
-      </div>
+      {profileImage ? (
+        <img src={profileImage} alt={author} className="w-16 h-16 rounded-xl object-cover mb-4 shadow-sm border-2 border-brand/20" />
+      ) : (
+        <div className="w-16 h-16 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-bold text-xl mb-4">
+          {author.charAt(0)}
+        </div>
+      )}
       <h3 className="font-bold text-theme-text mb-1">{author}</h3>
       <div className="text-xs text-theme-dim mb-6 leading-relaxed">
-        Digital Solution Architect specializing in modern enterprise systems and software engineering.
+        {profile?.tagline || 'Digital Solution Architect specializing in modern enterprise systems and software engineering.'}
       </div>
-      <button className="w-full py-2 border border-brand/30 text-brand font-bold text-sm rounded-xl hover:bg-brand/5 transition-colors">
+      <button 
+        onClick={() => { window.location.href = '/'; }}
+        className="w-full py-2 border border-brand/30 text-brand font-bold text-sm rounded-xl hover:bg-brand/5 transition-colors"
+      >
         View Profile
       </button>
     </div>
@@ -166,8 +184,12 @@ const AuthorCard = ({ author, isMobile = false }: { author: string, isMobile?: b
 // -------------------------------------------------------------
 
 export const BlogPostDetail: React.FC = () => {
+  const { profile } = useProfileStore();
+  const { blogs } = useDataStore();
   const { id } = useParams<{ id: string }>();
-  const [blog, setBlog] = useState<Blog | null>(null);
+  
+  const initialBlog = blogs.find(b => b.id === id) || null;
+  const [blog, setBlog] = useState<Blog | null>(initialBlog);
   const [relatedBlogs, setRelatedBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -278,17 +300,6 @@ export const BlogPostDetail: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Layout onViewCV={() => {}} hideNavigation>
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <Loader2 className="animate-spin text-brand w-12 h-12 mb-4" />
-          <p className="text-theme-dim font-medium">Loading article...</p>
-        </div>
-      </Layout>
-    );
-  }
-
   if (!blog) return null;
 
   const estimatedReadingTime = Math.max(1, Math.ceil((blog.content || '').replace(/<[^>]*>?/gm, '').split(/\s+/).length / 200));
@@ -342,7 +353,13 @@ export const BlogPostDetail: React.FC = () => {
 
           {/* Mobile Author Info */}
           <div className="md:hidden flex items-center gap-3 mb-8 border-b border-theme-border pb-6">
-            <img src="https://al-amin.dev/assets/images/profile.jpg" alt={blog.author} className="w-10 h-10 rounded-full object-cover" />
+            {profile?.image ? (
+              <img src={profile?.image} alt={blog.author} className="w-10 h-10 rounded-full object-cover border border-brand/20" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-sm">
+                {blog.author.charAt(0)}
+              </div>
+            )}
             <div>
               <div className="font-bold text-sm text-theme-text">{blog.author}</div>
               <div className="text-xs text-theme-dim uppercase tracking-widest mt-0.5">{blog.date}</div>
@@ -357,13 +374,16 @@ export const BlogPostDetail: React.FC = () => {
       <div className="max-w-[1200px] mx-auto pb-24 md:pb-32 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
         
         {/* LEFT COLUMN: Content (70%) */}
-        <div className="w-full lg:w-[70%]">
+        <div className="w-full lg:w-[70%] min-w-0">
           
           {/* Reading Area */}
-          <article 
-            className="prose prose-lg dark:prose-invert max-w-none font-bengali blog-content text-[15px] md:text-[17px] leading-[1.8] md:leading-[2] text-theme-text/90 whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
-          />
+          <div className="w-full max-w-full overflow-x-hidden">
+            <article 
+              className="prose prose-lg dark:prose-invert max-w-none font-bengali blog-content text-[15px] md:text-[17px] leading-[1.8] md:leading-[2] text-theme-text/90 whitespace-pre-wrap break-words"
+              style={{ overflowWrap: 'anywhere' }}
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+            />
+          </div>
 
           {/* Mobile Only: Interaction Bar Inline */}
           <div className="md:hidden flex items-center justify-between border-y border-theme-border py-4 my-10">
@@ -426,14 +446,14 @@ export const BlogPostDetail: React.FC = () => {
                   value={commentName}
                   onChange={(e) => setCommentName(e.target.value)}
                   placeholder="Your Name" 
-                  className="w-full bg-theme-bg md:bg-theme-bg border border-theme-border rounded p-3 text-sm outline-none focus:border-brand"
+                  className="w-full bg-theme-bg md:bg-theme-bg border border-theme-border rounded p-3 text-base outline-none focus:border-brand"
                   required
                 />
                 <textarea 
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="What are your thoughts?" 
-                  className="w-full bg-theme-bg md:bg-theme-bg border border-theme-border rounded p-3 text-sm min-h-[100px] outline-none focus:border-brand resize-y"
+                  className="w-full bg-theme-bg md:bg-theme-bg border border-theme-border rounded p-3 text-base min-h-[100px] outline-none focus:border-brand resize-y"
                   required
                 />
                 <button 

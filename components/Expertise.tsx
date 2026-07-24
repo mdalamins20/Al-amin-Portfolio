@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tool } from '../types';
 import { Loader2, LayoutGrid, Globe } from 'lucide-react';
 import TagCloud from 'TagCloud';
-import { useData } from './DataContext';
+import { useDataStore } from './stores/useDataStore';
 
 export const Expertise: React.FC = () => {
-  const { skills, loading } = useData();
+  const { skills, loading } = useDataStore();
   const [viewMode, setViewMode] = useState<'grid' | '3d'>('grid');
   const cloudContainerRef = useRef<HTMLDivElement>(null);
 

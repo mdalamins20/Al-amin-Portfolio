@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 
@@ -24,14 +25,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   confirmText = 'Confirm',
   cancelText = 'Cancel'
 }) => {
-  if (!isOpen) return null;
-
   const isAlert = !onConfirm;
 
-  return (
+  const modalContent = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        {/* Backdrop */}
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -59,7 +59,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                <AlertCircle size={40} />}
             </div>
             
-            <h3 className="text-2xl font-bold text-on-surface mb-2">{title}</h3>
+            <h3 className="text-2xl font-bold text-on-surface mb-4">{title}</h3>
             <p className="text-on-surface-variant font-medium leading-relaxed">{message}</p>
           </div>
 
@@ -97,6 +97,9 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </button>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };

@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Check, Send, Loader2, CheckCircle, X } from 'lucide-react';
+import React from 'react';
+import { Loader2, CheckCircle, X } from 'lucide-react';
 import { Captcha } from './Captcha';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useProfile } from './ProfileContext';
+import { useContactForm } from './hooks/useContactForm';
+import { useProfileStore } from './stores/useProfileStore';
 
 export const ContactSection: React.FC = () => {
-  const { profile, loading } = useProfile();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
-  const [isCaptchaValid, setIsCaptchaValid] = useState(false);
-
-  useEffect(() => {
-    if (isSuccess) {
-      const timer = setTimeout(() => {
-        setIsSuccess(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess]);
+  const { profile, loading } = useProfileStore();
+  const {
+    isSubmitting,
+    isSuccess,
+    errorMessage,
+    setIsCaptchaValid,
+    submitForm,
+    closeSuccessMessage
+  } = useContactForm();
 
   if (loading || !profile) {
     return null;
@@ -28,53 +23,6 @@ export const ContactSection: React.FC = () => {
   const whatsappNumber = profile.phone.replace(/\+/g, ''); 
   const whatsappMessage = encodeURIComponent("Hello, I visited your portfolio and would like to contact you.");
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isCaptchaValid) {
-      setErrorMessage("Please complete the Human Verification correctly.");
-      return;
-    }
-
-    const lastSent = localStorage.getItem('lastMessageSent');
-    if (lastSent && Date.now() - parseInt(lastSent) < 60000 * 30) {
-      setErrorMessage("You have already sent a message recently. Please try again later.");
-      return;
-    }
-
-    const form = e.currentTarget;
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    const formData = new FormData(form);
-    
-    try {
-      const response = await fetch("https://formspree.io/f/mnjjabjz", {
-        method: "POST",
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        setIsSuccess(true);
-        form.reset();
-        localStorage.setItem('lastMessageSent', Date.now().toString());
-      } else {
-        const data = await response.json();
-        if (Object.prototype.hasOwnProperty.call(data, 'errors')) {
-           setErrorMessage(data["errors"].map((error: any) => error["message"]).join(", "));
-        } else {
-           setErrorMessage("Oops! There was a problem submitting your form. Please try again.");
-        }
-      }
-    } catch (error) {
-      setErrorMessage("Oops! There was a network error. Please check your connection and try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <section id="contact" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto relative">
@@ -92,12 +40,12 @@ export const ContactSection: React.FC = () => {
         {/* Info Column */}
         <div className="lg:col-span-5 space-y-8">
           <div className="glass-card p-8 rounded-xl flex items-start gap-6 group">
-            <div className="w-14 h-14 bg-primary-container/20 rounded-lg flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 bg-primary-container/20 rounded-lg flex items-center justify-center text-primary group-hover:scale-110 transition-transform shrink-0">
               <span className="material-symbols-outlined text-3xl">mail</span>
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="font-headline-md text-[20px] mb-1 text-on-surface">Email</h3>
-              <p className="text-text-secondary mb-2">{profile.email}</p>
+              <p className="text-text-secondary mb-2 break-all">{profile.email}</p>
               <a className="text-primary font-label-bold text-label-bold flex items-center gap-1 group-hover:gap-2 transition-all" href={`mailto:${profile.email}`}>
                 Send a mail <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </a>
@@ -105,12 +53,12 @@ export const ContactSection: React.FC = () => {
           </div>
 
           <div className="glass-card p-8 rounded-xl flex items-start gap-6 group">
-            <div className="w-14 h-14 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary group-hover:scale-110 transition-transform shrink-0">
               <span className="material-symbols-outlined text-3xl">chat</span>
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="font-headline-md text-[20px] mb-1 text-on-surface">WhatsApp</h3>
-              <p className="text-text-secondary mb-2">{profile.phone}</p>
+              <p className="text-text-secondary mb-2 break-words">{profile.phone}</p>
               <a className="text-secondary font-label-bold text-label-bold flex items-center gap-1 group-hover:gap-2 transition-all" href={whatsappLink} target="_blank" rel="noopener noreferrer">
                 Chat now <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </a>
@@ -121,9 +69,9 @@ export const ContactSection: React.FC = () => {
             <div className="w-14 h-14 bg-tertiary/20 rounded-lg flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform shrink-0">
               <span className="material-symbols-outlined text-3xl">location_on</span>
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="font-headline-md text-[20px] mb-1 text-on-surface">Location</h3>
-              <p className="text-text-secondary mb-2">{profile.locationText || 'Dhaka, Bangladesh'}</p>
+              <p className="text-text-secondary mb-2 break-words">{profile.locationText || 'Dhaka, Bangladesh'}</p>
               <p className="text-tertiary text-xs bg-tertiary/10 inline-block px-2 py-1 rounded">Available for Remote</p>
             </div>
           </div>
@@ -147,7 +95,7 @@ export const ContactSection: React.FC = () => {
         {/* Form Column */}
         <div className="lg:col-span-7 relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-tertiary/30 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-          <form onSubmit={handleSubmit} className="glass-card p-8 md:p-12 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl relative overflow-hidden bg-surface-deep/30 dark:bg-surface-deep/10 backdrop-blur-md">
+          <form onSubmit={submitForm} className="glass-card p-8 md:p-12 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl relative overflow-hidden bg-surface-deep/30 dark:bg-surface-deep/10 backdrop-blur-md">
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-[100px] rounded-full"></div>
             
             <div className="relative z-10">
@@ -156,28 +104,28 @@ export const ContactSection: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Name</label>
-                  <input name="name" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Your Name" type="text"/>
+                  <input name="name" required className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-slate-900 dark:text-white" placeholder="Enter Your Name" type="text"/>
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Email</label>
-                  <input name="email" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Your Email" type="email"/>
+                  <input name="email" required className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-slate-900 dark:text-white" placeholder="Enter Your Email" type="email"/>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Phone</label>
-                  <input name="phone" className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Your Phone Number" type="tel"/>
+                  <input name="phone" className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-slate-900 dark:text-white" placeholder="Enter Your Phone Number" type="tel"/>
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Subject</label>
-                  <input name="subject" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface" placeholder="Enter Subject" type="text"/>
+                  <input name="subject" required className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-slate-900 dark:text-white" placeholder="Enter Subject" type="text"/>
                 </div>
               </div>
 
               <div className="space-y-2 mb-6">
                 <label className="block text-xs font-label-bold text-text-secondary uppercase tracking-widest mb-2">Message</label>
-                <textarea name="message" required className="w-full bg-surface/50 dark:bg-surface-deep/30 backdrop-blur-sm border border-outline-variant/50 rounded-xl py-3.5 px-5 focus:bg-surface dark:focus:bg-surface-deep focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-on-surface min-h-[140px] resize-y leading-relaxed" placeholder="Write your message here..." rows={5}></textarea>
+                <textarea name="message" required className="w-full text-base bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 px-5 focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm font-medium placeholder:text-text-secondary/50 text-slate-900 dark:text-white min-h-[140px] resize-y leading-relaxed" placeholder="Write your message here..." rows={5}></textarea>
               </div>
 
               <div className="mb-8">
@@ -229,7 +177,8 @@ export const ContactSection: React.FC = () => {
                      <p className="text-sm opacity-90">Your message has been sent successfully.</p>
                   </div>
                   <button 
-                      onClick={() => setIsSuccess(false)}
+                      type="button"
+                      onClick={closeSuccessMessage}
                       className="ml-4 p-1 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                   >
                      <X size={20} />

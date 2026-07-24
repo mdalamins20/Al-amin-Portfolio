@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useProfile } from '../ProfileContext';
+import { useProfileStore } from '../stores/useProfileStore';
 import { Profile, SocialLink, Stat, Service, ProcessStep } from '../../types';
 import { Save, Loader2, Plus, Trash2, Globe, User, BookOpen, Star, Layers, Zap, Mail, Phone, CheckCircle2, Github, Activity, MapPin, Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getIconByName, ICON_NAMES } from '../IconMapper';
 import { ImageUpload } from './ImageUpload';
+import { FileUpload } from './FileUpload';
 import { ConfirmationModal } from './ConfirmationModal';
 import { AIAssistantInput } from './AIAssistantInput';
+import { compileAndSyncToGist } from '../../utils/syncService';
 
 export const ManageProfile: React.FC = () => {
-  const { profile, loading, updateProfile } = useProfile();
+  const { profile, loading, updateProfile } = useProfileStore();
   const [formData, setFormData] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'about' | 'social' | 'stats' | 'services' | 'process'>('basic');
@@ -37,6 +39,8 @@ export const ManageProfile: React.FC = () => {
     setSaving(true);
     try {
       await updateProfile(formData);
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
       setModalConfig({
         isOpen: true,
         title: 'Success!',
@@ -90,7 +94,10 @@ export const ManageProfile: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex overflow-x-auto pb-4 gap-2 border-b border-outline-variant hide-scrollbar mask-edges">
+      <div className="flex overflow-x-auto pb-4 gap-2 border-b border-outline-variant mask-edges" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style dangerouslySetInnerHTML={{__html: `
+          .mask-edges::-webkit-scrollbar { display: none; }
+        `}} />
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -123,7 +130,7 @@ export const ManageProfile: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10"
             >
-              <div className="md:col-span-2 flex flex-col md:flex-row gap-8 items-start pb-8 border-b border-slate-100 dark:border-white/5">
+              <div className="md:col-span-2 flex flex-col sm:flex-row flex-wrap gap-8 items-start sm:items-center md:items-start pb-8 border-b border-slate-100 dark:border-white/5">
                 <div className="shrink-0 space-y-4">
                   <h3 className="font-bold text-on-surface">Profile Picture</h3>
                   <div className="w-40 sm:w-48">
@@ -155,13 +162,27 @@ export const ManageProfile: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                <div className="shrink-0 space-y-4">
+                  <h3 className="font-bold text-on-surface">Resume (PDF)</h3>
+                  <div className="w-48 sm:w-64">
+                    <FileUpload
+                      label=""
+                      initialValue={formData.cvFileUrl}
+                      onUploadComplete={(url) => setFormData({ ...formData, cvFileUrl: url })}
+                      folder="resumes"
+                      accept=".pdf"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex-1 grid grid-cols-1 gap-6 w-full">
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-on-surface-variant">Full Name</label>
                     <input
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                      className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -169,7 +190,7 @@ export const ManageProfile: React.FC = () => {
                     <input
                       value={formData.role}
                       onChange={e => setFormData({ ...formData, role: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                      className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -182,7 +203,7 @@ export const ManageProfile: React.FC = () => {
                   <input
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -193,7 +214,7 @@ export const ManageProfile: React.FC = () => {
                   <input
                     value={formData.phone}
                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -205,7 +226,7 @@ export const ManageProfile: React.FC = () => {
                   <input
                     value={formData.locationText || ''}
                     onChange={e => setFormData({ ...formData, locationText: e.target.value })}
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                     placeholder="e.g. Dhaka, Bangladesh"
                   />
                 </div>
@@ -221,7 +242,7 @@ export const ManageProfile: React.FC = () => {
                   <textarea
                     value={formData.mapEmbedUrl || ''}
                     onChange={e => setFormData({ ...formData, mapEmbedUrl: e.target.value })}
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm resize-y min-h-[100px]"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm resize-y min-h-[100px]"
                     placeholder='e.g. https://www.google.com/maps/embed?pb=...'
                   />
                 </div>
@@ -236,7 +257,7 @@ export const ManageProfile: React.FC = () => {
                     value={formData.githubReposCount || ''}
                     onChange={e => setFormData({ ...formData, githubReposCount: e.target.value })}
                     placeholder="e.g. 14"
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -249,7 +270,7 @@ export const ManageProfile: React.FC = () => {
                     value={formData.githubTotalStars || ''}
                     onChange={e => setFormData({ ...formData, githubTotalStars: e.target.value })}
                     placeholder="e.g. 120"
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -262,7 +283,7 @@ export const ManageProfile: React.FC = () => {
                     value={formData.githubTotalForks || ''}
                     onChange={e => setFormData({ ...formData, githubTotalForks: e.target.value })}
                     placeholder="e.g. 35"
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -275,7 +296,7 @@ export const ManageProfile: React.FC = () => {
                     value={formData.githubTotalContributions || ''}
                     onChange={e => setFormData({ ...formData, githubTotalContributions: e.target.value })}
                     placeholder="e.g. 1,250+"
-                    className="w-full pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                    className="w-full text-base pl-11 pr-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -328,6 +349,26 @@ export const ManageProfile: React.FC = () => {
                   fieldType="About Me Description"
                 />
               </div>
+              
+              <div className="space-y-2">
+                <div className="flex flex-col mb-4">
+                  <label className="text-lg font-bold text-on-surface flex items-center gap-2">
+                    <BookOpen size={20} className="text-brand" />
+                    CV Professional Summary (For PDF)
+                  </label>
+                  <p className="text-on-surface-variant text-sm">This is the short executive summary that will appear at the top of your downloaded PDF CV.</p>
+                </div>
+                <AIAssistantInput
+                  label=""
+                  value={formData.cvSummary || ''}
+                  onChange={value => setFormData({ ...formData, cvSummary: value })}
+                  type="textarea"
+                  rows={4}
+                  fieldType="CV Professional Summary"
+                  placeholder="Click the AI button to generate a summary based on your profile!"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100 dark:border-white/5">
                 <div className="space-y-3 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-outline-variant shadow-sm">
                   <div className="w-12 h-12 bg-surface rounded-2xl shadow-sm flex items-center justify-center text-brand mb-4">
@@ -515,7 +556,7 @@ export const ManageProfile: React.FC = () => {
                         const newStats = formData.stats.filter((_, i) => i !== index);
                         setFormData({ ...formData, stats: newStats });
                       }}
-                       className="absolute top-4 right-4 p-2 bg-surface border border-outline-variant text-red-500 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-500/10 dark:hover:border-red-500/30 rounded-xl transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+                       className="absolute top-4 right-4 p-2 bg-surface border border-outline-variant text-red-500 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-500/10 dark:hover:border-red-500/30 rounded-xl transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 shadow-sm"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -605,7 +646,7 @@ export const ManageProfile: React.FC = () => {
                         const newServices = formData.services.filter((_, i) => i !== index);
                         setFormData({ ...formData, services: newServices });
                       }}
-                       className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                       className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     >
                       <Trash2 size={20} />
                     </button>
@@ -764,7 +805,7 @@ export const ManageProfile: React.FC = () => {
                         const newProcess = formData.process.filter((_, i) => i !== index);
                         setFormData({ ...formData, process: newProcess });
                       }}
-                       className="p-3 bg-surface border border-outline-variant text-red-500 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-500/10 dark:hover:border-red-500/30 rounded-xl transition-all self-end md:self-start opacity-0 group-hover:opacity-100 shadow-sm"
+                       className="p-3 bg-surface border border-outline-variant text-red-500 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-500/10 dark:hover:border-red-500/30 rounded-xl transition-all self-end md:self-start opacity-100 md:opacity-0 md:group-hover:opacity-100 shadow-sm"
                     >
                       <Trash2 size={20} />
                     </button>

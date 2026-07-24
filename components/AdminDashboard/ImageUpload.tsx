@@ -168,7 +168,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center hover:bg-brand hover:text-white hover:scale-110 shadow-lg transition-all"
+                  className="w-10 h-10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-full flex items-center justify-center hover:bg-brand hover:text-white dark:hover:bg-brand dark:hover:text-white hover:scale-110 shadow-lg transition-all"
                   title="Change Image"
                 >
                   <Upload size={18} />

@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { useData } from './DataContext';
+import { useDataStore } from './stores/useDataStore';
 import { useNavigate } from 'react-router-dom';
 
 export const ProjectGrid: React.FC = () => {
-  const { projects, loading } = useData();
+  const { projects, loading } = useDataStore();
   const navigate = useNavigate();
+
+  const displayProjects = useMemo(() => {
+    if (!projects || projects.length === 0) return [];
+    // Copy the array and shuffle it randomly
+    const shuffled = [...projects].sort(() => Math.random() - 0.5);
+    return shuffled;
+  }, [projects]);
 
   const getBentoClasses = (index: number) => {
     const cycle = index % 8;
@@ -46,18 +53,9 @@ export const ProjectGrid: React.FC = () => {
           <p className="text-text-secondary">No projects added yet.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           <AnimatePresence>
-            {projects.map((project, index) => {
-              const cycle = index % 8;
-              let classes = 'group relative overflow-hidden rounded-2xl border border-surface-variant/20 cursor-pointer ';
-              
-              if (cycle === 0) classes += 'md:col-span-8 min-h-[400px]';
-              else if (cycle === 1) classes += 'md:col-span-4 min-h-[400px]';
-              else if (cycle >= 2 && cycle <= 4) classes += 'md:col-span-4 min-h-[350px]';
-              else if (cycle === 5) classes += 'md:col-span-6 min-h-[300px]';
-              else classes += 'md:col-span-6 min-h-[350px]';
-
+            {displayProjects.map((project, index) => {
               return (
                 <motion.div 
                   layout
@@ -65,47 +63,44 @@ export const ProjectGrid: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   key={project.id} 
-                  className={classes}
+                  className="break-inside-avoid group cursor-pointer bg-surface border border-surface-variant/20 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   onClick={() => navigate(`/project/${project.id}`)}
                 >
-                  <img 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 absolute inset-0" 
-                    src={project.image || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97'} 
-                    alt={project.title}
-                    referrerPolicy="no-referrer"
-                  />
-                  {/* Always use a dark gradient for image overlays so white text is readable in Light & Dark Mode */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity group-hover:opacity-100"></div>
+                  {/* Image section: Full uncropped image with natural aspect ratio */}
+                  <div className="w-full bg-surface-variant/10 flex items-center justify-center overflow-hidden">
+                    <img 
+                      className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-[1.02]" 
+                      src={project.image || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97'} 
+                      alt={project.title}
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
                   
-                  <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end z-10">
-                    <div className="flex justify-between items-end">
-                      <div className="w-full">
-                        <span className="text-primary font-label-bold text-label-bold uppercase">
-                          {(index + 1).toString().padStart(2, '0')} / {project.category || 'Project'}
-                        </span>
-                        <h3 className="font-headline-md text-2xl md:text-3xl text-white mt-2 mb-2 line-clamp-1">{project.title}</h3>
-                        <p className="text-gray-300 line-clamp-2 md:line-clamp-3 max-w-lg mb-4">
-                          {project.description}
-                        </p>
-                        
-                        {/* Only show tech stack for some sizes to keep variety */}
-                        {(cycle === 1 || cycle === 0) && project.techStack && (
-                          <div className="flex flex-wrap gap-2 mt-4 hidden md:flex">
-                            {project.techStack.slice(0, 3).map(tech => (
-                              <span key={tech} className="px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] font-label-bold border border-white/20 text-white">
-                                {tech}
-                              </span>
-                            ))}
-                          </div>
+                  {/* Text section: Clean presentation below the image */}
+                  <div className="p-6 md:p-8">
+                    <span className="text-primary font-label-bold text-xs uppercase tracking-widest mb-3 block">
+                      {project.category || 'Project'}
+                    </span>
+                    <h3 className="font-headline-md text-xl md:text-2xl text-on-surface mb-3 line-clamp-1">{project.title}</h3>
+                    <p className="text-text-secondary text-sm md:text-base line-clamp-2 md:line-clamp-3 mb-6 leading-relaxed">
+                      {project.description}
+                    </p>
+                    
+                    {/* Tech Stack */}
+                    {project.techStack && project.techStack.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {project.techStack.slice(0, 4).map(tech => (
+                          <span key={tech} className="px-3 py-1 bg-surface-variant/30 rounded-full text-[10px] md:text-xs font-label-bold text-on-surface-variant">
+                            {tech}
+                          </span>
+                        ))}
+                        {project.techStack.length > 4 && (
+                           <span className="px-3 py-1 bg-surface-variant/30 rounded-full text-[10px] md:text-xs font-label-bold text-on-surface-variant">
+                             +{project.techStack.length - 4}
+                           </span>
                         )}
                       </div>
-                      
-                      {cycle === 0 && (
-                        <div className="items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-label-bold hover:bg-white/20 transition-all hidden lg:flex whitespace-nowrap">
-                          Case Study <span className="material-symbols-outlined">arrow_forward</span>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </motion.div>
               );
