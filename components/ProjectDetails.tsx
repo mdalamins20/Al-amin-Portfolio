@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './Layout';
-import { DynamicSEO } from './DynamicSEO';
+import { SEO } from './SEO';
 import { ArrowLeft, ExternalLink, Github, CheckCircle, Loader2, Star, Shield, Smartphone, Globe, Info } from 'lucide-react';
 import { Project } from '../types';
 import { useDataStore } from './stores/useDataStore';
@@ -69,7 +69,15 @@ export const ProjectDetails: React.FC = () => {
 
   return (
     <Layout onViewCV={() => {}} hideNavigation={true}>
-      <DynamicSEO title={`${project.title} | Portfolio`} description={project.description} />
+      <SEO 
+        title={project.seoTitle || `${project.title} | Project`} 
+        description={project.metaDescription || project.description}
+        keywords={project.keywords}
+        image={project.image}
+        type="website"
+        schemaType="project"
+        url={`https://alamins20.ami.bd/project/${project.id}`}
+      />
       
       <main className="w-full bg-theme-bg text-theme-text min-h-screen">
         
@@ -100,11 +108,11 @@ export const ProjectDetails: React.FC = () => {
               </span>
             )}
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-sans font-black text-theme-text mb-8 tracking-tight leading-[1.1] break-words">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-sans font-black text-theme-text mb-8 tracking-tight leading-[1.1]">
               {project.title}
             </h1>
             
-            <p className="text-lg md:text-2xl text-theme-dim leading-relaxed font-light max-w-3xl break-words whitespace-pre-wrap mb-10">
+            <p className="text-lg md:text-2xl text-theme-dim leading-relaxed font-light max-w-3xl whitespace-pre-wrap mb-10">
               {project.description}
             </p>
 
@@ -207,12 +215,12 @@ export const ProjectDetails: React.FC = () => {
           
           {project.longDescription ? (
             <div 
-              className="prose prose-lg dark:prose-invert prose-headings:font-sans prose-headings:font-bold prose-headings:mt-12 prose-headings:mb-6 prose-a:text-brand max-w-none text-theme-text/80 leading-loose break-words whitespace-pre-wrap"
-              style={{ overflowWrap: 'anywhere' }}
+              className="prose prose-lg dark:prose-invert prose-headings:font-sans prose-headings:font-bold prose-headings:mt-12 prose-headings:mb-6 prose-a:text-brand max-w-none text-theme-text/80 leading-loose whitespace-pre-wrap"
+
               dangerouslySetInnerHTML={{ __html: parseMarkdown(project.longDescription) }}
             />
           ) : (
-            <p className="text-xl text-theme-text/80 leading-loose font-light break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere' }}>
+            <p className="text-xl text-theme-text/80 leading-loose font-light whitespace-pre-wrap">
               {project.description}
             </p>
           )}
@@ -241,8 +249,8 @@ export const ProjectDetails: React.FC = () => {
                       <CheckCircle size={24} />
                     </div>
                     <div 
-                      className="text-lg text-theme-text leading-relaxed feature-text break-words whitespace-pre-wrap"
-                      style={{ overflowWrap: 'anywhere' }}
+                      className="text-lg text-theme-text leading-relaxed feature-text whitespace-pre-wrap"
+
                       dangerouslySetInnerHTML={{ __html: parseMarkdown(feature) }}
                     />
                   </motion.div>
@@ -310,7 +318,7 @@ export const ProjectDetails: React.FC = () => {
               <h2 className="text-3xl md:text-5xl font-sans font-black text-theme-text mb-8 leading-tight">
                 The Outcome
               </h2>
-              <p className="text-xl md:text-3xl text-theme-text/80 font-light leading-relaxed max-w-4xl mx-auto italic break-words whitespace-pre-wrap">
+              <p className="text-xl md:text-3xl text-theme-text/80 font-light leading-relaxed max-w-4xl mx-auto italic whitespace-pre-wrap">
                 "{project.result}"
               </p>
             </div>

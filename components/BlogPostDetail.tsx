@@ -307,9 +307,15 @@ export const BlogPostDetail: React.FC = () => {
   return (
     <Layout onViewCV={() => {}} hideNavigation>
       <SEO 
-        title={`${blog.title} - Al-amin`}
-        description={stripHtmlAndTruncate(blog.content, 160)}
+        title={blog.seoTitle || blog.title}
+        description={blog.metaDescription || stripHtmlAndTruncate(blog.content, 160)}
+        keywords={blog.keywords}
         image={blog.image}
+        type="article"
+        schemaType="article"
+        datePublished={new Date(blog.date || Date.now()).toISOString()}
+        author={blog.author}
+        url={`https://alamins20.ami.bd/blog/${blog.id}`}
       />
 
       <motion.div 
@@ -379,8 +385,8 @@ export const BlogPostDetail: React.FC = () => {
           {/* Reading Area */}
           <div className="w-full max-w-full overflow-x-hidden">
             <article 
-              className="prose prose-lg dark:prose-invert max-w-none font-bengali blog-content text-[15px] md:text-[17px] leading-[1.8] md:leading-[2] text-theme-text/90 whitespace-pre-wrap break-words"
-              style={{ overflowWrap: 'anywhere' }}
+              className="prose prose-lg dark:prose-invert max-w-none font-bengali blog-content text-[15px] md:text-[17px] leading-[1.8] md:leading-[2] text-theme-text/90 whitespace-pre-wrap"
+
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
           </div>

@@ -19,18 +19,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, onViewCV, hideNavigati
       {!hideNavigation && <Navigation />}
 
       <main className={`relative z-0 ${hideNavigation ? 'pt-8' : 'pt-24'} pb-32 md:pb-20`}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${language}-${mode}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="section-container"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <div className="section-container">
+          {children}
+        </div>
       </main>
       
       {!hideNavigation && <Footer />}

@@ -130,6 +130,7 @@ export const ManageBlogs: React.FC = () => {
   const openEdit = (blog: Blog) => {
     setCurrentBlog(blog);
     setIsEditing(true);
+    setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const handleAIGenerateBlog = async () => {
@@ -149,13 +150,29 @@ export const ManageBlogs: React.FC = () => {
       // Use the AI-generated English image prompt to get a highly relevant image
       // Fallback to title if the prompt is missing
       const rawPrompt = (generated as any).imagePrompt || generated.title;
-      const encodedPrompt = encodeURIComponent(rawPrompt.replace(/\s+/g, '-'));
-      const aiImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=600&nologo=true`;
+      // Force realism by appending strict keywords to the banner image
+      const safePrompt = `${rawPrompt} YouTube thumbnail style with bold text, realistic 4k professional tech photography no abstract`;
+      const encodedPrompt = encodeURIComponent(safePrompt);
+      
+      // Add a random seed so the image is unique every time (doesn't repeat)
+      const randomSeed = Math.floor(Math.random() * 1000000);
+      const aiImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=600&nologo=true&seed=${randomSeed}`;
+
+      // Preload the image so it doesn't take time to render in the UI
+      await new Promise((resolve) => {
+        const img = new window.Image();
+        img.onload = resolve;
+        img.onerror = resolve; // Resolve even on error so it doesn't get stuck
+        img.src = aiImageUrl;
+      });
 
       setCurrentBlog(prev => ({
         ...prev,
         title: generated.title,
         content: generated.content,
+        seoTitle: generated.seoTitle || prev.seoTitle,
+        metaDescription: generated.metaDescription || prev.metaDescription,
+        keywords: generated.keywords || prev.keywords,
         image: prev.image || aiImageUrl
       }));
     } catch (err: any) {
@@ -181,6 +198,7 @@ export const ManageBlogs: React.FC = () => {
           onClick={() => {
             setCurrentBlog({ author: 'Muhammad Al-amin' });
             setIsEditing(true);
+            setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
           }}
           className="bg-brand hover:scale-105 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-transform shadow-lg shadow-brand/20 active:scale-95"
           disabled={isEditing}
@@ -258,6 +276,43 @@ export const ManageBlogs: React.FC = () => {
                       onChange={e => setCurrentBlog(prev => ({ ...prev, author: e.target.value }))}
                       className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                       placeholder="Enter Author Name"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-4 pt-6 border-t border-outline-variant mt-2">
+                  <h3 className="font-bold text-lg text-on-surface flex items-center gap-2">
+                    <Sparkles size={18} className="text-brand" /> 
+                    SEO Metadata (Auto-generated)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-on-surface-variant">SEO Title</label>
+                      <input
+                        value={currentBlog.seoTitle || ''}
+                        onChange={e => setCurrentBlog(prev => ({ ...prev, seoTitle: e.target.value }))}
+                        className="w-full text-sm px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                        placeholder="Optimized title..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-on-surface-variant">Keywords</label>
+                      <input
+                        value={currentBlog.keywords || ''}
+                        onChange={e => setCurrentBlog(prev => ({ ...prev, keywords: e.target.value }))}
+                        className="w-full text-sm px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                        placeholder="react, web dev, etc..."
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-6">
+                    <label className="text-sm font-bold text-on-surface-variant">Meta Description</label>
+                    <textarea
+                      rows={2}
+                      value={currentBlog.metaDescription || ''}
+                      onChange={e => setCurrentBlog(prev => ({ ...prev, metaDescription: e.target.value }))}
+                      className="w-full text-sm px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all resize-none shadow-sm"
+                      placeholder="Brief description for search engines..."
                     />
                   </div>
                 </div>

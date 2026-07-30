@@ -120,6 +120,7 @@ export const ManageSkills: React.FC = () => {
   const openEdit = (skill: Tool) => {
     setCurrentSkill(skill);
     setIsEditing(true);
+    setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   return (
@@ -133,6 +134,7 @@ export const ManageSkills: React.FC = () => {
           onClick={() => {
             setCurrentSkill({});
             setIsEditing(true);
+            setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
           }}
           className="bg-brand hover:scale-105 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-transform shadow-lg shadow-brand/20 active:scale-95"
           disabled={isEditing}

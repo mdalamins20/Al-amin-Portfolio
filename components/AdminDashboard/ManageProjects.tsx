@@ -18,6 +18,7 @@ import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
 import { generateProjectFromGithub } from '../../utils/aiService';
 import { compileAndSyncToGist } from '../../utils/syncService';
+import { getGithubToken } from '../../utils/githubService';
 
 export const ManageProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -128,6 +129,7 @@ export const ManageProjects: React.FC = () => {
   const openEdit = (project: Project) => {
     setCurrentProject(project);
     setIsEditing(true);
+    setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const handleGithubImport = async () => {
@@ -137,22 +139,25 @@ export const ManageProjects: React.FC = () => {
       let repoPath = githubRepoUrl.replace('https://github.com/', '').replace('http://github.com/', '');
       if (repoPath.endsWith('/')) repoPath = repoPath.slice(0, -1);
       
-      const response = await fetch(`https://api.github.com/repos/${repoPath}`);
-      if (!response.ok) throw new Error('Could not fetch repo data. Please check the URL.');
+      const token = getGithubToken();
+      const headers: any = {};
+      if (token) {
+        headers['Authorization'] = `token ${token}`;
+      }
+
+      const response = await fetch(`https://api.github.com/repos/${repoPath}`, { headers });
+      if (!response.ok) throw new Error(`Could not fetch repo data. (HTTP ${response.status}) Please check the URL and your GitHub token.`);
       const data = await response.json();
       
       let readme = '';
       try {
-        const readmeRes = await fetch(`https://raw.githubusercontent.com/${data.full_name}/main/README.md`);
-        if (readmeRes.ok) readme = await readmeRes.text();
+        // use api.github.com for readme as raw.githubusercontent.com token handling is tricky
+        const readmeRes = await fetch(`https://api.github.com/repos/${repoPath}/readme`, { headers });
+        if (readmeRes.ok) {
+           const readmeData = await readmeRes.json();
+           readme = decodeURIComponent(escape(atob(readmeData.content)));
+        }
       } catch (e) {}
-
-      if (!readme) {
-        try {
-          const readmeRes = await fetch(`https://raw.githubusercontent.com/${data.full_name}/master/README.md`);
-          if (readmeRes.ok) readme = await readmeRes.text();
-        } catch (e) {}
-      }
       
       const combinedData = JSON.stringify({
         name: data.name,
@@ -173,6 +178,9 @@ export const ManageProjects: React.FC = () => {
         techStack: generated.techStack ? generated.techStack.split(',').map((s: string) => s.trim()) : (data.topics || []),
         features: generated.features ? generated.features.split(',').map((s: string) => s.trim()) : [],
         privacyPolicy: generated.privacyPolicy || '',
+        seoTitle: generated.seoTitle || '',
+        metaDescription: generated.metaDescription || '',
+        keywords: generated.keywords || '',
         link: githubRepoUrl
       }));
     } catch (err: any) {
@@ -198,6 +206,7 @@ export const ManageProjects: React.FC = () => {
           onClick={() => {
             setCurrentProject({});
             setIsEditing(true);
+            setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
           }}
           className="bg-brand hover:bg-brand-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-semibold transition-all shadow-lg shadow-brand/20"
         >
@@ -335,6 +344,43 @@ export const ManageProjects: React.FC = () => {
                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="React, Firebase, Tailwind..."
                 />
+              </div>
+
+              <div className="md:col-span-2 space-y-4 pt-6 border-t border-outline-variant mt-2">
+                <h3 className="font-bold text-lg text-on-surface flex items-center gap-2">
+                  <Sparkles size={18} className="text-brand" /> 
+                  SEO Metadata (Auto-generated)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-on-surface-variant">SEO Title</label>
+                    <input
+                      value={currentProject.seoTitle || ''}
+                      onChange={e => setCurrentProject({ ...currentProject, seoTitle: e.target.value })}
+                      className="w-full text-sm px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                      placeholder="Optimized title..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-on-surface-variant">Keywords</label>
+                    <input
+                      value={currentProject.keywords || ''}
+                      onChange={e => setCurrentProject({ ...currentProject, keywords: e.target.value })}
+                      className="w-full text-sm px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                      placeholder="react, web dev, etc..."
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 mb-6">
+                  <label className="text-sm font-bold text-on-surface-variant">Meta Description</label>
+                  <textarea
+                    rows={2}
+                    value={currentProject.metaDescription || ''}
+                    onChange={e => setCurrentProject({ ...currentProject, metaDescription: e.target.value })}
+                    className="w-full text-sm px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all resize-none shadow-sm"
+                    placeholder="Brief description for search engines..."
+                  />
+                </div>
               </div>
 
               <div className="md:col-span-2 flex justify-end gap-3 mt-6 pt-6 border-t border-outline-variant">

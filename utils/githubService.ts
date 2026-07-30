@@ -34,9 +34,9 @@ export const fetchGithubRepoData = async (repoUrl: string) => {
     const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
     if (!repoRes.ok) {
        if (repoRes.status === 404) {
-           throw new Error('Repository not found. If it is private, please add a GitHub Token in AI Settings.');
+           throw new Error('Repository not found. If it is private, please add a valid GitHub Token in AI Settings.');
        }
-       throw new Error(`Failed to fetch repo info: ${repoRes.statusText}`);
+       throw new Error(`Failed to fetch repo info (HTTP ${repoRes.status}): ${repoRes.statusText}`);
     }
     const repoInfo = await repoRes.json();
 
@@ -128,7 +128,12 @@ export const fetchGithubContributions = async (username: string) => {
   });
 
   if (!res.ok) {
-    throw new Error(`GitHub API Error: ${res.statusText}`);
+    let errorMsg = res.statusText;
+    try {
+       const errBody = await res.json();
+       if (errBody.message) errorMsg = errBody.message;
+    } catch(e) {}
+    throw new Error(`HTTP ${res.status}: ${errorMsg || 'Unauthorized or Invalid Token'}`);
   }
 
   const data = await res.json();
@@ -154,6 +159,7 @@ export const fetchGithubContributions = async (username: string) => {
       repos: user.repositories?.totalCount || 0,
       stars: totalStars,
       forks: totalForks,
+      totalContributions: user.contributionsCollection.contributionCalendar.totalContributions
     }
   };
 };

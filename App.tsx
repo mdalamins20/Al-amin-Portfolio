@@ -68,14 +68,14 @@ function ScrollAndAnimateRoutes() {
   }, [location.pathname, location.hash]);
 
   return (
-    <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}>
+    <>
       <VisitorLog />
       <Routes location={location} key={location.pathname.startsWith('/admin-dashboard') ? 'admin' : location.pathname}>
         {/* Public Portfolio */}
-        <Route path="/" element={<PageTransition><MainPortfolio /></PageTransition>} />
-        <Route path="/project/:id" element={<PageTransition><ProjectDetails /></PageTransition>} />
-        <Route path="/blog" element={<PageTransition><BlogPage /></PageTransition>} />
-        <Route path="/blog/:id" element={<PageTransition><BlogPostDetail /></PageTransition>} />
+        <Route path="/" element={<MainPortfolio />} />
+        <Route path="/project/:id" element={<ProjectDetails />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:id" element={<BlogPostDetail />} />
         
         {/* Admin Auth */}
         <Route path="/admin" element={
@@ -140,9 +140,9 @@ function ScrollAndAnimateRoutes() {
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
-    </AnimatePresence>
+    </>
   );
 }
 

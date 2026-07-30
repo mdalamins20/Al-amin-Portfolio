@@ -141,35 +141,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
           <div className="mt-auto pt-6 border-t border-outline-variant">
             <button
-              onClick={toggleMode}
-              className="w-full mb-3 flex items-center justify-between px-4 py-3 rounded-xl bg-surface-variant text-on-surface-variant font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-sm"
-            >
-              <span>{mode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-              {mode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            <button
               onClick={() => setIsAISettingsOpen(true)}
               className="w-full mb-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand to-purple-600 text-white font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-brand/20"
             >
               <Key size={16} />
               API Settings
             </button>
-            <Link 
-              to="/"  
-              className="w-full mb-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-on-surface text-surface font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-black/10 dark:shadow-white/10"
-            >
-              View Live Site
-            </Link>
-            
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-variant border border-outline-variant mb-3">
-              <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-outline-variant flex items-center justify-center text-slate-500">
-                <User size={14} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-on-surface truncate">Admin Account</p>
-                <p className="text-[10px] text-slate-500 truncate">{auth.currentUser?.email}</p>
-              </div>
-            </div>
             
             <button
               onClick={handleLogout}
@@ -183,15 +160,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto w-full scroll-smooth">
+      <main id="admin-main-content" ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto w-full scroll-smooth">
         <div className="p-6 md:p-8 lg:p-12 max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
+          <div className="w-full">
             {children || <Outlet />}
-          </motion.div>
+          </div>
         </div>
       </main>
       <AISettingsModal isOpen={isAISettingsOpen} onClose={() => setIsAISettingsOpen(false)} />

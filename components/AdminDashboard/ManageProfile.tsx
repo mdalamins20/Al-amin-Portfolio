@@ -9,6 +9,7 @@ import { FileUpload } from './FileUpload';
 import { ConfirmationModal } from './ConfirmationModal';
 import { AIAssistantInput } from './AIAssistantInput';
 import { compileAndSyncToGist } from '../../utils/syncService';
+import { fetchGithubContributions } from '../../utils/githubService';
 
 export const ManageProfile: React.FC = () => {
   const { profile, loading, updateProfile } = useProfileStore();
@@ -57,6 +58,38 @@ export const ManageProfile: React.FC = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const [isSyncingGithub, setIsSyncingGithub] = useState(false);
+  const handleSyncGithub = async () => {
+    if (!formData) return;
+    setIsSyncingGithub(true);
+    try {
+      const username = formData.githubUsername || 'mdalamins20';
+      const data = await fetchGithubContributions(username);
+      setFormData({
+        ...formData,
+        githubReposCount: data.stats.repos.toString(),
+        githubTotalStars: data.stats.stars.toString(),
+        githubTotalForks: data.stats.forks.toString(),
+        githubTotalContributions: data.stats.totalContributions.toString()
+      });
+      setModalConfig({
+        isOpen: true,
+        title: 'Success!',
+        message: 'GitHub stats synced successfully! Click Save Changes to update your profile.',
+        type: 'success'
+      });
+    } catch (error: any) {
+      setModalConfig({
+        isOpen: true,
+        title: 'Sync Failed',
+        message: error.message || 'Make sure your GitHub Token is set in AI Settings.',
+        type: 'danger'
+      });
+    } finally {
+      setIsSyncingGithub(false);
     }
   };
 
@@ -249,6 +282,17 @@ export const ManageProfile: React.FC = () => {
                 <p className="text-xs text-text-secondary mt-1 ml-2">Go to Google Maps &gt; Share &gt; Embed a map &gt; Copy the "src" URL only (not the whole iframe tag).</p>
               </div>
               
+              <div className="space-y-2 md:col-span-2 flex justify-end">
+                <button
+                  onClick={handleSyncGithub}
+                  disabled={isSyncingGithub}
+                  className="bg-brand/10 hover:bg-brand/20 text-brand px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-all disabled:opacity-50"
+                >
+                  {isSyncingGithub ? <Loader2 className="animate-spin" size={16} /> : <Github size={16} />}
+                  {isSyncingGithub ? 'Syncing...' : 'Sync GitHub Stats Automatically'}
+                </button>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">GitHub Repositories Count</label>
                 <div className="relative">

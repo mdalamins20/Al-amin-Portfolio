@@ -55,7 +55,7 @@ export const ExperienceTimeline: React.FC = () => {
                   </span>
                   <h3 className="text-xl md:text-2xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">{exp.role}</h3>
                   <h4 className="text-sm font-label-bold text-text-secondary uppercase tracking-wider mb-4">{exp.company}</h4>
-                  <p className="text-sm text-text-secondary leading-relaxed mb-6 break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere' }}>
+                  <p className="text-sm text-text-secondary leading-relaxed mb-6 whitespace-pre-wrap">
                     {exp.description}
                   </p>
                   

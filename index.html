@@ -21,18 +21,18 @@
     <meta property="og:url" content="https://alamins20.ami.bd/" />
     <meta property="og:title" content="Muhammad Al-amin | Full Stack Developer & Digital Solutions Architect" />
     <meta property="og:description" content="Portfolio of Muhammad Al-amin, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions." />
-    <meta property="og:image" content="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=1200&h=630" />
+    <meta property="og:image" content="https://i.ibb.co.com/4ZtpFT0b/IMG.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Muhammad Al-amin Portfolio" />
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://alamins20.ami.bd/" />
-    <meta property="twitter:title" content="Muhammad Al-amin | Full Stack Developer & Digital Solutions Architect" />
-    <meta property="twitter:description" content="Portfolio of Muhammad Al-amin, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions." />
-    <meta property="twitter:image" content="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=1200&h=630" />
-    <meta property="twitter:image:alt" content="Muhammad Al-amin Portfolio" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://alamins20.ami.bd/" />
+    <meta name="twitter:title" content="Muhammad Al-amin | Full Stack Developer & Digital Solutions Architect" />
+    <meta name="twitter:description" content="Portfolio of Muhammad Al-amin, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions." />
+    <meta name="twitter:image" content="https://i.ibb.co.com/4ZtpFT0b/IMG.png" />
+    <meta name="twitter:image:alt" content="Muhammad Al-amin Portfolio" />
 
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -133,6 +133,8 @@
                     },
                     "fontFamily": {
                         "sans": ["Plus Jakarta Sans", "Hind Siliguri", "sans-serif"],
+                        "serif": ["ui-serif", "Georgia", "Cambria", "Times New Roman", "Times", "Hind Siliguri", "serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
                         "headline-md": ["Plus Jakarta Sans", "Hind Siliguri"],
                         "body-lg": ["Inter", "Hind Siliguri"],
                         "display-xl-mobile": ["Plus Jakarta Sans", "Hind Siliguri"],
@@ -268,10 +270,17 @@
         border: none !important;
       }
 
+      html, body, div, p, span, a, h1, h2, h3, h4, h5, h6, input, textarea, select, button, li, ul, ol, td, th {
+        font-family: var(--font-main), 'Hind Siliguri', sans-serif;
+      }
+      
+      code, pre, kbd, samp {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+      }
+
       html, body {
         background-color: var(--bg-primary);
         color: var(--text-primary);
-        font-family: var(--font-main), sans-serif;
         overflow-x: hidden;
         width: 100%;
       }
@@ -281,11 +290,11 @@
       svg { stroke: currentColor; fill: none; }
 
       /* Blog Content Styling */
-      .blog-content {
+      .blog-content, .prose {
         font-family: 'Hind Siliguri', sans-serif !important;
         line-height: 1.8;
-        overflow-wrap: break-word;
-        word-break: normal;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
         max-width: 100%;
       }
       .blog-content h1, .blog-content h2, .blog-content h3 {

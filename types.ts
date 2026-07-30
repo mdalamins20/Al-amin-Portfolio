@@ -19,6 +19,9 @@ export interface Project {
   platformLinks?: { name: string, url: string }[];
   appLink?: string;
   appVersion?: string;
+  seoTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
 }
 
 export interface Experience {
@@ -61,6 +64,9 @@ export interface Blog {
   likes?: number;
   shares?: number;
   comments?: BlogComment[];
+  seoTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
 }
 
 export interface Review {

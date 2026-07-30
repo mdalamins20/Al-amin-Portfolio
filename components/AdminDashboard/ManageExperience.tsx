@@ -133,6 +133,7 @@ export const ManageExperience: React.FC = () => {
           onClick={() => {
             setCurrentExp({});
             setIsEditing(true);
+            setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
           }}
           className="bg-brand hover:scale-105 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-transform shadow-lg shadow-brand/20 active:scale-95"
           disabled={isEditing}
@@ -292,6 +293,7 @@ export const ManageExperience: React.FC = () => {
                   onClick={() => {
                     setCurrentExp(exp);
                     setIsEditing(true);
+                    setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
                   }}
                   className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-2xl font-bold transition-colors"
                 >

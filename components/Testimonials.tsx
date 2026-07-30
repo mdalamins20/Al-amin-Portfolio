@@ -191,7 +191,7 @@ export const Testimonials: React.FC = () => {
                     ))}
                   </div>
 
-                  <p className="font-body-lg text-body-lg text-on-surface italic relative z-10 leading-relaxed min-h-[100px] break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere' }}>
+                  <p className="font-body-lg text-body-lg text-on-surface italic relative z-10 leading-relaxed min-h-[100px] whitespace-pre-wrap">
                     "{t.content}"
                   </p>
                   

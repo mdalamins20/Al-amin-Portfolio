@@ -10,6 +10,9 @@ interface SEOProps {
   url?: string;
   type?: string;
   favicon?: string;
+  schemaType?: 'website' | 'article' | 'project';
+  datePublished?: string;
+  author?: string;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -20,6 +23,9 @@ export const SEO: React.FC<SEOProps> = ({
   url,
   type = 'website',
   favicon,
+  schemaType = 'website',
+  datePublished,
+  author,
 }) => {
   const defaultTitle = `${USER_INFO.name} | ${USER_INFO.role}`;
   const defaultDescription = `Portfolio of ${USER_INFO.name}, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions.`;
@@ -125,6 +131,43 @@ export const SEO: React.FC<SEOProps> = ({
           "sameAs": sameAsLinks
         })}
       </script>
+
+      {/* Dynamic Schema for Blog Posts (Article) */}
+      {schemaType === 'article' && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": seo.title,
+            "image": [seo.image],
+            "datePublished": datePublished || new Date().toISOString(),
+            "author": [{
+              "@type": "Person",
+              "name": author || USER_INFO.name,
+              "url": defaultUrl
+            }]
+          })}
+        </script>
+      )}
+
+      {/* Dynamic Schema for Projects (SoftwareApplication) */}
+      {schemaType === 'project' && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": seo.title,
+            "operatingSystem": "Web",
+            "applicationCategory": "WebApplication",
+            "image": seo.image,
+            "author": {
+              "@type": "Person",
+              "name": USER_INFO.name,
+              "url": defaultUrl
+            }
+          })}
+        </script>
+      )}
     </Helmet>
   );
 };

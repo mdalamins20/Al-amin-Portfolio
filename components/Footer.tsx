@@ -87,10 +87,7 @@ export const Footer: React.FC = () => {
               </li>
             </ul>
             <div className="mt-8 flex items-center flex-wrap gap-4">
-              <span className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                Remote Ready
-              </span>
+
               {profile.cvFileUrl && (
                 <a 
                   href={profile.cvFileUrl}
