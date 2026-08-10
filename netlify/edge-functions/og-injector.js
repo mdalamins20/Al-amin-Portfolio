@@ -47,7 +47,7 @@ export default async (request, context) => {
       if (collection === "blogs") {
         title = data.fields?.seoTitle?.stringValue || data.fields?.title?.stringValue || "";
         description = data.fields?.metaDescription?.stringValue || data.fields?.content?.stringValue?.substring(0, 150) || "";
-        image = data.fields?.coverImage?.stringValue || "";
+        image = data.fields?.image?.stringValue || data.fields?.coverImage?.stringValue || "";
       } else if (collection === "projects") {
         title = data.fields?.title?.stringValue || "";
         description = data.fields?.description?.stringValue || "";
