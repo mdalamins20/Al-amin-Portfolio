@@ -7,6 +7,7 @@ export interface Project {
   category?: string;
   description?: string; 
   link?: string;
+  githubUrl?: string;
   tags?: string[];
   image?: string;
   role?: string;

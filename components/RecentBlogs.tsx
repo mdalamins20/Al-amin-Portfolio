@@ -62,7 +62,7 @@ export const RecentBlogs: React.FC = () => {
               className="group cursor-pointer glass-card rounded-2xl shadow-sm overflow-hidden border border-transparent hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col h-full" 
               onClick={() => navigate(`/blog/${blog.id}`)}
             >
-              <div className="w-full aspect-[4/3] overflow-hidden bg-surface-variant/20">
+              <div className="w-full aspect-video overflow-hidden bg-surface-variant/20">
                 <img src={blog.image} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               </div>
               <div className="p-6 flex-1 flex flex-col">

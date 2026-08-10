@@ -332,7 +332,7 @@ export const BlogPostDetail: React.FC = () => {
         </Link>
 
         {/* Hero Image */}
-        <div className="w-full aspect-[16/9] md:aspect-[21/9] rounded-xl md:rounded-2xl overflow-hidden bg-theme-card mb-8 shadow-sm border border-theme-border/50">
+        <div className="w-full aspect-video rounded-xl md:rounded-2xl overflow-hidden bg-theme-card mb-8 shadow-sm border border-theme-border/50">
           <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
         </div>
 

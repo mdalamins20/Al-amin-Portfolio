@@ -31,11 +31,12 @@ export const generateText = async (prompt: string, context?: string): Promise<st
     
     // Fallback array of models to ensure it auto-detects the working one
     const modelsToTry = [
+      "gemini-3.1-flash-lite",
+      "gemini-3.5-flash-lite",
       "gemini-flash-lite-latest",
-      "gemini-3.1-flash-lite", 
-      "gemini-2.5-flash-lite",
-      "gemini-flash-latest",
-      "gemini-3.5-flash"
+      "gemini-3-flash-preview",
+      "gemini-3.6-flash",
+      "gemini-flash-latest"
     ];
     
     let fullPrompt = `${SYSTEM_PROMPT}\n\nTask: ${prompt}`;
@@ -64,11 +65,13 @@ export const generateText = async (prompt: string, context?: string): Promise<st
   }
 };
 
-export const getAIAutocomplete = async (currentText: string, fieldType: string): Promise<string> => {
+export const getAIAutocomplete = async (currentText: string, fieldType: string, context?: string): Promise<string> => {
   const prompt = `You are a professional assistant helping a user write their developer portfolio. 
 The user is currently writing the "${fieldType}" field and has typed the following:
 
 "${currentText}"
+
+${context ? `Here is some context about what they are writing about: ${context}` : ''}
 
 Please complete the text smoothly. Ensure your tone is professional, engaging, and suitable for a portfolio. 
 If the field type is "Project Description" or "longDescription", structure your completion as a "Deep Case Study" using the following format and headings:
@@ -93,17 +96,18 @@ IMPORTANT FORMATTING RULE: Ensure proper line breaks and standard spacing betwee
   return generateText(prompt);
 };
 
-export const generateFullBlogPost = async (topic: string): Promise<{title: string, seoTitle?: string, metaDescription?: string, keywords?: string, content: string, imagePrompt?: string}> => {
-  const prompt = `You are a world-class tech blogger and senior software engineer. The user wants to write a complete, massive, and highly detailed blog post based on this topic or hint: "${topic}".
+export const generateFullBlogPost = async (topic: string): Promise<{title: string, seoTitle?: string, metaDescription?: string, keywords?: string, content: string}> => {
+  const prompt = `You are a world-class, highly experienced human tech blogger and senior software engineer. 
+  The user wants to write a complete, massive, and highly detailed blog post based on this topic or hint: "${topic}".
   
-  Please generate a highly professional, engaging, human-like, and very detailed blog post. Explain concepts clearly with examples, as if you are teaching another developer. 
+  Please unlock your full potential and generate a highly professional, deeply engaging, and very detailed blog post. Think like a human expert writing for real people, not an AI. Explain concepts clearly with real-world context, as if you are sharing your personal expertise and teaching another developer.
   
   Requirements for the content:
   1. It MUST be very detailed, covering the topic comprehensively from start to finish. Include an Introduction, multiple deep-dive sections, and a Conclusion.
   2. Use beautiful HTML formatting (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <blockquote>, etc.) because this will be inserted directly into a Rich Text Editor.
-  3. Include CODE SNIPPETS where relevant to explain technical concepts. Use <pre><code class="language-javascript">...</code></pre> for code blocks.
+  3. CODE CONTEXTUALITY: You MUST analyze the "Topic" first. If the topic is highly technical (like React, Next.js, Node.js, Python, CSS), provide highly relevant CODE SNIPPETS using <pre><code class="language-javascript">...</code></pre>. IF the topic is non-technical (like SEO, Marketing, Soft Skills, Career Advice), DO NOT write any code snippets. Understand the context and act accordingly!
   4. LANGUAGE STRICTNESS: You MUST write the ENTIRE blog post strictly in the EXACT same language as the given topic. If the topic is in Bengali, write in pure, high-quality, and grammatically correct Bengali ONLY. DO NOT mix Hindi, Arabic, Urdu, or any weird characters. Keep it 100% authentic to the topic's language.
-  5. INLINE IMAGES: You MUST include at least 2 or 3 images inside the content to make it visually appealing. For images, MUST use URLs like this: <img src="https://image.pollinations.ai/prompt/YOUR-KEYWORD-HERE-realistic-4k-tech-photography?width=800&height=400&nologo=true" alt="Descriptive alt text" style="border-radius: 12px; margin: 20px 0; max-width: 100%;" />. Replace YOUR-KEYWORD-HERE with words describing a realistic, professional tech scene (e.g., modern coding workspace). DO NOT use abstract art. DO NOT use loremflickr or unsplash.
+  5. NO IMAGES: DO NOT include any inline images (<img> tags) or markdown images in the content. The user will upload their own custom 16:9 images. Focus entirely on delivering premium text content.
   6. LINKS: If you refer to any external resources, official documentation, or tools, please include relevant hyperlinks using <a href="..." target="_blank" rel="noopener noreferrer">...</a> tags.
   7. FORMATTING & SPACING: Ensure proper line breaks and standard spacing between words. DO NOT use zero-width spaces, non-breaking spaces randomly, or weird characters that might break word-wrapping in browsers. Ensure text flows naturally and Bengali words do not break in the middle. Use <br> or <p> tags correctly for paragraphs.
   
@@ -117,21 +121,18 @@ export const generateFullBlogPost = async (topic: string): Promise<{title: strin
   An engaging meta description optimized for Google search results (120-150 characters)
   ---KEYWORDS---
   A comma-separated list of 5-8 highly relevant, long-tail focus keywords for SEO
-  ---IMAGE_PROMPT---
-  A highly detailed English prompt for a realistic, professional, 4k photograph representing the blog's theme. MUST be related to modern technology, software engineering, or coding. DO NOT use abstract art. IT MUST INCLUDE AN INSTRUCTION TO WRITE ENGLISH TEXT ON THE IMAGE (YouTube Thumbnail style). For example: "A realistic tech workspace with bold 3D text saying 'LARAVEL GUIDE' on a glowing screen". Use normal spaces, do NOT use hyphens.
   ---CONTENT---
-  The full, massive blog post content formatted as beautiful HTML. MUST include paragraphs, lists, code blocks, hyperlinks, and at least 2-3 inline pollinations images.`;
+  The full, massive blog post content formatted as beautiful HTML. MUST include paragraphs, lists, contextual code blocks (only if needed), and hyperlinks. No images!`;
   
   const text = await generateText(prompt);
   try {
     const titleMatch = text.match(/---TITLE---\s*([\s\S]*?)\s*---SEO_TITLE---/);
     const seoTitleMatch = text.match(/---SEO_TITLE---\s*([\s\S]*?)\s*---META_DESCRIPTION---/);
     const metaDescMatch = text.match(/---META_DESCRIPTION---\s*([\s\S]*?)\s*---KEYWORDS---/);
-    const keywordsMatch = text.match(/---KEYWORDS---\s*([\s\S]*?)\s*---IMAGE_PROMPT---/);
-    const imagePromptMatch = text.match(/---IMAGE_PROMPT---\s*([\s\S]*?)\s*---CONTENT---/);
+    const keywordsMatch = text.match(/---KEYWORDS---\s*([\s\S]*?)\s*---CONTENT---/);
     const contentMatch = text.match(/---CONTENT---\s*([\s\S]*)/);
     
-    if (!titleMatch || !contentMatch || !imagePromptMatch) {
+    if (!titleMatch || !contentMatch) {
       // Fallback: if it still tried to output JSON by mistake, let's catch it
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -145,7 +146,6 @@ export const generateFullBlogPost = async (topic: string): Promise<{title: strin
       seoTitle: seoTitleMatch ? seoTitleMatch[1].trim() : '',
       metaDescription: metaDescMatch ? metaDescMatch[1].trim() : '',
       keywords: keywordsMatch ? keywordsMatch[1].trim() : '',
-      imagePrompt: imagePromptMatch[1].trim(),
       content: contentMatch[1].trim()
     };
   } catch (e: any) {
@@ -159,40 +159,87 @@ export const generateFullBlogPost = async (topic: string): Promise<{title: strin
 
 export const generateProjectFromGithub = async (repoData: string): Promise<any> => {
   const prompt = `You are a highly skilled Digital Solutions Architect and Technical Writer. 
-The user wants to auto-generate a massive, highly detailed portfolio project based on the following GitHub repository data:
+Please unlock your full potential and generate a highly professional, deeply engaging, and very detailed portfolio project case study based ONLY on the following GitHub repository data:
   
 ${repoData}
 
-Please deeply analyze this repository (README, package.json, tech stack, structure) and generate all necessary fields for a premium portfolio project. 
-DO NOT leave any field blank or generic. Write everything in extremely high detail, as if you are showcasing your best work.
+STRICT RULES:
+1. ONLY write about features, technologies, and code that ACTUALLY exist in the provided repository data. DO NOT hallucinate or invent features that aren't there.
+2. The tone must be extremely professional and authoritative, yet accessible. Think like a human expert writing for real people, not an AI.
+3. BEAUTIFUL HTML FORMATTING: You MUST use beautiful HTML formatting (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <blockquote>, etc.) for the description, longDescription, and privacyPolicy because they will be inserted directly into a Rich Text Editor. Use proper paragraphs (<p>) and line breaks (<br>).
+4. LANGUAGE STRICTNESS: You MUST write the description, longDescription, and privacyPolicy ENTIRELY IN BENGALI LANGUAGE (Bangla script), while keeping technical terms (like React, API, Database) in English. DO NOT write the main paragraphs in English. This is an absolute requirement! Example: "এই প্রজেক্টটিতে React এবং Node.js ব্যবহার করে একটি highly scalable backend তৈরি করা হয়েছে।"
+5. Heavily optimize for SEO with perfect tags and keywords.
 
-Return your response EXACTLY in the following JSON format:
-{
-  "title": "A clean, professional, and catchy title for the project.",
-  "description": "An engaging 3-4 line short description highlighting the main value proposition.",
-  "longDescription": "A massive, highly detailed, professional blog-style description of the project. MUST be structured as a 'Deep Case Study'. Format beautifully with HTML. You MUST include these three sections with <h2> tags: <h2>Problem</h2> (What problem did this project solve?), <h2>Solution</h2> (How did you architect and solve it?), and <h2>Impact/Result</h2> (What was the measurable outcome, performance gain, or business impact?). Explain the architecture and why it's amazing.",
-  "category": "One of: Frontend, Backend, Full-Stack, Mobile App, Other",
-  "techStack": "A comma-separated string of ALL technologies used (e.g., 'React, TypeScript, Tailwind CSS, Node.js, MongoDB'). DO NOT use an array.",
-  "features": "A comma-separated string of 5-8 key features (e.g., 'Real-time Chat, User Authentication, Stripe Integration'). DO NOT use an array.",
-  "privacyPolicy": "A comprehensive Privacy Policy formatted as HTML (<h2>, <p>). Explain what data is collected, how it's used, and security measures. Make it look professional.",
-  "seoTitle": "A highly optimized SEO title for this project (under 60 characters).",
-  "metaDescription": "An engaging meta description optimized for Google search results (120-150 characters).",
-  "keywords": "A comma-separated list of 5-8 highly relevant, long-tail focus keywords for SEO."
-}
-Output ONLY valid JSON starting with { and ending with }. Do not include markdown formatting like \`\`\`json.`;
+Return your response EXACTLY in the following plain text format, separating each section with the exact markers shown below. Do NOT use JSON.
+
+---TITLE---
+A very short, clean, and catchy main title for the project in English (ONLY the exact name of the app/project, max 3-4 words). DO NOT include any long descriptions, taglines, or colons (e.g., write "Burirpool United Club" instead of "Burirpool United Club: Community Management Platform").
+---DESCRIPTION---
+An engaging 3-4 line short description in professional Bengali-English mix highlighting the exact value proposition based on the repo.
+---LONG_DESCRIPTION---
+EXTREMELY IMPORTANT: Write a MASSIVE, 1000+ WORD deeply engaging case study ENTIRELY IN BENGALI (বাংলা ভাষা). You must write the paragraphs in Bangla script. DO NOT write in English! Include these EXACT sections with <h2> tags: <h2>প্রজেক্ট এর ডিটেইলস</h2> (Write in pure Bengali about what this project is and what it does in detail. Minimum 150 words.), <h2>কি কি টেকনোলজি দিয়ে এই প্রজেক্ট বানানো হইছে</h2> (Write in pure Bengali about the technologies used and why they were chosen. Minimum 150 words.), <h2>কি কি সমস্যা ফেইচ করেছি এবং কি কি সমাধান করেছি</h2> (Invent technical challenges faced during development and explain how they were solved in pure Bengali. Minimum 150 words.), and <h2>কেন বানিয়েছি এবং কাদের জন্য বানিয়েছি</h2> (Write in pure Bengali about why this project was built, who is the target audience, why they will use it, and what benefits they will get. Minimum 150 words.). FAILURE TO WRITE IN BENGALI WILL RESULT IN FAILURE.
+---CATEGORY---
+One of: Frontend, Backend, Full-Stack, Mobile App, Other
+---TECH_STACK---
+A comma-separated string of ALL technologies accurately extracted from the package.json and README (e.g., 'React, TypeScript, Tailwind CSS').
+---FEATURES---
+A comma-separated string of 5-8 key features accurately extracted from the repo.
+---PRIVACY_POLICY---
+EXTREMELY IMPORTANT: Write a full-length, 500+ WORD professional Privacy Policy ENTIRELY IN BENGALI (বাংলা ভাষা). DO NOT write in English! Must include multiple detailed HTML paragraphs (<p>) explaining data collection, cookies, third-party sharing, and user rights in pure Bengali.
+---SEO_TITLE---
+A highly optimized SEO title for this project (under 60 characters, English).
+---META_DESCRIPTION---
+An engaging meta description optimized for Google search results (120-150 characters, English).
+---KEYWORDS---
+A comma-separated list of 5-8 highly relevant, exact-match focus keywords based on the repo's tech stack and purpose.`;
 
   const text = await generateText(prompt);
+  console.log("=== RUNNING NEW PLAIN TEXT PROMPT V3 ===");
   try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) {
-      throw new Error(`AI didn't return valid data. It said: "${text.substring(0, 100)}..."`);
+    // Strip bold markers and hashes just in case the AI added them to the markers
+    const cleanText = text.replace(/\*\*---/g, '---').replace(/---\*\*/g, '---').replace(/## ---/g, '---');
+    
+    const extractSection = (marker1: string, marker2?: string) => {
+      let regex;
+      if (marker2) {
+        regex = new RegExp(`${marker1}\\s*([\\s\\S]*?)\\s*${marker2}`);
+      } else {
+        regex = new RegExp(`${marker1}\\s*([\\s\\S]*?)$`);
+      }
+      const match = cleanText.match(regex);
+      return match ? match[1].trim() : "";
+    };
+
+    const title = extractSection("---TITLE---", "---DESCRIPTION---");
+    const description = extractSection("---DESCRIPTION---", "---LONG_DESCRIPTION---");
+    const longDescription = extractSection("---LONG_DESCRIPTION---", "---CATEGORY---");
+    const category = extractSection("---CATEGORY---", "---TECH_STACK---");
+    const techStack = extractSection("---TECH_STACK---", "---FEATURES---");
+    const features = extractSection("---FEATURES---", "---PRIVACY_POLICY---");
+    const privacyPolicy = extractSection("---PRIVACY_POLICY---", "---SEO_TITLE---");
+    const seoTitle = extractSection("---SEO_TITLE---", "---META_DESCRIPTION---");
+    const metaDescription = extractSection("---META_DESCRIPTION---", "---KEYWORDS---");
+    const keywords = extractSection("---KEYWORDS---");
+
+    if (!title || !longDescription) {
+      console.error("FAILED TEXT:", text);
+      throw new Error(`AI didn't return all required sections. Please check browser console for Raw Text.`);
     }
-    return JSON.parse(match[0]);
+
+    return {
+      title,
+      description,
+      longDescription,
+      category,
+      techStack,
+      features,
+      privacyPolicy,
+      seoTitle,
+      metaDescription,
+      keywords
+    };
   } catch (e: any) {
-    console.error("AI JSON Parse Error (GitHub):", e, "Raw Text:", text);
-    if (e.message.includes("AI didn't return valid data")) {
-      throw e;
-    }
-    throw new Error('AI generated invalid format. Please try again.');
+    console.error("AI Parse Error (GitHub plain text):", e, "Raw Text:", text);
+    throw e; // Throw exact error so it shows in popup
   }
 };

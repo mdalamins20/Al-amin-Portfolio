@@ -200,10 +200,11 @@ export const ManageExperience: React.FC = () => {
                 <AIAssistantInput
                   label="Description"
                   value={currentExp.description || ''}
-                  onChange={(val) => setCurrentExp({ ...currentExp, description: val })}
+                  onChange={(val) => setCurrentExp(prev => ({ ...prev, description: val }))}
                   type="textarea"
                   placeholder="Describe your responsibilities and achievements..."
                   fieldType="Job Responsibilities"
+                  context={`Job Role: ${currentExp.role || 'Unknown'}, Company Name: ${currentExp.company || 'Unknown'}`}
                   rows={5}
                 />
 
@@ -211,10 +212,11 @@ export const ManageExperience: React.FC = () => {
                   <AIAssistantInput
                     label="Technologies (comma separated)"
                     value={currentExp.technologies?.join(', ') || ''}
-                    onChange={(val) => setCurrentExp({ ...currentExp, technologies: val.split(',').map(s => s.trim()) })}
+                    onChange={(val) => setCurrentExp(prev => ({ ...prev, technologies: val.split(',').map(s => s.trim()) }))}
                     type="text"
                     placeholder="React, TypeScript, Node.js..."
                     fieldType="Technologies used in this role"
+                    context={`Job Role: ${currentExp.role || 'Unknown'}, Company Name: ${currentExp.company || 'Unknown'}, Job Description: ${currentExp.description || 'None'}`}
                   />
                 </div>
 

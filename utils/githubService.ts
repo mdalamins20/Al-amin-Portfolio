@@ -10,6 +10,34 @@ export const removeGithubToken = () => {
   localStorage.removeItem('GITHUB_TOKEN');
 };
 
+export const fetchUserRepos = async () => {
+  const token = getGithubToken();
+  const headers: HeadersInit = {
+    'Accept': 'application/vnd.github.v3+json',
+  };
+  if (token) {
+    headers['Authorization'] = `token ${token}`;
+  }
+
+  // Fetch repositories for the authenticated user (or public repos if no token, though /user/repos requires auth)
+  // If no token, maybe we can fetch for a specific username? Better to require token for this feature or handle gracefully.
+  const endpoint = token ? 'https://api.github.com/user/repos?sort=updated&per_page=100' : null;
+  if (!endpoint) return [];
+
+  try {
+    const response = await fetch(endpoint, { headers });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.map((repo: any) => ({
+      name: repo.full_name,
+      url: repo.html_url
+    }));
+  } catch (err) {
+    console.error("Error fetching repos", err);
+    return [];
+  }
+};
+
 export const fetchGithubRepoData = async (repoUrl: string) => {
   try {
     // Parse URL (e.g. https://github.com/Muhammad-Al-amin/portfolio)

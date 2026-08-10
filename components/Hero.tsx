@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useProfileStore } from './stores/useProfileStore';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 export const Hero: React.FC = () => {
   const { profile, loading } = useProfileStore();
@@ -19,8 +20,12 @@ export const Hero: React.FC = () => {
   const yearsExp = profile.stats.find(s => s.label.toLowerCase().includes('year'))?.value || '5';
 
   return (
-    <section id="hero" className="relative pt-4 md:pt-16 pb-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
-      <div className="hero-glow -top-20 -left-20"></div>
+    <>
+      <Helmet>
+        <link rel="preload" as="image" href={profile.image} fetchPriority="high" />
+      </Helmet>
+      <section id="hero" className="relative pt-4 md:pt-16 pb-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+        <div className="hero-glow -top-20 -left-20"></div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg items-center">
         <div className="space-y-stack-md">
@@ -106,6 +111,8 @@ export const Hero: React.FC = () => {
               alt={profile.name} 
               src={profile.image}
               referrerPolicy="no-referrer"
+              fetchPriority="high"
+              decoding="sync"
             />
           </div>
           <div className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 z-20 bg-surface border border-outline-variant p-4 sm:p-6 rounded-2xl shadow-xl flex flex-col items-center scale-75 sm:scale-100 origin-bottom-right">
@@ -115,6 +122,7 @@ export const Hero: React.FC = () => {
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-secondary/20 blur-[80px] rounded-full"></div>
         </motion.div>
       </div>
-    </section>
+      </section>
+    </>
   );
 };

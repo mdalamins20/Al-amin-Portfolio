@@ -1,48 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Tool } from '../types';
-import { Loader2, LayoutGrid, Globe } from 'lucide-react';
-import TagCloud from 'TagCloud';
+import { Loader2 } from 'lucide-react';
 import { useDataStore } from './stores/useDataStore';
 
 export const Expertise: React.FC = () => {
   const { skills, loading } = useDataStore();
-  const [viewMode, setViewMode] = useState<'grid' | '3d'>('grid');
-  const cloudContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (viewMode === '3d' && !loading && skills.length > 0 && cloudContainerRef.current) {
-      cloudContainerRef.current.innerHTML = ''; 
-
-      const radius = window.innerWidth < 768 ? 200 : 350;
-      
-      const texts = skills.map(s => s.name);
-      
-      const tc = TagCloud([cloudContainerRef.current] as any, texts, {
-        radius: radius,
-        maxSpeed: 'fast',
-        initSpeed: 'normal',
-        keep: true,
-      });
-
-      const items = cloudContainerRef.current.querySelectorAll('.tagcloud--item');
-      items.forEach((item, i) => {
-        const skill = skills[i];
-        if (skill) {
-          item.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-3 glass-card rounded-2xl hover:-translate-y-1 transition-transform cursor-pointer">
-              <img src="${skill.icon}" alt="${skill.name}" class="w-8 h-8 md:w-10 md:h-10 object-contain mb-2" />
-              <span class="text-[10px] md:text-xs font-label-bold text-on-surface">${skill.name}</span>
-            </div>
-          `;
-        }
-      });
-
-      return () => {
-        tc.destroy();
-      };
-    }
-  }, [viewMode, loading, skills]);
 
   return (
     <section id="expertise" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
@@ -51,29 +14,6 @@ export const Expertise: React.FC = () => {
         <h2 className="font-headline-lg text-headline-lg text-on-surface mb-8">
           Industry Standard <span className="gradient-text">Tech Stack.</span>
         </h2>
-        
-        <div className="flex justify-center mb-12">
-          <div className="flex bg-surface-container p-1 rounded-full border border-surface-variant/20">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-label-bold transition-all ${
-                viewMode === 'grid' ? 'bg-primary-container text-white' : 'text-text-secondary hover:text-on-surface'
-              }`}
-            >
-              <LayoutGrid size={16} />
-              Grid View
-            </button>
-            <button
-              onClick={() => setViewMode('3d')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-label-bold transition-all ${
-                viewMode === '3d' ? 'bg-primary-container text-white' : 'text-text-secondary hover:text-on-surface'
-              }`}
-            >
-              <Globe size={16} />
-              3D Sphere
-            </button>
-          </div>
-        </div>
       </div>
 
       {loading ? (
@@ -84,7 +24,7 @@ export const Expertise: React.FC = () => {
         <div className="text-center py-20 glass-card rounded-3xl">
           <p className="text-text-secondary italic">No skills listed yet.</p>
         </div>
-      ) : viewMode === 'grid' ? (
+      ) : (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -120,24 +60,6 @@ export const Expertise: React.FC = () => {
               </div>
             </motion.div>
           ))}
-        </motion.div>
-      ) : (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          className="flex justify-center items-center w-full min-h-[400px] md:min-h-[600px] overflow-hidden"
-        >
-          <div ref={cloudContainerRef} className="tagcloud-wrapper flex justify-center items-center font-body-md text-on-surface relative z-10">
-             <style>{`
-               .tagcloud--item {
-                 transition: transform 0.3s ease;
-               }
-               .tagcloud--item:hover {
-                 z-index: 100 !important;
-               }
-             `}</style>
-          </div>
         </motion.div>
       )}
     </section>

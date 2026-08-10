@@ -20,10 +20,12 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { GithubStats } from './components/GithubStats';
 import { NotFound } from './components/NotFound';
-import { ProjectDetails } from './components/ProjectDetails';
-import { BlogPage } from './components/BlogPage';
-import { BlogPostDetail } from './components/BlogPostDetail';
 import { VisitorLog } from './components/VisitorLog';
+
+// Lazy loaded heavy public routes
+const ProjectDetails = lazy(() => import('./components/ProjectDetails').then(m => ({ default: m.ProjectDetails })));
+const BlogPage = lazy(() => import('./components/BlogPage').then(m => ({ default: m.BlogPage })));
+const BlogPostDetail = lazy(() => import('./components/BlogPostDetail').then(m => ({ default: m.BlogPostDetail })));
 import { AnimatePresence } from 'framer-motion';
 import { DynamicSEO } from './components/DynamicSEO';
 import { CustomCursor } from './components/CustomCursor';
@@ -73,9 +75,21 @@ function ScrollAndAnimateRoutes() {
       <Routes location={location} key={location.pathname.startsWith('/admin-dashboard') ? 'admin' : location.pathname}>
         {/* Public Portfolio */}
         <Route path="/" element={<MainPortfolio />} />
-        <Route path="/project/:id" element={<ProjectDetails />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:id" element={<BlogPostDetail />} />
+        <Route path="/project/:id" element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ProjectDetails />
+          </Suspense>
+        } />
+        <Route path="/blog" element={
+          <Suspense fallback={<LoadingScreen />}>
+            <BlogPage />
+          </Suspense>
+        } />
+        <Route path="/blog/:id" element={
+          <Suspense fallback={<LoadingScreen />}>
+            <BlogPostDetail />
+          </Suspense>
+        } />
         
         {/* Admin Auth */}
         <Route path="/admin" element={

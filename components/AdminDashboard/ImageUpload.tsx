@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, CheckCircle2, Loader2, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import imageCompression from 'browser-image-compression';
 import { ConfirmationModal } from './ConfirmationModal';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -46,64 +47,53 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     type: 'info'
   });
 
-  const processImage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          // Smart scaling to prevent large files and Firestore 1MB limit.
-          // For icons/logos, lower dimensions are better.
-          const finalMaxWidth = maxWidth;
-          const finalMaxHeight = maxHeight;
-
-          if (width > finalMaxWidth || height > finalMaxHeight) {
-            const ratio = Math.min(finalMaxWidth / width, finalMaxHeight / height);
-            width *= ratio;
-            height *= ratio;
-          }
-
+  const processImage = async (file: File): Promise<string> => {
+    try {
+      // Step 1: Compress the image aggressively to meet the target ~200KB limit
+      const options = {
+        maxSizeMB: 0.2, // Compress down to 200KB
+        maxWidthOrHeight: maxWidth,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      
+      // Step 2: Read the compressed file and handle round crop if needed
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(compressedFile);
+        reader.onload = (event) => {
           if (cropShape === 'round') {
-             // For round crop, make canvas square
-             const size = Math.min(width, height);
-             canvas.width = size;
-             canvas.height = size;
-             const ctx = canvas.getContext('2d');
-             if(ctx){
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const size = Math.min(img.width, img.height);
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
-                ctx.drawImage(img, (width - size) / 2, (height - size) / 2, size, size, 0, 0, size, size);
-                const dataUrl = canvas.toDataURL('image/webp', quality);
-                resolve(dataUrl);
-             } else {
+                ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+                resolve(canvas.toDataURL('image/webp', quality));
+              } else {
                 resolve(event.target?.result as string);
-             }
+              }
+            };
+            img.onerror = (error) => reject(error);
           } else {
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.imageSmoothingEnabled = true;
-              ctx.imageSmoothingQuality = 'high';
-              ctx.drawImage(img, 0, 0, width, height);
-              // Compress to base64 WebP (supports transparency and better compression)
-              const dataUrl = canvas.toDataURL('image/webp', quality);
-              resolve(dataUrl);
-            } else {
-              resolve(event.target?.result as string);
-            }
+            // Rectangular is already compressed and sized properly by the library
+            resolve(event.target?.result as string);
           }
         };
-        img.onerror = (error) => reject(error);
-      };
-      reader.onerror = (error) => reject(error);
-    });
+        reader.onerror = (error) => reject(error);
+      });
+    } catch (error) {
+      console.error('Compression error:', error);
+      throw error;
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

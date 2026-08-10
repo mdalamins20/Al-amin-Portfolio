@@ -18,7 +18,8 @@ import {
   Sun,
   Moon,
   Key,
-  Activity
+  Activity,
+  Award
 } from 'lucide-react';
 import { useThemeStore } from '../stores/useThemeStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,6 +56,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: LayoutDashboard, label: 'Overview', path: '/admin-dashboard' },
     { icon: Briefcase, label: 'Projects', path: '/admin-dashboard/projects' },
     { icon: Wrench, label: 'Skills', path: '/admin-dashboard/skills' },
+    { icon: Award, label: 'Experience', path: '/admin-dashboard/experience' },
     { icon: BookOpen, label: 'Blogs', path: '/admin-dashboard/blogs' },
     { icon: MessageSquare, label: 'Reviews', path: '/admin-dashboard/reviews' },
     { icon: Activity, label: 'Analytics', path: '/admin-dashboard/analytics' },

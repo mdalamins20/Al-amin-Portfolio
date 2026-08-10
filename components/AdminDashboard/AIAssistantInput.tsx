@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { getAIAutocomplete, getAIBlogGeneration } from '../../utils/aiService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useEffect } from 'react';
 
 interface AIAssistantInputProps {
   label: string;
@@ -14,6 +15,7 @@ interface AIAssistantInputProps {
   rows?: number;
   className?: string;
   isBlogGenerator?: boolean;
+  context?: string;
 }
 
 export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
@@ -25,11 +27,25 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
   type = 'textarea',
   rows = 4,
   className = '',
-  isBlogGenerator = false
+  isBlogGenerator = false,
+  context = ''
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMenu]);
 
   const handleGenerate = async (action: 'autocomplete' | 'generate') => {
     setIsGenerating(true);
@@ -38,7 +54,7 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
 
     try {
       if (action === 'autocomplete') {
-        const completion = await getAIAutocomplete(value, fieldType);
+        const completion = await getAIAutocomplete(value, fieldType, context);
         // append completion if value doesn't end with space
         const space = value.length > 0 && !value.endsWith(' ') && !value.endsWith('\n') ? ' ' : '';
         onChange(value + space + completion);
@@ -90,7 +106,7 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
         )}
 
         {/* AI Action Button */}
-        <div className={`absolute right-2 flex flex-col items-end ${type === 'richtext' ? 'top-14 right-4' : 'top-2'}`}>
+        <div ref={menuRef} className={`absolute right-2 flex flex-col items-end ${type === 'richtext' ? 'top-14 right-4' : 'top-2'}`}>
           <button
             type="button"
             onClick={() => setShowMenu(!showMenu)}
@@ -149,15 +165,6 @@ export const AIAssistantInput: React.FC<AIAssistantInputProps> = ({
           )}
         </AnimatePresence>
       </div>
-      
-      {/* Click outside listener overlay for menu */}
-      {showMenu && createPortal(
-        <div 
-          className="fixed inset-0 z-40"
-          onClick={() => setShowMenu(false)}
-        />,
-        document.body
-      )}
     </div>
   );
 };

@@ -174,7 +174,7 @@ export const BlogPage: React.FC = () => {
                 className="group cursor-pointer mb-16 md:mb-24 flex flex-col rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-theme-card shadow-lg border border-theme-border transition-all hover:shadow-xl hover:-translate-y-1 w-full mx-auto"
                 onClick={() => navigate(`/blog/${featuredBlog.id}`)}
               >
-                <div className="w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden relative border-b border-theme-border/50">
+                <div className="w-full aspect-video overflow-hidden relative border-b border-theme-border/50">
                   <img 
                     src={featuredBlog.image} 
                     alt={featuredBlog.title} 
@@ -214,7 +214,7 @@ export const BlogPage: React.FC = () => {
                   className="col-span-4 row-span-2 group cursor-pointer bg-theme-card rounded-[2rem] overflow-hidden shadow-lg border border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   onClick={() => navigate(`/blog/${bentoGridBlogs[0].id}`)}
                 >
-                  <div className="w-full h-[50%] overflow-hidden mb-6 bg-theme-border/20">
+                  <div className="w-full aspect-video overflow-hidden mb-6 bg-theme-border/20">
                     <img src={bentoGridBlogs[0].image} alt={bentoGridBlogs[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
                   <div className="px-8 pb-8">
@@ -271,7 +271,7 @@ export const BlogPage: React.FC = () => {
                   className="col-span-8 row-span-1 group cursor-pointer flex gap-8 items-center bg-theme-card p-4 rounded-[2rem] shadow-lg border border-transparent hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   onClick={() => navigate(`/blog/${bentoGridBlogs[3].id}`)}
                 >
-                  <div className="w-2/5 aspect-[4/3] rounded-2xl overflow-hidden bg-theme-border/20 shrink-0">
+                  <div className="w-2/5 aspect-video rounded-2xl overflow-hidden bg-theme-border/20 shrink-0">
                     <img src={bentoGridBlogs[3].image} alt={bentoGridBlogs[3].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
                   <div className="w-3/5 py-4 pr-8">
@@ -357,7 +357,7 @@ export const BlogPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
                 {standardBlogs.map((blog, idx) => (
                   <article key={blog.id} className="group cursor-pointer bg-theme-card rounded-2xl shadow-sm overflow-hidden border border-transparent hover:shadow-md transition-all flex flex-col h-full" onClick={() => navigate(`/blog/${blog.id}`)}>
-                    <div className="w-full aspect-[4/3] overflow-hidden bg-theme-border/20">
+                    <div className="w-full aspect-video overflow-hidden bg-theme-border/20">
                       <img src={blog.image} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     </div>
                     <div className="p-6 flex-1 flex flex-col">

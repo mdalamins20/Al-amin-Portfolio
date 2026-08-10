@@ -147,25 +147,6 @@ export const ManageBlogs: React.FC = () => {
     try {
       const generated = await generateFullBlogPost(currentBlog.title);
       
-      // Use the AI-generated English image prompt to get a highly relevant image
-      // Fallback to title if the prompt is missing
-      const rawPrompt = (generated as any).imagePrompt || generated.title;
-      // Force realism by appending strict keywords to the banner image
-      const safePrompt = `${rawPrompt} YouTube thumbnail style with bold text, realistic 4k professional tech photography no abstract`;
-      const encodedPrompt = encodeURIComponent(safePrompt);
-      
-      // Add a random seed so the image is unique every time (doesn't repeat)
-      const randomSeed = Math.floor(Math.random() * 1000000);
-      const aiImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=600&nologo=true&seed=${randomSeed}`;
-
-      // Preload the image so it doesn't take time to render in the UI
-      await new Promise((resolve) => {
-        const img = new window.Image();
-        img.onload = resolve;
-        img.onerror = resolve; // Resolve even on error so it doesn't get stuck
-        img.src = aiImageUrl;
-      });
-
       setCurrentBlog(prev => ({
         ...prev,
         title: generated.title,
@@ -173,7 +154,6 @@ export const ManageBlogs: React.FC = () => {
         seoTitle: generated.seoTitle || prev.seoTitle,
         metaDescription: generated.metaDescription || prev.metaDescription,
         keywords: generated.keywords || prev.keywords,
-        image: prev.image || aiImageUrl
       }));
     } catch (err: any) {
       setModalConfig({
