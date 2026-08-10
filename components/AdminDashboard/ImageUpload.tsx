@@ -22,6 +22,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   onUploadComplete, 
   initialValue, 
   label,
+  folder = 'uploads',
   cropShape = 'rect',
   maxWidth = 1000,
   maxHeight = 1000,
@@ -96,6 +97,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     }
   };
 
+
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,15 +115,18 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
     setProcessing(true);
     try {
+      // 1. Process and compress the image to base64
       const base64Url = await processImage(file);
+      
+      // 2. We will store base64 directly and serve it via Edge Functions to bypass CORS and API limits
       setPreview(base64Url);
       onUploadComplete(base64Url);
-    } catch (err) {
-      console.error('Error processing image:', err);
+    } catch (err: any) {
+      console.error('Error processing or uploading image:', err);
       setModalConfig({
         isOpen: true,
         title: 'Upload Error',
-        message: 'Failed to process image. Please try another file.',
+        message: err.message || 'Failed to upload image. Please try another file.',
         type: 'danger'
       });
     } finally {

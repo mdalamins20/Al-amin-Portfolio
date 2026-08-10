@@ -35,3 +35,7 @@
 [[edge_functions]]
   path = "/project/*"
   function = "og-injector"
+
+[[edge_functions]]
+  path = "/api/og-image/*"
+  function = "image-server"

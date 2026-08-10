@@ -74,8 +74,11 @@ export default async (request, context) => {
       }
       
       if (image) {
+        // Construct the dynamic image server URL for Facebook
+        const imageUrl = new URL(`/api/og-image/${collection}/${docId}`, url.origin).href;
+
         html = html.replace(/<meta property="og:image"[^>]*>/gi, '');
-        html = html.replace('</head>', `<meta property="og:image" content="${image}">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="twitter:image" content="${image}">\n<meta property="twitter:card" content="summary_large_image">\n</head>`);
+        html = html.replace('</head>', `<meta property="og:image" content="${imageUrl}">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="twitter:image" content="${imageUrl}">\n<meta property="twitter:card" content="summary_large_image">\n</head>`);
       }
       
       // Change standard meta url to actual url
