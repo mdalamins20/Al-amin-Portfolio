@@ -29,7 +29,7 @@ export const DynamicSEO: React.FC<DynamicSEOProps> = ({ title: customTitle, desc
 
   return (
     <SEO 
-      title={customTitle || `${name} | ${role}`}
+      title={customTitle || (profile ? `${profile.name || 'Muhammad Al-amin'} | ${profile.role || 'Digital Solutions Architect'}` : undefined)}
       description={customDescription || description}
       keywords={allKeywords}
       image={profile?.image}

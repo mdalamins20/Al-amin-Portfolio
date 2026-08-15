@@ -43,7 +43,7 @@ export const SEO: React.FC<SEOProps> = ({
   };
 
   const seo = {
-    title: title ? `${title} | ${USER_INFO.name}` : defaultTitle,
+    title: title ? (title.includes(USER_INFO.name) ? title : `${title} | ${USER_INFO.name}`) : defaultTitle,
     description: description || defaultDescription,
     keywords: keywords || defaultKeywords,
     image: getAbsoluteImageUrl(image || defaultImage),

@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, AlertCircle, Settings, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { auth } from '../firebase';
+import { auth, isConfigured } from '../firebase';
 import { useAuthStore } from './stores/useAuthStore';
 import { useAdminLogin } from './hooks/useAdminLogin';
 
@@ -19,8 +19,7 @@ export const AdminLogin: React.FC = () => {
     requires2FA,
     totpCode,
     setTotpCode,
-    handleVerify2FA,
-    isConfigured
+    handleVerify2FA
   } = useAdminLogin();
 
   // Temporarily removed aggressive signOut effect to prevent login loops

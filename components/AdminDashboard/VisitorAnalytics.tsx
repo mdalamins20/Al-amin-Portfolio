@@ -229,9 +229,9 @@ export const VisitorAnalytics: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-brand font-bold">{log.ip}</span>
                         {log.device === 'Mobile' ? (
-                          <Smartphone size={14} className="text-slate-400" title="Mobile" />
+                          <span title="Mobile"><Smartphone size={14} className="text-slate-400" /></span>
                         ) : (
-                          <Monitor size={14} className="text-slate-400" title="Desktop" />
+                          <span title="Desktop"><Monitor size={14} className="text-slate-400" /></span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500">
