@@ -12,6 +12,7 @@ import { Layout } from './Layout';
 import { SEO } from './SEO';
 import { useProfileStore } from './stores/useProfileStore';
 import { useDataStore } from './stores/useDataStore';
+import { showAlert } from './stores/useDialogStore';
 
 const stripHtmlAndTruncate = (html: string, maxLength: number) => {
   const tmp = document.createElement('DIV');
@@ -272,7 +273,7 @@ export const BlogPostDetail: React.FC = () => {
       navigator.share({ title: blog?.title, url: window.location.href });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      showAlert('Success', 'Link copied to clipboard!', 'success');
     }
   };
 

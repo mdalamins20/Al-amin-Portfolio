@@ -2,11 +2,12 @@ export default async (request, context) => {
   const url = new URL(request.url);
   const path = url.pathname;
   
-  // Only intercept /blog/:id and /project/:id
+  // Only intercept /blog/:id, /project/:id, and / (homepage)
   const blogMatch = path.match(/^\/blog\/([^/]+)$/);
   const projectMatch = path.match(/^\/project\/([^/]+)$/);
+  const homeMatch = path === "/";
 
-  if (!blogMatch && !projectMatch) {
+  if (!blogMatch && !projectMatch && !homeMatch) {
     return context.next();
   }
 
@@ -21,6 +22,9 @@ export default async (request, context) => {
   } else if (projectMatch) {
     collection = "projects";
     docId = projectMatch[1];
+  } else if (homeMatch) {
+    collection = "settings";
+    docId = "profile";
   }
 
   // Fetch the page first
@@ -52,6 +56,10 @@ export default async (request, context) => {
         title = data.fields?.title?.stringValue || "";
         description = data.fields?.description?.stringValue || "";
         image = data.fields?.projectImage?.stringValue || data.fields?.image?.stringValue || "";
+      } else if (collection === "settings" && docId === "profile") {
+        title = data.fields?.name?.stringValue ? `${data.fields?.name?.stringValue} | ${data.fields?.role?.stringValue || 'Portfolio'}` : "";
+        description = data.fields?.tagline?.stringValue || data.fields?.supportingLine?.stringValue || "";
+        image = data.fields?.image?.stringValue || "";
       }
       
       // Clean description
@@ -74,8 +82,8 @@ export default async (request, context) => {
       }
       
       if (image) {
-        // Construct the dynamic image server URL for Facebook
-        const imageUrl = new URL(`/api/og-image/${collection}/${docId}`, url.origin).href;
+        // Construct the dynamic image server URL for Facebook (unless it's just the homepage profile picture, which we can just use directly)
+        const imageUrl = homeMatch ? image : new URL(`/api/og-image/${collection}/${docId}`, url.origin).href;
 
         html = html.replace(/<meta property="og:image"[^>]*>/gi, '');
         html = html.replace('</head>', `<meta property="og:image" content="${imageUrl}">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="twitter:image" content="${imageUrl}">\n<meta property="twitter:card" content="summary_large_image">\n</head>`);

@@ -40,8 +40,8 @@ export const ExperienceTimeline: React.FC = () => {
               key={exp.id || index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
               className={`relative flex flex-col md:flex-row items-start ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
             >
               <div className="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-surface-deep border-4 border-primary flex items-center justify-center transform -translate-x-1/2 mt-1 md:mt-0 shadow-[0_0_15px_rgba(var(--accent-rgb),0.4)] z-10">
@@ -60,7 +60,7 @@ export const ExperienceTimeline: React.FC = () => {
                   </p>
                   
                   <div className={`flex flex-wrap gap-2 ${index % 2 === 0 ? 'md:justify-end' : 'justify-start'}`}>
-                    {exp.technologies.map(tech => (
+                    {(exp.technologies || []).map(tech => (
                       <span key={tech} className="px-3 py-1 bg-surface-elevated border border-outline-variant/10 rounded-lg text-xs font-label-bold text-on-surface">
                         {tech}
                       </span>

@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, X, FileText, Loader2 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
+import { showAlert } from '../stores/useDialogStore';
 
 interface FileUploadProps {
   label: string;
@@ -26,23 +27,33 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       if (file) {
+        if (file.size > 800 * 1024) {
+          showAlert("File Too Large", "Please keep the PDF under 800KB.", "danger");
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
+        }
+
         setIsUploading(true);
         try {
-          const timestamp = Date.now();
-          const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-          const storageRef = ref(storage, `${folder}/${timestamp}_${cleanFileName}`);
-          await uploadBytes(storageRef, file);
-          const downloadURL = await getDownloadURL(storageRef);
-          setCurrentUrl(downloadURL);
-          onUploadComplete(downloadURL);
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => {
+            const base64Url = reader.result as string;
+            setCurrentUrl(base64Url);
+            onUploadComplete(base64Url);
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          };
+          reader.onerror = (error) => {
+            console.error("Error reading file:", error);
+            showAlert("Error", "Failed to read file.", "danger");
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          };
         } catch (error) {
-          console.error("Error uploading file:", error);
-          alert("Failed to upload file. Please try again.");
-        } finally {
+          console.error("Error processing file:", error);
+          showAlert("Error", "Failed to process file. Please try again.", "danger");
           setIsUploading(false);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
         }
       }
     }

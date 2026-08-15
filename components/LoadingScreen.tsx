@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { USER_INFO } from '../constants';
+import { useProfileStore } from './stores/useProfileStore';
 
 export const LoadingScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
+  const { profile } = useProfileStore();
 
   useEffect(() => {
     // 2 seconds total duration
@@ -34,13 +35,19 @@ export const LoadingScreen: React.FC = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/5 relative z-10"
+            className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-white/5 relative z-10 flex items-center justify-center bg-surface shadow-2xl"
           >
-            <img 
-              src={USER_INFO.image} 
-              alt={USER_INFO.name} 
-              className="w-full h-full object-cover grayscale"
-            />
+            {profile?.image ? (
+              <img 
+                src={profile.image} 
+                alt={profile.name || 'Loading'} 
+                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+              />
+            ) : (
+              <span className="text-4xl md:text-5xl font-serif font-black text-white tracking-tighter">
+                {profile?.name ? profile.name.charAt(0).toUpperCase() : 'A'}<span className="text-brand-600">.</span>
+              </span>
+            )}
           </motion.div>
 
           {/* Progress Circle Outline */}

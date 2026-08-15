@@ -58,10 +58,10 @@ export const ProjectGrid: React.FC = () => {
             {displayProjects.map((project, index) => {
               return (
                 <motion.div 
-                  layout
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.4 }}
                   key={project.id} 
                   className="break-inside-avoid group cursor-pointer bg-surface border border-surface-variant/20 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   onClick={() => navigate(`/project/${project.id}`)}
@@ -69,6 +69,8 @@ export const ProjectGrid: React.FC = () => {
                   {/* Image section: Full uncropped image with natural aspect ratio */}
                   <div className="w-full bg-surface-variant/10 flex items-center justify-center overflow-hidden">
                     <img 
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-[1.02]" 
                       src={project.image || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97'} 
                       alt={project.title}

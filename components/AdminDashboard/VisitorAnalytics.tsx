@@ -226,7 +226,14 @@ export const VisitorAnalytics: React.FC = () => {
                 >
                   <td className="p-4">
                     <div className="flex flex-col gap-1">
-                      <span className="font-mono text-brand font-bold">{log.ip}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-brand font-bold">{log.ip}</span>
+                        {log.device === 'Mobile' ? (
+                          <Smartphone size={14} className="text-slate-400" title="Mobile" />
+                        ) : (
+                          <Monitor size={14} className="text-slate-400" title="Desktop" />
+                        )}
+                      </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500">
                         <MapPin size={12} />
                         {log.city}, {log.country}

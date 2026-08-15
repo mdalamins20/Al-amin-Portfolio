@@ -10,10 +10,9 @@ import { db, isConfigured } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Blog } from '../types';
 
-export const BlogPage: React.FC = () => {
-  const { blogs, loading } = useDataStore();
-  const navigate = useNavigate();
+import { showAlert } from './stores/useDialogStore';
 
+const NewsletterBanner = () => {
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -23,9 +22,9 @@ export const BlogPage: React.FC = () => {
     if (!email || !isConfigured) return;
     
     // Rate Limiting (Spam Protection)
-    const lastSubscribed = localStorage.getItem('lastSubscribed');
-    if (lastSubscribed && Date.now() - parseInt(lastSubscribed) < 60000 * 60) {
-      alert("You have already subscribed recently. Please try again later.");
+    const lastSubscribed = localStorage.getItem('last_subscribed_time');
+    if (lastSubscribed && Date.now() - parseInt(lastSubscribed) < 1000 * 60 * 60) {
+      showAlert("Notice", "You have already subscribed recently. Please try again later.");
       return;
     }
 
@@ -46,30 +45,7 @@ export const BlogPage: React.FC = () => {
     }
   };
 
-  const stripHtmlAndTruncate = (html: string, maxLength: number) => {
-    if (!html) return '';
-    try {
-      const plainText = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
-      return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText;
-    } catch {
-      return '';
-    }
-  };
-
-  const getReadingTime = (content: string) => {
-    return Math.max(1, Math.ceil((content || '').replace(/<[^>]*>?/gm, '').split(/\s+/).length / 200));
-  };
-
-  const getCategoryColor = (index: number) => {
-    const colors = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'];
-    return colors[index % colors.length];
-  };
-
-  const featuredBlog = blogs[0];
-  const bentoGridBlogs = blogs.slice(1, 5); // Next 4 posts for bento grid
-  const standardBlogs = blogs.slice(5); // Remaining posts
-
-  const NewsletterBanner = () => (
+  return (
     <div className="bg-brand rounded-3xl overflow-hidden relative mb-16 md:mb-24 shadow-xl border border-brand/20 w-full max-w-[1200px] mx-auto">
       {/* Desktop Newsletter */}
       <div className="hidden md:flex items-center justify-between p-12">
@@ -144,6 +120,39 @@ export const BlogPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+
+export const BlogPage: React.FC = () => {
+  const { blogs, loading } = useDataStore();
+  const navigate = useNavigate();
+
+
+
+  const stripHtmlAndTruncate = (html: string, maxLength: number) => {
+    if (!html) return '';
+    try {
+      const plainText = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+      return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText;
+    } catch {
+      return '';
+    }
+  };
+
+  const getReadingTime = (content: string) => {
+    return Math.max(1, Math.ceil((content || '').replace(/<[^>]*>?/gm, '').split(/\s+/).length / 200));
+  };
+
+  const getCategoryColor = (index: number) => {
+    const colors = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'];
+    return colors[index % colors.length];
+  };
+
+  const featuredBlog = blogs[0];
+  const bentoGridBlogs = blogs.slice(1, 5); // Next 4 posts for bento grid
+  const standardBlogs = blogs.slice(5); // Remaining posts
+
+
 
   return (
     <Layout onViewCV={() => {}}>

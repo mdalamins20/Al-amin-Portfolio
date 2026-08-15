@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { db, isConfigured } from '../../firebase';
 import { collection, getCountFromServer, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { Loader2, Briefcase, Code, BookOpen, MessageSquare, ExternalLink, Plus, Sparkles, Activity, Clock, ArrowRight } from 'lucide-react';
+import { Loader2, Briefcase, BookOpen, MessageSquare, ExternalLink, Plus, Sparkles, Activity, Clock, ArrowRight, Users, Mail, Send, CheckSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Project } from '../../types';
 
+interface Subscriber {
+  id: string;
+  email: string;
+  subscribedAt: any;
+}
+
 export const DashboardOverview: React.FC = () => {
   const [stats, setStats] = useState([
     { label: 'Total Projects', value: '0', color: 'from-blue-500 to-cyan-400', icon: Briefcase, collection: 'projects', link: '/admin-dashboard/projects' },
-    { label: 'Skills Listed', value: '0', color: 'from-purple-500 to-pink-500', icon: Code, collection: 'skills', link: '/admin-dashboard/skills' },
     { label: 'Blog Posts', value: '0', color: 'from-emerald-400 to-teal-500', icon: BookOpen, collection: 'blogs', link: '/admin-dashboard/blogs' },
+    { label: 'Subscribers', value: '0', color: 'from-purple-500 to-pink-500', icon: Users, collection: 'subscribers', link: '/admin-dashboard/subscribers' },
     { label: 'Reviews', value: '0', color: 'from-amber-400 to-orange-500', icon: MessageSquare, collection: 'reviews', link: '/admin-dashboard/reviews' },
   ]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [recentSubscribers, setRecentSubscribers] = useState<Subscriber[]>([]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -41,13 +48,14 @@ export const DashboardOverview: React.FC = () => {
         setStats(updatedStats);
 
         // Fetch recent projects
-        const q = query(collection(db, 'projects'), orderBy('id', 'desc'), limit(3));
-        const querySnapshot = await getDocs(q);
-        const projectsData = querySnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        })) as Project[];
-        setRecentProjects(projectsData);
+        const projQ = query(collection(db, 'projects'), orderBy('id', 'desc'), limit(3));
+        const projSnapshot = await getDocs(projQ);
+        setRecentProjects(projSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Project[]);
+
+        // Fetch recent subscribers
+        const subQ = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'), limit(4));
+        const subSnapshot = await getDocs(subQ);
+        setRecentSubscribers(subSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Subscriber[]);
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -59,6 +67,11 @@ export const DashboardOverview: React.FC = () => {
     fetchData();
   }, []);
 
+  const formatDate = (ts: any) => {
+    if (!ts || !ts.toDate) return 'Just now';
+    return ts.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -69,10 +82,7 @@ export const DashboardOverview: React.FC = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVariants = {
@@ -81,41 +91,21 @@ export const DashboardOverview: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-3xl bg-surface border border-outline-variant p-8 md:p-12 shadow-sm"
-      >
-        <div className="absolute top-0 right-0 -m-20 w-64 h-64 bg-brand rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-30 animate-pulse pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-20 pointer-events-none" />
-        
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-variant border border-outline-variant text-sm font-bold text-brand mb-6 shadow-sm">
-            <Sparkles size={16} />
-            <span>AI Studio Engine Operational</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-on-surface">
-            {greeting}, Admin!
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Welcome Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-slate-900 dark:text-white">
+            {greeting}, <span className="text-brand">Admin!</span> 👋
           </h1>
-          <p className="text-on-surface-variant max-w-xl text-lg leading-relaxed font-medium">
-            Here's what's happening with your portfolio today. You have {stats[3].value} total reviews and {stats[0].value} active projects.
-          </p>
-          
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link to="/admin-dashboard/projects" className="bg-brand text-white hover:bg-brand-700 flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-brand/20 hover:-translate-y-0.5 active:scale-95">
-              <Plus size={18} />
-              New Project
-            </Link>
-            <Link to="/admin-dashboard/blogs" className="bg-surface-variant hover:bg-surface-container-high text-on-surface flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all border border-outline-variant hover:-translate-y-0.5 active:scale-95 shadow-sm">
-              <BookOpen size={18} />
-              Write Post
-            </Link>
-          </div>
+          <p className="text-slate-500 dark:text-slate-400">Here's what's happening with your portfolio today.</p>
         </div>
-      </motion.div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-brand/10 border border-brand/20 rounded-full text-brand text-sm font-bold shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+          System Online
+        </div>
+      </div>
 
       {/* Stats Grid */}
       <motion.div 
@@ -150,92 +140,157 @@ export const DashboardOverview: React.FC = () => {
         })}
       </motion.div>
 
-      {/* Recent Activity & Quick Tasks */}
+      {/* Main Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column: Recent Activity */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2 space-y-6"
+        >
+          {/* Recent Projects */}
+          <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-on-surface flex items-center gap-3">
+                <Briefcase className="text-brand" size={20} />
+                Recent Projects
+              </h3>
+              <Link to="/admin-dashboard/projects" className="text-sm font-bold text-brand hover:text-brand-700 flex items-center gap-1 transition-colors bg-brand/10 px-3 py-1.5 rounded-full hover:bg-brand/20">
+                View All <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div className="space-y-4">
+              {recentProjects.length > 0 ? (
+                recentProjects.map((project, idx) => (
+                  <div key={project.id || idx} className="group flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/30 border border-outline-variant hover:border-brand/30 transition-all hover:shadow-md">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-surface border border-outline-variant flex items-center justify-center overflow-hidden shrink-0">
+                        {project.image ? (
+                          <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        ) : (
+                          <Briefcase size={20} className="text-slate-400" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-on-surface line-clamp-1 group-hover:text-brand transition-colors">{project.title}</p>
+                        <p className="text-xs text-on-surface-variant font-medium mt-1">ID: {project.id}</p>
+                      </div>
+                    </div>
+                    <Link to="/admin-dashboard/projects" className="w-8 h-8 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:shadow-md border border-outline-variant transition-all shrink-0">
+                      <ExternalLink size={14} />
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-400">No recent projects.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Subscribers */}
+          <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-on-surface flex items-center gap-3">
+                <Users className="text-brand" size={20} />
+                Newest Subscribers
+              </h3>
+              <Link to="/admin-dashboard/subscribers" className="text-sm font-bold text-brand hover:text-brand-700 flex items-center gap-1 transition-colors bg-brand/10 px-3 py-1.5 rounded-full hover:bg-brand/20">
+                Manage <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {recentSubscribers.length > 0 ? (
+                recentSubscribers.map((sub, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/30 border border-outline-variant">
+                    <div className="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                      <Mail size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-on-surface truncate">{sub.email}</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">{formatDate(sub.subscribedAt)}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-6 text-slate-400">No subscribers yet.</div>
+              )}
+            </div>
+          </div>
+
+        </motion.div>
+
+        {/* Right Column: Quick Actions */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="lg:col-span-2 bg-surface border border-outline-variant rounded-3xl p-8 shadow-sm flex flex-col h-full"
+          className="lg:col-span-1"
         >
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold text-on-surface flex items-center gap-3">
-              <Activity className="text-brand" />
-              Recent Projects
+          <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm sticky top-6">
+            <h3 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+              <Sparkles className="text-brand" size={20} />
+              Quick Actions
             </h3>
-            <Link to="/admin-dashboard/projects" className="text-sm font-bold text-brand hover:text-brand-700 flex items-center gap-1 transition-colors">
-              View All <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="space-y-4 flex-1">
-            {recentProjects.length > 0 ? (
-              recentProjects.map((project, idx) => (
-                <div key={project.id || idx} className="group flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-surface-variant border border-outline-variant hover:border-brand/40 transition-colors shadow-sm">
-                  <div className="flex items-center gap-4 mb-3 md:mb-0">
-                    <div className="w-12 h-12 rounded-xl bg-surface border border-outline-variant flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                      {project.image ? (
-                        <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                      ) : (
-                        <Briefcase size={20} className="text-slate-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-bold text-on-surface line-clamp-1 group-hover:text-brand transition-colors">{project.title}</p>
-                      <div className="flex gap-2 flex-wrap mt-1">
-                        {project.techStack?.slice(0, 2).map((tech, tIdx) => (
-                          <span key={tIdx} className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{tech}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <Link to="/admin-dashboard/projects" className="text-sm font-bold text-slate-400 group-hover:text-brand transition-colors flex items-center gap-1 bg-surface px-3 py-1.5 rounded-lg border border-outline-variant shadow-sm w-fit self-start md:self-auto">
-                    Edit <ExternalLink size={14} />
-                  </Link>
+            
+            <div className="space-y-4">
+              <Link 
+                to="/admin-dashboard/blogs" 
+                className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-brand to-purple-600 text-white hover:shadow-lg hover:shadow-brand/20 transition-all hover:-translate-y-1 group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+                  <Plus size={20} />
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-on-surface-variant font-medium">No recent projects found.</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
+                <div>
+                  <p className="font-bold">Write Blog Post</p>
+                  <p className="text-xs text-white/80">Publish a new article</p>
+                </div>
+              </Link>
 
-        {/* Quick Links Column */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-surface border border-outline-variant rounded-3xl p-8 shadow-sm flex flex-col h-full"
-        >
-          <h3 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
-            <Sparkles className="text-brand" size={20} />
-            Quick Tasks
-          </h3>
-          <div className="space-y-4 flex-1">
-            <Link to="/admin-dashboard/profile" className="flex items-center justify-between p-4 rounded-2xl bg-surface-variant border border-outline-variant hover:border-brand/40 group transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-              <span className="font-bold text-on-surface group-hover:text-brand transition-colors">Update Profile</span>
-              <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:scale-110 transition-all border border-outline-variant">
-                 <ArrowRight size={14} />
-              </div>
-            </Link>
-             <Link to="/admin-dashboard/reviews" className="flex items-center justify-between p-4 rounded-2xl bg-surface-variant border border-outline-variant hover:border-brand/40 group transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-              <span className="font-bold text-on-surface group-hover:text-brand transition-colors">Moderate Reviews</span>
-               <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:scale-110 transition-all border border-outline-variant">
-                 <ArrowRight size={14} />
-              </div>
-            </Link>
-             <Link to="/admin-dashboard/skills" className="flex items-center justify-between p-4 rounded-2xl bg-surface-variant border border-outline-variant hover:border-brand/40 group transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-              <span className="font-bold text-on-surface group-hover:text-brand transition-colors">Add New Skill</span>
-               <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:scale-110 transition-all border border-outline-variant">
-                 <ArrowRight size={14} />
-              </div>
-            </Link>
-          </div>
-          
-          <div className="mt-6 pt-6 border-t border-outline-variant">
-            <div className="flex items-center gap-3">
+              <Link 
+                to="/admin-dashboard/subscribers" 
+                className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-outline-variant hover:border-brand/40 text-on-surface transition-all group hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
+                  <Send size={20} />
+                </div>
+                <div>
+                  <p className="font-bold group-hover:text-brand transition-colors">Broadcast Email</p>
+                  <p className="text-xs text-on-surface-variant">Send a newsletter</p>
+                </div>
+              </Link>
+
+              <Link 
+                to="/admin-dashboard/projects" 
+                className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-outline-variant hover:border-brand/40 text-on-surface transition-all group hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                  <Briefcase size={20} />
+                </div>
+                <div>
+                  <p className="font-bold group-hover:text-brand transition-colors">Add Project</p>
+                  <p className="text-xs text-on-surface-variant">Upload new work</p>
+                </div>
+              </Link>
+
+              <Link 
+                to="/admin-dashboard/reviews" 
+                className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-outline-variant hover:border-brand/40 text-on-surface transition-all group hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                  <CheckSquare size={20} />
+                </div>
+                <div>
+                  <p className="font-bold group-hover:text-brand transition-colors">Moderate Reviews</p>
+                  <p className="text-xs text-on-surface-variant">Approve or reject</p>
+                </div>
+              </Link>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-outline-variant flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center shrink-0 border border-green-500/20">
                 <Clock size={18} />
               </div>
@@ -247,6 +302,7 @@ export const DashboardOverview: React.FC = () => {
           </div>
         </motion.div>
       </div>
+
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useThemeStore } from './components/stores/useThemeStore';
@@ -9,15 +8,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Hero } from './components/Hero';
 import { ContentSections } from './components/ContentSections';
-import { Expertise } from './components/Expertise';
-import { ExperienceTimeline } from './components/ExperienceTimeline';
-import { Services } from './components/Services';
-import { ProjectGrid } from './components/ProjectGrid';
-import { RecentBlogs } from './components/RecentBlogs';
-import { Testimonials } from './components/Testimonials';
-import { FAQSection } from './components/FAQSection';
-import { ContactSection } from './components/ContactSection';
-import { Footer } from './components/Footer';
+
 import { GithubStats } from './components/GithubStats';
 import { NotFound } from './components/NotFound';
 import { VisitorLog } from './components/VisitorLog';
@@ -32,6 +23,7 @@ import { CustomCursor } from './components/CustomCursor';
 import { PageTransition } from './components/PageTransition';
 import { WhatsAppButton } from './components/WhatsAppButton';
 import { LoadingScreen } from './components/LoadingScreen';
+import { CustomDialog } from './components/CustomDialog';
 
 // Lazy loaded admin components
 const AdminLogin = lazy(() => import('./components/AdminLogin').then(m => ({ default: m.AdminLogin })));
@@ -44,6 +36,8 @@ const ManageReviews = lazy(() => import('./components/AdminDashboard/ManageRevie
 const ManageProfile = lazy(() => import('./components/AdminDashboard/ManageProfile').then(m => ({ default: m.ManageProfile })));
 const DashboardOverview = lazy(() => import('./components/AdminDashboard/DashboardOverview').then(m => ({ default: m.DashboardOverview })));
 const VisitorAnalytics = lazy(() => import('./components/AdminDashboard/VisitorAnalytics').then(m => ({ default: m.VisitorAnalytics })));
+const ActiveSessions = lazy(() => import('./components/AdminDashboard/ActiveSessions').then(m => ({ default: m.ActiveSessions })));
+const ManageSubscribers = lazy(() => import('./components/AdminDashboard/ManageSubscribers').then(m => ({ default: m.ManageSubscribers })));
 
 function ScrollAndAnimateRoutes() {
   const location = useLocation();
@@ -59,7 +53,7 @@ function ScrollAndAnimateRoutes() {
           element.scrollIntoView({ behavior: 'smooth' });
         }
       };
-      
+
       // Try after a short delay (if already on the page)
       setTimeout(scrollToElement, 100);
       // Try again after route transition is definitely done
@@ -71,6 +65,7 @@ function ScrollAndAnimateRoutes() {
 
   return (
     <>
+      <CustomDialog />
       <VisitorLog />
       <Routes location={location} key={location.pathname.startsWith('/admin-dashboard') ? 'admin' : location.pathname}>
         {/* Public Portfolio */}
@@ -90,14 +85,14 @@ function ScrollAndAnimateRoutes() {
             <BlogPostDetail />
           </Suspense>
         } />
-        
+
         {/* Admin Auth */}
         <Route path="/admin" element={
           <Suspense fallback={<LoadingScreen />}>
             <AdminLogin />
           </Suspense>
         } />
-        
+
         {/* Protected Admin Dashboard */}
         <Route path="/admin-dashboard" element={
           <ProtectedRoute>
@@ -109,31 +104,31 @@ function ScrollAndAnimateRoutes() {
               <DashboardOverview />
             </Suspense>
           } />
-          
+
           <Route path="projects" element={
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
               <ManageProjects />
             </Suspense>
           } />
-          
+
           <Route path="experience" element={
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
               <ManageExperience />
             </Suspense>
           } />
-          
+
           <Route path="skills" element={
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
               <ManageSkills />
             </Suspense>
           } />
-          
+
           <Route path="blogs" element={
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
               <ManageBlogs />
             </Suspense>
           } />
-          
+
           <Route path="reviews" element={
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
               <ManageReviews />
@@ -145,10 +140,22 @@ function ScrollAndAnimateRoutes() {
               <ManageProfile />
             </Suspense>
           } />
-          
+
           <Route path="analytics" element={
             <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
               <VisitorAnalytics />
+            </Suspense>
+          } />
+
+          <Route path="sessions" element={
+            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+              <ActiveSessions />
+            </Suspense>
+          } />
+
+          <Route path="subscribers" element={
+            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+              <ManageSubscribers />
             </Suspense>
           } />
         </Route>
@@ -160,20 +167,34 @@ function ScrollAndAnimateRoutes() {
   );
 }
 
+// Lazy loaded public sections
+const Expertise = lazy(() => import('./components/Expertise').then(m => ({ default: m.Expertise })));
+const ExperienceTimeline = lazy(() => import('./components/ExperienceTimeline').then(m => ({ default: m.ExperienceTimeline })));
+const Services = lazy(() => import('./components/Services').then(m => ({ default: m.Services })));
+const ProjectGrid = lazy(() => import('./components/ProjectGrid').then(m => ({ default: m.ProjectGrid })));
+const RecentBlogs = lazy(() => import('./components/RecentBlogs').then(m => ({ default: m.RecentBlogs })));
+const Testimonials = lazy(() => import('./components/Testimonials').then(m => ({ default: m.Testimonials })));
+const FAQSection = lazy(() => import('./components/FAQSection').then(m => ({ default: m.FAQSection })));
+const ContactSection = lazy(() => import('./components/ContactSection').then(m => ({ default: m.ContactSection })));
+
 function MainPortfolio() {
   return (
-    <Layout onViewCV={() => {}}>
+    <Layout onViewCV={() => { }}>
       <Hero />
       <GithubStats />
       <ContentSections />
-      <Expertise />
-      <ExperienceTimeline />
-      <Services />
-      <ProjectGrid />
-      <RecentBlogs />
-      <Testimonials />
-      <FAQSection />
-      <ContactSection />
+
+      {/* Below the fold components are lazy loaded to improve PageSpeed */}
+      <Suspense fallback={<div className="h-20 w-full flex items-center justify-center"><div className="animate-pulse w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700"></div></div>}>
+        <Expertise />
+        <ExperienceTimeline />
+        <Services />
+        <ProjectGrid />
+        <RecentBlogs />
+        <Testimonials />
+        <FAQSection />
+        <ContactSection />
+      </Suspense>
     </Layout>
   );
 }

@@ -54,16 +54,22 @@ export const RecentBlogs: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {recentBlogs.map((blog, idx) => (
             <motion.article 
-              key={blog.id} 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.4 }}
+              key={blog.id} 
               className="group cursor-pointer glass-card rounded-2xl shadow-sm overflow-hidden border border-transparent hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col h-full" 
               onClick={() => navigate(`/blog/${blog.id}`)}
             >
               <div className="w-full aspect-video overflow-hidden bg-surface-variant/20">
-                <img src={blog.image} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img 
+                  src={blog.image} 
+                  alt={blog.title} 
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                />
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <span style={{ color: getCategoryColor(idx) }} className="font-bold text-[10px] uppercase tracking-widest mb-3 block">

@@ -378,7 +378,11 @@ export const ManageBlogs: React.FC = () => {
               key={blog.id}
               className="bg-surface border border-outline-variant rounded-3xl p-6 flex flex-col md:flex-row gap-6 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm relative overflow-hidden"
             >
-              <div className="w-full md:w-56 overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 group-hover:shadow-md transition-shadow">
+              <div className="w-full md:w-56 overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 group-hover:shadow-md transition-shadow relative">
+                {/* Serial Number Badge */}
+                <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-lg font-bold text-sm border border-white/10 shadow-lg flex items-center justify-center">
+                  #{blogs.length - i}
+                </div>
                 <div className="w-full h-full relative" style={{ paddingBottom: '70%' }}>
                    <img src={blog.image} alt={blog.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>

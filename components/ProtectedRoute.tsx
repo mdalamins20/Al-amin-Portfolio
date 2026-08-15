@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   }
 
-  if (!user) {
+  if (!user || !localStorage.getItem('adminSessionId')) {
     return <Navigate to="/admin" state={{ from: location }} replace />;
   }
 

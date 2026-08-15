@@ -23,7 +23,7 @@ export const USER_INFO = {
   email: "mdalaminkhalifa2002@gmail.com",
   phone: "+8801778189644",
   tagline: "Transforming Complex Problems into Elegant Digital Solutions.",
-  image: "https://i.ibb.co.com/4ZtpFT0b/IMG.png",
+  image: "",
   supportingLine: "I help startups and businesses build fast, modern, conversion-focused websites that scale effortlessly."
 };
 

@@ -108,8 +108,10 @@ export const Hero: React.FC = () => {
           <div className="relative z-10 w-full max-w-md rounded-[2rem] overflow-hidden border-2 border-surface-variant/30 shadow-2xl">
             <img 
               className="w-full h-auto max-h-[600px] object-contain bg-surface-variant/20" 
-              alt={profile.name} 
+              alt={profile.name || 'Profile'} 
               src={profile.image}
+              width="400"
+              height="600"
               referrerPolicy="no-referrer"
               fetchPriority="high"
               decoding="sync"

@@ -16,13 +16,41 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ loading: false });
       return;
     }
+    let unsubscribeSession: any = null;
+
     onAuthStateChanged(auth, async (user) => {
-      if (user && user.uid !== 'RG2hfNJffGg0KGhBGMwJkVJAszw2') {
-        // Unauthorized user, sign them out immediately
-        await auth.signOut();
-        set({ user: null, loading: false });
-      } else {
+      if (user) {
         set({ user, loading: false });
+        
+        // Listen to active session
+        const sessionId = localStorage.getItem('adminSessionId');
+        if (sessionId) {
+          import('firebase/firestore').then(({ doc, onSnapshot }) => {
+            import('../../firebase').then(({ db }) => {
+              unsubscribeSession = onSnapshot(doc(db, 'admin_sessions', sessionId), async (snapshot) => {
+                if (snapshot.exists()) {
+                  const data = snapshot.data();
+                  if (data.isActive === false) {
+                    console.warn("Session remotely terminated");
+                    localStorage.removeItem('adminSessionId');
+                    await auth.signOut();
+                  } else {
+                    // Update last active
+                    const { updateDoc } = require('firebase/firestore');
+                    try {
+                       updateDoc(doc(db, 'admin_sessions', sessionId), { lastActive: new Date().toISOString() }).catch(() => {});
+                    } catch(e) {}
+                  }
+                }
+              });
+            });
+          });
+        }
+      } else {
+        if (unsubscribeSession) {
+          unsubscribeSession();
+        }
+        set({ user: null, loading: false });
       }
     });
   }

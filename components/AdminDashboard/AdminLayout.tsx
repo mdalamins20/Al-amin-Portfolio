@@ -19,7 +19,8 @@ import {
   Moon,
   Key,
   Activity,
-  Award
+  Award,
+  Users as UsersIcon
 } from 'lucide-react';
 import { useThemeStore } from '../stores/useThemeStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,6 +46,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   const handleLogout = async () => {
     try {
+      localStorage.removeItem('adminSessionId');
       await signOut(auth);
       navigate('/admin');
     } catch (error) {
@@ -58,8 +60,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: Wrench, label: 'Skills', path: '/admin-dashboard/skills' },
     { icon: Award, label: 'Experience', path: '/admin-dashboard/experience' },
     { icon: BookOpen, label: 'Blogs', path: '/admin-dashboard/blogs' },
+    { icon: UsersIcon, label: 'Newsletter', path: '/admin-dashboard/subscribers' },
     { icon: MessageSquare, label: 'Reviews', path: '/admin-dashboard/reviews' },
     { icon: Activity, label: 'Analytics', path: '/admin-dashboard/analytics' },
+    { icon: ShieldAlert, label: 'Security', path: '/admin-dashboard/sessions' },
     { icon: User, label: 'Profile', path: '/admin-dashboard/profile' },
   ];
 
@@ -98,25 +102,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        <div className="h-full flex flex-col pt-8 pb-6 px-6 overflow-y-auto overflow-x-hidden">
-          <div className="flex items-center gap-4 mb-12">
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-brand to-purple-500 rounded-2xl blur opacity-70 group-hover:opacity-100 transition duration-200"></div>
-              <div className="w-12 h-12 relative rounded-2xl bg-surface flex items-center justify-center text-brand font-black text-2xl border border-outline-variant shadow-inner">
-                A
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">Admin Panel</span>
-              <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-brand mt-0.5">
-                <ShieldAlert size={10} />
-                <span>Secure Console</span>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-2 mb-4">Menu</p>
-          <nav className="flex-1 space-y-1.5">
+        <div className="h-full flex flex-col pt-8 pb-6">
+          <div className="px-6 flex-1 overflow-y-auto custom-scrollbar pb-4">
+            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-2 mb-4">Menu</p>
+            <nav className="space-y-1.5">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -139,9 +128,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </Link>
               );
             })}
-          </nav>
+            </nav>
+          </div>
 
-          <div className="mt-auto pt-6 border-t border-outline-variant">
+          <div className="px-6 mt-2 pt-4 border-t border-outline-variant shrink-0">
             <button
               onClick={() => setIsAISettingsOpen(true)}
               className="w-full mb-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand to-purple-600 text-white font-bold tracking-wide text-sm hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-lg shadow-brand/20"

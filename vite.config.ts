@@ -11,6 +11,18 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              vendor: ['react', 'react-dom', 'react-router-dom'],
+              firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+              motion: ['framer-motion'],
+              ui: ['lucide-react']
+            }
+          }
+        }
+      },
       plugins: [
         react(),
         ViteImageOptimizer({

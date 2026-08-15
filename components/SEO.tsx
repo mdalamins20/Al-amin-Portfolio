@@ -1,6 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { USER_INFO, SOCIAL_LINKS } from '../constants';
+import { useProfileStore } from './stores/useProfileStore';
 
 interface SEOProps {
   title?: string;
@@ -27,11 +28,12 @@ export const SEO: React.FC<SEOProps> = ({
   datePublished,
   author,
 }) => {
+  const { profile } = useProfileStore();
   const defaultTitle = `${USER_INFO.name} | ${USER_INFO.role}`;
   const defaultDescription = `Portfolio of ${USER_INFO.name}, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions.`;
   const defaultKeywords = 'Full Stack Developer in Bangladesh, MERN Stack Expert, Flutter Developer, Muhammad Al-amin, Alamin, mdalaminkhalifa2002, React Developer, Frontend Engineer, Portfolio, Software Engineer';
   const defaultUrl = 'https://alamins20.ami.bd/'; // Updated with domain
-  const defaultImage = USER_INFO.image; // Consider adding a default OG image URL here
+  const defaultImage = profile?.image || USER_INFO.image || ''; 
 
   const getAbsoluteImageUrl = (imgUrl: string) => {
     if (!imgUrl) return defaultImage;

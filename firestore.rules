@@ -4,8 +4,8 @@ service cloud.firestore {
     
     // Function to check if the user is an admin (authenticated)
     function isAdmin() {
-      // Allows only users with specific verified UIDs or a custom admin claim.
-      return request.auth != null && (request.auth.uid == 'RG2hfNJffGg0KGhBGMwJkVJAszw2' || request.auth.token.admin == true); 
+      // Allows only users with specific verified email or a custom admin claim.
+      return request.auth != null && (request.auth.token.email == 'mdalaminkhalifa2002@gmail.com' || request.auth.token.admin == true); 
     }
 
     // Function to ensure payload is not too large
@@ -90,6 +90,16 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
       // Visitors can create and update their own logs
       allow create, update: if isValidSize();
+    }
+    
+    // 7. Admin Sessions
+    match /admin_sessions/{sessionId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // 8. Broadcast History
+    match /broadcast_history/{historyId} {
+      allow read, write: if isAdmin();
     }
     
     // Default deny for anything else
