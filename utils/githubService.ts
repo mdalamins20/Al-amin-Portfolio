@@ -38,7 +38,7 @@ export const fetchUserRepos = async () => {
   }
 };
 
-export const fetchGithubRepoData = async (repoUrl: string) => {
+export const fetchGithubRepoData = async (repoUrl: string, onProgress?: (msg: string) => void) => {
   try {
     // Parse URL (e.g. https://github.com/Muhammad-Al-amin/portfolio)
     const urlParts = repoUrl.replace(/\/$/, '').split('/');
@@ -59,6 +59,7 @@ export const fetchGithubRepoData = async (repoUrl: string) => {
     }
 
     // Fetch Repo Info (Description, topics, etc)
+    if (onProgress) onProgress('Scanning repository details...');
     const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
     if (!repoRes.ok) {
        if (repoRes.status === 404) {
@@ -68,30 +69,97 @@ export const fetchGithubRepoData = async (repoUrl: string) => {
     }
     const repoInfo = await repoRes.json();
 
-    // Fetch README
-    let readmeText = '';
+    // Fetch full recursive file tree to deeply scan project architecture (screens, pages, controllers)
+    if (onProgress) onProgress('Scanning entire project structure (folders, screens, pages)...');
+    let fileList: string[] = [];
+    let fileListText = 'Unknown';
     try {
-      const readmeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, { headers });
-      if (readmeRes.ok) {
-        const readmeData = await readmeRes.json();
-        // Decode Base64 safely (handles utf-8 correctly unlike plain atob for complex chars)
-        readmeText = decodeURIComponent(escape(atob(readmeData.content)));
+      const branch = repoInfo.default_branch || 'main';
+      const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`, { headers });
+      if (treeRes.ok) {
+        const treeData = await treeRes.json();
+        if (treeData.tree && Array.isArray(treeData.tree)) {
+          // Extract only file paths (exclude directories from the list to save space, keeping actual files)
+          const paths = treeData.tree
+            .filter((node: any) => node.type === 'blob')
+            .map((node: any) => node.path)
+            // Filter out node_modules, build directories, image assets to keep context small and relevant
+            .filter((p: string) => 
+              !p.includes('node_modules/') && 
+              !p.includes('build/') && 
+              !p.includes('.git/') &&
+              !p.match(/\.(png|jpg|jpeg|gif|svg|ico|webp)$/i)
+            );
+          
+          fileList = paths;
+          // Format as a bulleted list for the AI
+          fileListText = paths.map((p: string) => `- ${p}`).join('\n');
+          // Cap the file list string length to avoid context window explosion
+          if (fileListText.length > 5000) {
+            fileListText = fileListText.substring(0, 5000) + '\n... (truncated due to size)';
+          }
+        }
       }
     } catch (e) {
-      console.log('No readme found or error fetching it');
+      console.log('Error fetching recursive tree:', e);
     }
 
-    // Fetch package.json (if exists, to detect tech stack)
-    let packageJson = '';
+    // Helper to fetch file content safely
+    const fetchFileSafely = async (filename: string) => {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filename}`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          return decodeURIComponent(escape(atob(data.content)));
+        }
+      } catch (e) {}
+      return '';
+    };
+
+    // Fetch README
+    if (onProgress) onProgress('Scanning README.md...');
+    let readmeText = await fetchFileSafely('README.md');
+    if (!readmeText) readmeText = await fetchFileSafely('readme.md');
+
+    // Fetch crucial configuration files
+    if (onProgress) onProgress('Analyzing configuration files (pubspec.yaml, package.json, etc)...');
+    let configData = '';
+    
+    if (fileList.some(p => p.endsWith('pubspec.yaml'))) {
+      const pubspecPath = fileList.find(p => p.endsWith('pubspec.yaml'))!;
+      const pubspec = await fetchFileSafely(pubspecPath);
+      if (pubspec) configData += `\nPUBSPEC.YAML:\n${pubspec.substring(0, 1500)}`;
+    }
+    if (fileList.some(p => p.endsWith('package.json'))) {
+      const pkgPath = fileList.find(p => p.endsWith('package.json'))!;
+      const pkgJson = await fetchFileSafely(pkgPath);
+      if (pkgJson) configData += `\nPACKAGE.JSON:\n${pkgJson.substring(0, 1500)}`;
+    }
+    if (fileList.some(p => p.endsWith('requirements.txt'))) {
+      const reqPath = fileList.find(p => p.endsWith('requirements.txt'))!;
+      const reqTxt = await fetchFileSafely(reqPath);
+      if (reqTxt) configData += `\nREQUIREMENTS.TXT:\n${reqTxt.substring(0, 1000)}`;
+    }
+    if (fileList.some(p => p.endsWith('build.gradle'))) {
+      const gradlePath = fileList.find(p => p.endsWith('build.gradle'))!;
+      const gradle = await fetchFileSafely(gradlePath);
+      if (gradle) configData += `\nBUILD.GRADLE:\n${gradle.substring(0, 1000)}`;
+    }
+
+    // Fetch Commits (to understand challenges, progress, features)
+    if (onProgress) onProgress('Scanning last 40 commit messages for project evolution...');
+    let commitsText = '';
     try {
-      const pkgRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/package.json`, { headers });
-      if (pkgRes.ok) {
-        const pkgData = await pkgRes.json();
-        packageJson = decodeURIComponent(escape(atob(pkgData.content)));
+      const commitsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=40`, { headers });
+      if (commitsRes.ok) {
+        const commitsData = await commitsRes.json();
+        commitsText = commitsData.map((c: any) => `- ${c.commit.message}`).join('\n').substring(0, 4000);
       }
     } catch (e) {
-      console.log('No package.json found');
+      console.log('No commits found or error fetching them');
     }
+    
+    if (onProgress) onProgress('Data gathering complete! AI is now generating content...');
 
     // Combine data into a structured string for the AI
     return `
@@ -103,8 +171,14 @@ Topics: ${(repoInfo.topics || []).join(', ')}
 README CONTENT:
 ${readmeText.substring(0, 5000) /* Limit readme size */}
 
-PACKAGE.JSON:
-${packageJson ? packageJson.substring(0, 2000) : 'None'}
+ROOT AND NESTED FILE LIST (Use this to understand the EXACT features, screens, and architecture of the project. Pay close attention to folders like lib/screens, pages/, controllers/):
+${fileListText}
+
+CONFIGURATION FILES:
+${configData || 'None'}
+
+RECENT COMMITS (For understanding problems faced, solutions, and project progress):
+${commitsText ? commitsText : 'None'}
 `;
   } catch (error: any) {
     console.error("GitHub Fetch Error:", error);

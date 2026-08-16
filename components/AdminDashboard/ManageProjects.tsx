@@ -18,7 +18,7 @@ import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
 import { generateProjectFromGithub } from '../../utils/aiService';
 import { compileAndSyncToGist } from '../../utils/syncService';
-import { getGithubToken, fetchUserRepos } from '../../utils/githubService';
+import { getGithubToken, fetchUserRepos, fetchGithubRepoData } from '../../utils/githubService';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -42,6 +42,7 @@ export const ManageProjects: React.FC = () => {
   });
   const [githubRepoUrl, setGithubRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [scanProgress, setScanProgress] = useState<{isOpen: boolean, messages: string[]}>({ isOpen: false, messages: [] });
 
   const [githubRepos, setGithubRepos] = useState<{name: string, url: string}[]>([]);
 
@@ -141,47 +142,22 @@ export const ManageProjects: React.FC = () => {
   const handleGithubImport = async () => {
     if (!githubRepoUrl) return;
     setIsImporting(true);
+    setScanProgress({ isOpen: true, messages: ['Initializing AI Scanner...'] });
+    
     try {
-      let repoPath = githubRepoUrl.replace('https://github.com/', '').replace('http://github.com/', '');
-      if (repoPath.endsWith('/')) repoPath = repoPath.slice(0, -1);
-      
-      const token = getGithubToken();
-      const headers: any = {};
-      if (token) {
-        headers['Authorization'] = `token ${token}`;
-      }
-
-      const response = await fetch(`https://api.github.com/repos/${repoPath}`, { headers });
-      if (!response.ok) throw new Error(`Could not fetch repo data. (HTTP ${response.status}) Please check the URL and your GitHub token.`);
-      const data = await response.json();
-      
-      let readme = '';
-      try {
-        // use api.github.com for readme as raw.githubusercontent.com token handling is tricky
-        const readmeRes = await fetch(`https://api.github.com/repos/${repoPath}/readme`, { headers });
-        if (readmeRes.ok) {
-           const readmeData = await readmeRes.json();
-           readme = decodeURIComponent(escape(atob(readmeData.content)));
-        }
-      } catch (e) {}
-      
-      const combinedData = JSON.stringify({
-        name: data.name,
-        description: data.description,
-        language: data.language,
-        topics: data.topics,
-        readme: readme.substring(0, 4000) 
+      const combinedData = await fetchGithubRepoData(githubRepoUrl, (msg) => {
+        setScanProgress(prev => ({ ...prev, messages: [...prev.messages, msg] }));
       });
-
+      
       const generated = await generateProjectFromGithub(combinedData);
       
       setCurrentProject(prev => ({
         ...prev,
-        title: generated.title || data.name,
-        description: generated.description || data.description,
-        longDescription: generated.longDescription || readme,
+        title: generated.title || '',
+        description: generated.description || '',
+        longDescription: generated.longDescription || '',
         category: generated.category || 'Other',
-        techStack: generated.techStack ? generated.techStack.split(',').map((s: string) => s.trim()) : (data.topics || []),
+        techStack: generated.techStack ? generated.techStack.split(',').map((s: string) => s.trim()) : [],
         features: generated.features ? generated.features.split(',').map((s: string) => s.trim()) : [],
         privacyPolicy: generated.privacyPolicy || '',
         seoTitle: generated.seoTitle || '',
@@ -199,6 +175,7 @@ export const ManageProjects: React.FC = () => {
       });
     } finally {
       setIsImporting(false);
+      setScanProgress({ isOpen: false, messages: [] });
     }
   };
 
@@ -587,6 +564,43 @@ export const ManageProjects: React.FC = () => {
         message={modalConfig.message}
         type={modalConfig.type}
       />
+
+      <AnimatePresence>
+        {scanProgress.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-lg bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-800 p-6 flex flex-col gap-4"
+            >
+              <div className="flex items-center gap-3 text-white border-b border-gray-800 pb-4">
+                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                <h3 className="text-lg font-semibold">AI Code Scanner Running...</h3>
+              </div>
+              <div className="flex flex-col gap-3 min-h-[200px] max-h-[300px] overflow-y-auto pr-2">
+                {scanProgress.messages.map((msg, idx) => (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={idx}
+                    className="flex items-start gap-2 text-sm text-gray-300"
+                  >
+                    <span className="text-primary mt-0.5">❯</span>
+                    <span>{msg}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

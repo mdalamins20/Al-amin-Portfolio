@@ -158,26 +158,32 @@ export const generateFullBlogPost = async (topic: string): Promise<{title: strin
 };
 
 export const generateProjectFromGithub = async (repoData: string): Promise<any> => {
-  const prompt = `You are a highly skilled Digital Solutions Architect and Technical Writer. 
-Please unlock your full potential and generate a highly professional, deeply engaging, and very detailed portfolio project case study based ONLY on the following GitHub repository data:
+  const prompt = `You are the lead developer and author of this project. You are writing your own personal portfolio case study.
+Generate a highly professional, deeply engaging, and very detailed portfolio project case study based ONLY on the following GitHub repository data (which includes the full recursive file tree and commits):
   
 ${repoData}
 
 STRICT RULES:
-1. ONLY write about features, technologies, and code that ACTUALLY exist in the provided repository data. DO NOT hallucinate or invent features that aren't there.
-2. The tone must be extremely professional and authoritative, yet accessible. Think like a human expert writing for real people, not an AI.
-3. BEAUTIFUL HTML FORMATTING: You MUST use beautiful HTML formatting (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <blockquote>, etc.) for the description, longDescription, and privacyPolicy because they will be inserted directly into a Rich Text Editor. Use proper paragraphs (<p>) and line breaks (<br>).
-4. LANGUAGE STRICTNESS: You MUST write the description, longDescription, and privacyPolicy ENTIRELY IN BENGALI LANGUAGE (Bangla script), while keeping technical terms (like React, API, Database) in English. DO NOT write the main paragraphs in English. This is an absolute requirement! Example: "এই প্রজেক্টটিতে React এবং Node.js ব্যবহার করে একটি highly scalable backend তৈরি করা হয়েছে।"
-5. Heavily optimize for SEO with perfect tags and keywords.
+1. FIRST-PERSON PERSONA (CRITICAL): You MUST write from a first-person perspective ("I built", "I implemented", "I used"). NEVER write from a third-person perspective ("The developer built", "The project uses"). NEVER say things like "Scanning the codebase reveals", "AI analysis shows", or "It can be seen that". Write as if YOU personally wrote every line of code in this repo and are presenting your masterpiece to a client.
+2. DEEP ANALYSIS & NO HALLUCINATION: Analyze the recursive file list (which shows every screen, page, and controller), README, and COMMITS carefully. Extract the real features and technologies. DO NOT invent or assume any technologies. DO NOT invent features that are not evident in the file list or commits.
+3. TONE & STYLE: The tone must be extremely professional, authoritative, and engaging.
+4. BEAUTIFUL HTML FORMATTING: You MUST use beautiful HTML formatting (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <blockquote>, etc.) for the longDescription and privacyPolicy because they will be inserted directly into a Rich Text Editor. Use proper paragraphs (<p>) and line breaks (<br>).
+5. LANGUAGE MIX (BENGALI + ENGLISH): You MUST write the description, longDescription, and privacyPolicy in a professional Bengali-English mix (Banglish style for tech terms). The main sentences should be in Bengali (Bangla script), but ALL technical words, frameworks, architectures, and professional terms MUST be kept in English.
+6. Heavily optimize for SEO with perfect tags and keywords.
 
 Return your response EXACTLY in the following plain text format, separating each section with the exact markers shown below. Do NOT use JSON.
 
 ---TITLE---
-A very short, clean, and catchy main title for the project in English (ONLY the exact name of the app/project, max 3-4 words). DO NOT include any long descriptions, taglines, or colons (e.g., write "Burirpool United Club" instead of "Burirpool United Club: Community Management Platform").
+A very short, clean, and catchy main title for the project in English (ONLY the exact name of the app/project, max 3-4 words). DO NOT include any long descriptions, taglines, or colons.
 ---DESCRIPTION---
 An engaging 3-4 line short description in professional Bengali-English mix highlighting the exact value proposition based on the repo.
 ---LONG_DESCRIPTION---
-EXTREMELY IMPORTANT: Write a MASSIVE, 1000+ WORD deeply engaging case study ENTIRELY IN BENGALI (বাংলা ভাষা). You must write the paragraphs in Bangla script. DO NOT write in English! Include these EXACT sections with <h2> tags: <h2>প্রজেক্ট এর ডিটেইলস</h2> (Write in pure Bengali about what this project is and what it does in detail. Minimum 150 words.), <h2>কি কি টেকনোলজি দিয়ে এই প্রজেক্ট বানানো হইছে</h2> (Write in pure Bengali about the technologies used and why they were chosen. Minimum 150 words.), <h2>কি কি সমস্যা ফেইচ করেছি এবং কি কি সমাধান করেছি</h2> (Invent technical challenges faced during development and explain how they were solved in pure Bengali. Minimum 150 words.), and <h2>কেন বানিয়েছি এবং কাদের জন্য বানিয়েছি</h2> (Write in pure Bengali about why this project was built, who is the target audience, why they will use it, and what benefits they will get. Minimum 150 words.). FAILURE TO WRITE IN BENGALI WILL RESULT IN FAILURE.
+EXTREMELY IMPORTANT: Write a MASSIVE, deeply engaging case study in a professional Bengali-English mix. Include these EXACT sections with <h2> tags: 
+<h2>প্রজেক্ট এর ডিটেইলস (Project Details)</h2> (Explain what this project is, its architecture, and how it works in detail. Minimum 150 words.), 
+<h2>কী কী ফিচার আছে (Key Features)</h2> (Provide a complete A to Z list of features extracted from the repo using an HTML unordered list <ul>. Make it sound highly impressive.), 
+<h2>কী কী টেকনোলজি ব্যবহার করা হয়েছে (Technologies Used)</h2> (List the technologies and explain WHY they were chosen for this specific project. Minimum 100 words.), 
+<h2>কী কী সমস্যা ফেস করেছি এবং কীভাবে সমাধান করেছি (Challenges & Solutions)</h2> (Analyze the COMMIT MESSAGES and codebase to deduce the actual technical challenges faced during development and explain how they were solved. Make it sound like a senior developer's case study. Minimum 150 words.), 
+<h2>কেন বানিয়েছি এবং কাদের জন্য (Purpose & Target Audience)</h2> (Explain the exact purpose of this project and who will benefit the most from it. Minimum 100 words.)
 ---CATEGORY---
 One of: Frontend, Backend, Full-Stack, Mobile App, Other
 ---TECH_STACK---
@@ -185,7 +191,7 @@ A comma-separated string of ALL technologies accurately extracted from the packa
 ---FEATURES---
 A comma-separated string of 5-8 key features accurately extracted from the repo.
 ---PRIVACY_POLICY---
-EXTREMELY IMPORTANT: Write a full-length, 500+ WORD professional Privacy Policy ENTIRELY IN BENGALI (বাংলা ভাষা). DO NOT write in English! Must include multiple detailed HTML paragraphs (<p>) explaining data collection, cookies, third-party sharing, and user rights in pure Bengali.
+Write a full-length professional Privacy Policy in a Bengali-English mix. Include multiple detailed HTML paragraphs (<p>) explaining data collection, cookies, third-party sharing, and user rights.
 ---SEO_TITLE---
 A highly optimized SEO title for this project (under 60 characters, English).
 ---META_DESCRIPTION---
@@ -196,30 +202,31 @@ A comma-separated list of 5-8 highly relevant, exact-match focus keywords based 
   const text = await generateText(prompt);
   console.log("=== RUNNING NEW PLAIN TEXT PROMPT V3 ===");
   try {
-    // Strip bold markers and hashes just in case the AI added them to the markers
-    const cleanText = text.replace(/\*\*---/g, '---').replace(/---\*\*/g, '---').replace(/## ---/g, '---');
+    // Strip bold markers, hashes, and code blocks
+    let cleanText = text.replace(/```(markdown|text|html)?\n/ig, '').replace(/```/g, '');
+    cleanText = cleanText.replace(/\*\*---/g, '---').replace(/---\*\*/g, '---').replace(/## ---/g, '---');
+    // Normalize spaces around markers: "--- LONG DESCRIPTION ---" -> "---LONG_DESCRIPTION---"
+    cleanText = cleanText.replace(/---\s*([A-Z_\s]+?)\s*---/g, (match, p1) => `---${p1.trim().replace(/\s+/g, '_')}---`);
     
-    const extractSection = (marker1: string, marker2?: string) => {
-      let regex;
-      if (marker2) {
-        regex = new RegExp(`${marker1}\\s*([\\s\\S]*?)\\s*${marker2}`);
-      } else {
-        regex = new RegExp(`${marker1}\\s*([\\s\\S]*?)$`);
-      }
-      const match = cleanText.match(regex);
-      return match ? match[1].trim() : "";
-    };
+    // Create a dictionary of extracted sections
+    const parsed: Record<string, string> = {};
+    const parts = cleanText.split(/---([A-Z_]+)---/);
+    for (let i = 1; i < parts.length; i += 2) {
+      const key = parts[i];
+      const value = parts[i+1] ? parts[i+1].trim() : "";
+      parsed[key] = value;
+    }
 
-    const title = extractSection("---TITLE---", "---DESCRIPTION---");
-    const description = extractSection("---DESCRIPTION---", "---LONG_DESCRIPTION---");
-    const longDescription = extractSection("---LONG_DESCRIPTION---", "---CATEGORY---");
-    const category = extractSection("---CATEGORY---", "---TECH_STACK---");
-    const techStack = extractSection("---TECH_STACK---", "---FEATURES---");
-    const features = extractSection("---FEATURES---", "---PRIVACY_POLICY---");
-    const privacyPolicy = extractSection("---PRIVACY_POLICY---", "---SEO_TITLE---");
-    const seoTitle = extractSection("---SEO_TITLE---", "---META_DESCRIPTION---");
-    const metaDescription = extractSection("---META_DESCRIPTION---", "---KEYWORDS---");
-    const keywords = extractSection("---KEYWORDS---");
+    const title = parsed['TITLE'] || "";
+    const description = parsed['DESCRIPTION'] || "";
+    const longDescription = parsed['LONG_DESCRIPTION'] || "";
+    const category = parsed['CATEGORY'] || "";
+    const techStack = parsed['TECH_STACK'] || "";
+    const features = parsed['FEATURES'] || "";
+    const privacyPolicy = parsed['PRIVACY_POLICY'] || "";
+    const seoTitle = parsed['SEO_TITLE'] || "";
+    const metaDescription = parsed['META_DESCRIPTION'] || "";
+    const keywords = parsed['KEYWORDS'] || "";
 
     if (!title || !longDescription) {
       console.error("FAILED TEXT:", text);
