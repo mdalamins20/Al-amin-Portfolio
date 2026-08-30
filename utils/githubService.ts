@@ -19,14 +19,23 @@ export const fetchUserRepos = async () => {
     headers['Authorization'] = `token ${token}`;
   }
 
-  // Fetch repositories for the authenticated user (or public repos if no token, though /user/repos requires auth)
-  // If no token, maybe we can fetch for a specific username? Better to require token for this feature or handle gracefully.
-  const endpoint = token ? 'https://api.github.com/user/repos?sort=updated&per_page=100' : null;
-  if (!endpoint) return [];
+  // If there's a token, try authenticated user repos first
+  let endpoint = token ? 'https://api.github.com/user/repos?sort=updated&per_page=100' : 'https://api.github.com/users/mdalamins20/repos?sort=updated&per_page=100';
 
   try {
-    const response = await fetch(endpoint, { headers });
+    let response = await fetch(endpoint, { headers });
+    
+    // If authenticated request fails (e.g. invalid token or wrong scopes), fallback to public repos
+    if (!response.ok && token) {
+      console.warn("Authenticated repo fetch failed, falling back to public repos for mdalamins20");
+      endpoint = 'https://api.github.com/users/mdalamins20/repos?sort=updated&per_page=100';
+      // Remove auth header for public fetch to avoid 401 if token is totally invalid
+      delete headers['Authorization'];
+      response = await fetch(endpoint, { headers });
+    }
+
     if (!response.ok) return [];
+    
     const data = await response.json();
     return data.map((repo: any) => ({
       name: repo.full_name,
@@ -59,7 +68,7 @@ export const fetchGithubRepoData = async (repoUrl: string, onProgress?: (msg: st
     }
 
     // Fetch Repo Info (Description, topics, etc)
-    if (onProgress) onProgress('Scanning repository details...');
+    if (onProgress) onProgress(`Scanning repository: ${owner}/${repo}...`);
     const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
     if (!repoRes.ok) {
        if (repoRes.status === 404) {
@@ -70,7 +79,7 @@ export const fetchGithubRepoData = async (repoUrl: string, onProgress?: (msg: st
     const repoInfo = await repoRes.json();
 
     // Fetch full recursive file tree to deeply scan project architecture (screens, pages, controllers)
-    if (onProgress) onProgress('Scanning entire project structure (folders, screens, pages)...');
+    if (onProgress) onProgress(`Fetching full directory tree for branch: ${repoInfo.default_branch || 'main'}...`);
     let fileList: string[] = [];
     let fileListText = 'Unknown';
     try {
@@ -94,6 +103,7 @@ export const fetchGithubRepoData = async (repoUrl: string, onProgress?: (msg: st
           fileList = paths;
           // Format as a bulleted list for the AI
           fileListText = paths.map((p: string) => `- ${p}`).join('\n');
+          if (onProgress) onProgress(`Discovered ${paths.length} files. Mapping project architecture...`);
           // Cap the file list string length to avoid context window explosion
           if (fileListText.length > 5000) {
             fileListText = fileListText.substring(0, 5000) + '\n... (truncated due to size)';
@@ -117,42 +127,47 @@ export const fetchGithubRepoData = async (repoUrl: string, onProgress?: (msg: st
     };
 
     // Fetch README
-    if (onProgress) onProgress('Scanning README.md...');
+    if (onProgress) onProgress('Looking for README.md documentation...');
     let readmeText = await fetchFileSafely('README.md');
     if (!readmeText) readmeText = await fetchFileSafely('readme.md');
 
     // Fetch crucial configuration files
-    if (onProgress) onProgress('Analyzing configuration files (pubspec.yaml, package.json, etc)...');
+    if (onProgress) onProgress('Searching for project configuration files...');
     let configData = '';
     
     if (fileList.some(p => p.endsWith('pubspec.yaml'))) {
       const pubspecPath = fileList.find(p => p.endsWith('pubspec.yaml'))!;
+      if (onProgress) onProgress(`Analyzing Flutter dependencies in ${pubspecPath}...`);
       const pubspec = await fetchFileSafely(pubspecPath);
       if (pubspec) configData += `\nPUBSPEC.YAML:\n${pubspec.substring(0, 1500)}`;
     }
     if (fileList.some(p => p.endsWith('package.json'))) {
       const pkgPath = fileList.find(p => p.endsWith('package.json'))!;
+      if (onProgress) onProgress(`Analyzing Node/React dependencies in ${pkgPath}...`);
       const pkgJson = await fetchFileSafely(pkgPath);
       if (pkgJson) configData += `\nPACKAGE.JSON:\n${pkgJson.substring(0, 1500)}`;
     }
     if (fileList.some(p => p.endsWith('requirements.txt'))) {
       const reqPath = fileList.find(p => p.endsWith('requirements.txt'))!;
+      if (onProgress) onProgress(`Analyzing Python dependencies in ${reqPath}...`);
       const reqTxt = await fetchFileSafely(reqPath);
       if (reqTxt) configData += `\nREQUIREMENTS.TXT:\n${reqTxt.substring(0, 1000)}`;
     }
     if (fileList.some(p => p.endsWith('build.gradle'))) {
       const gradlePath = fileList.find(p => p.endsWith('build.gradle'))!;
+      if (onProgress) onProgress(`Analyzing Android gradle configuration in ${gradlePath}...`);
       const gradle = await fetchFileSafely(gradlePath);
       if (gradle) configData += `\nBUILD.GRADLE:\n${gradle.substring(0, 1000)}`;
     }
 
     // Fetch Commits (to understand challenges, progress, features)
-    if (onProgress) onProgress('Scanning last 40 commit messages for project evolution...');
+    if (onProgress) onProgress('Fetching recent commit history...');
     let commitsText = '';
     try {
       const commitsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=40`, { headers });
       if (commitsRes.ok) {
         const commitsData = await commitsRes.json();
+        if (onProgress) onProgress(`Analyzing ${commitsData.length} recent commits for project evolution...`);
         commitsText = commitsData.map((c: any) => `- ${c.commit.message}`).join('\n').substring(0, 4000);
       }
     } catch (e) {

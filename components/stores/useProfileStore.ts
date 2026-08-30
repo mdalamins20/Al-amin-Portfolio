@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { db, isConfigured } from '../../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Profile } from '../../types';
 import { USER_INFO, ABOUT_ME, STRATEGIC_ABOUT, SOCIAL_LINKS, STATS, SERVICES, PROCESS } from '../../constants';
 
@@ -36,9 +34,11 @@ const defaultProfile: Profile = {
 export const useProfileStore = create<ProfileState>()(
   persist(
     (set, get) => ({
-      profile: null,
-      loading: true,
+      profile: defaultProfile,
+      loading: false,
       updateProfile: async (newProfile) => {
+        const { db } = await import('../../firebase');
+        const { doc, setDoc } = await import('firebase/firestore');
         if (!db) return;
         try {
           await setDoc(doc(db, 'settings', 'profile'), newProfile);
@@ -49,56 +49,31 @@ export const useProfileStore = create<ProfileState>()(
         }
       },
       init: async () => {
-        if (!isConfigured || !db) {
-          set({ profile: defaultProfile, loading: false });
-          return;
-        }
-        
         const isAdmin = window.location.pathname.startsWith('/admin');
-
-        if (isAdmin) {
+        
+        const fetchFreshData = async () => {
           try {
+            const { isConfigured, db } = await import('../../firebase');
+            if (!isConfigured || !db) return;
+            const { doc, getDoc, setDoc, onSnapshot } = await import('firebase/firestore');
+            
             const docRef = doc(db, 'settings', 'profile');
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-              set({ profile: docSnap.data() as Profile });
-            } else {
-              await setDoc(docRef, defaultProfile);
-              set({ profile: defaultProfile });
-            }
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-            set({ profile: defaultProfile });
-          } finally {
-            set({ loading: false });
-          }
-        } else {
-          // Public Site: Stop loading instantly if we have cached profile
-          if (get().profile) {
-            set({ loading: false });
-          }
-
-          // Fetch from Gist (1 Firestore Read)
-          try {
-            const gistDoc = await getDoc(doc(db, 'settings', 'gist'));
-            if (gistDoc.exists() && gistDoc.data().gistId) {
-              const gistId = gistDoc.data().gistId;
-              const res = await fetch(`https://gist.githubusercontent.com/raw/${gistId}/portfolio_data.json?t=${new Date().getTime()}`);
-              if (res.ok) {
-                const parsed = await res.json();
-                if (parsed && parsed.profile) {
-                     set({ profile: parsed.profile, loading: false });
-                     return;
-                  }
+            
+            // Listen for real-time updates for everyone
+            onSnapshot(docRef, async (docSnap) => {
+              if (docSnap.exists()) {
+                set({ profile: docSnap.data() as Profile });
+              } else if (isAdmin) {
+                // Only initialize default if admin and it doesn't exist
+                await setDoc(docRef, defaultProfile);
               }
-            }
+            });
           } catch (e) {
-            console.error("Error fetching profile from Gist:", e);
+            console.error('Background fetch failed', e);
           }
-          // Fallback
-          set({ profile: defaultProfile, loading: false });
-        }
+        };
+
+        fetchFreshData();
       }
     }),
     {

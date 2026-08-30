@@ -7,7 +7,12 @@ import { useAuthStore } from './stores/useAuthStore';
 import { useAdminLogin } from './hooks/useAdminLogin';
 
 export const AdminLogin: React.FC = () => {
-  const { user, loading: authLoading } = useAuthStore();
+  const { user, loading: authLoading, init } = useAuthStore();
+  
+  React.useEffect(() => {
+    init();
+  }, [init]);
+
   const {
     email,
     setEmail,

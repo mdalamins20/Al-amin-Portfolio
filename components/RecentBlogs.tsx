@@ -5,8 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, ArrowRight, Loader2 } from 'lucide-react';
 
 export const RecentBlogs: React.FC = () => {
-  const { blogs, loading } = useDataStore();
+  const { blogs, loading, init } = useDataStore();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    init();
+  }, [init]);
 
   const stripHtmlAndTruncate = (html: string, maxLength: number) => {
     if (!html) return '';
@@ -69,6 +73,8 @@ export const RecentBlogs: React.FC = () => {
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                  width="400"
+                  height="225"
                 />
               </div>
               <div className="p-6 flex-1 flex flex-col">

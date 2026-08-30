@@ -71,7 +71,11 @@ export const ManageSkills: React.FC = () => {
         const { id, ...data } = currentSkill;
         await updateDoc(doc(db, 'skills', id), data);
       } else {
-        await addDoc(collection(db, 'skills'), currentSkill);
+        const { id: _, ...skillData } = currentSkill;
+        await addDoc(collection(db, 'skills'), {
+          ...skillData,
+          id: Date.now().toString()
+        });
       }
       setIsEditing(false);
       setCurrentSkill({});

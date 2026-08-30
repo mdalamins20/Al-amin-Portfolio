@@ -118,9 +118,35 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       // 1. Process and compress the image to base64
       const base64Url = await processImage(file);
       
-      // 2. We will store base64 directly and serve it via Edge Functions to bypass CORS and API limits
-      setPreview(base64Url);
-      onUploadComplete(base64Url);
+      const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+      if (!apiKey) {
+        throw new Error('ImgBB API key is missing. Please add VITE_IMGBB_API_KEY to your .env file.');
+      }
+
+      // Extract raw base64 data to send to ImgBB
+      const base64Data = base64Url.split(',')[1];
+      
+      const formData = new FormData();
+      formData.append('image', base64Data);
+      
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image to ImgBB server');
+      }
+
+      const data = await response.json();
+      
+      if (data && data.data && data.data.url) {
+        const imageUrl = data.data.url;
+        setPreview(imageUrl);
+        onUploadComplete(imageUrl);
+      } else {
+        throw new Error('Invalid response from ImgBB server');
+      }
     } catch (err: any) {
       console.error('Error processing or uploading image:', err);
       setModalConfig({

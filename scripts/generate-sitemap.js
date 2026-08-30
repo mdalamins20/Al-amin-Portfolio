@@ -23,12 +23,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const BASE_URL = 'https://alamins20.ami.bd';
+const BASE_URL = 'https://mdalamin.web.app';
 
 async function generateSitemap() {
-  console.log('Fetching data from Firebase...');
+  console.log('Generating static sitemap...');
   
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Static Pages -->
   <url>
@@ -41,34 +41,12 @@ async function generateSitemap() {
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
-`;
+</urlset>`;
 
   try {
-    // Fetch Blogs
-    const blogsSnap = await getDocs(collection(db, 'blogs'));
-    blogsSnap.forEach((doc) => {
-      xml += `  <url>
-    <loc>${BASE_URL}/blog/${doc.id}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>\n`;
-    });
-
-    // Fetch Projects
-    const projectsSnap = await getDocs(collection(db, 'projects'));
-    projectsSnap.forEach((doc) => {
-      xml += `  <url>
-    <loc>${BASE_URL}/project/${doc.id}</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>\n`;
-    });
-
-    xml += `</urlset>`;
-
     const outPath = path.resolve(__dirname, '../public/sitemap.xml');
     fs.writeFileSync(outPath, xml);
-    console.log(`Sitemap generated successfully at ${outPath}! Added ${blogsSnap.size} blogs and ${projectsSnap.size} projects.`);
+    console.log(`Static sitemap generated successfully at ${outPath}!`);
   } catch (error) {
     console.error("Error generating sitemap:", error);
   } finally {

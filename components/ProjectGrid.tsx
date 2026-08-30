@@ -1,12 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useDataStore } from './stores/useDataStore';
 import { useNavigate } from 'react-router-dom';
 
 export const ProjectGrid: React.FC = () => {
-  const { projects, loading } = useDataStore();
+  const { projects, loading, init } = useDataStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   const displayProjects = useMemo(() => {
     if (!projects || projects.length === 0) return [];
@@ -75,6 +79,8 @@ export const ProjectGrid: React.FC = () => {
                       src={project.image || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97'} 
                       alt={project.title}
                       referrerPolicy="no-referrer"
+                      width="800"
+                      height="600"
                     />
                   </div>
                   

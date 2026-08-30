@@ -76,7 +76,7 @@ export const ProjectDetails: React.FC = () => {
         image={project.image}
         type="website"
         schemaType="project"
-        url={`https://alamins20.ami.bd/project/${project.id}`}
+        url={`https://mdalamin.web.app/project/${project.id}`}
       />
       
       <main className="w-full bg-theme-bg text-theme-text min-h-screen pb-20">

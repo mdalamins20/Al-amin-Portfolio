@@ -4,7 +4,11 @@ import { Briefcase, Loader2 } from 'lucide-react';
 import { useDataStore } from './stores/useDataStore';
 
 export const ExperienceTimeline: React.FC = () => {
-  const { experiences, loading } = useDataStore();
+  const { experiences, loading, init } = useDataStore();
+
+  React.useEffect(() => {
+    init();
+  }, [init]);
 
   const sortedExperiences = [...experiences].reverse();
   

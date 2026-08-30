@@ -76,9 +76,10 @@ export const ManageExperience: React.FC = () => {
           technologies: data.technologies || []
         });
       } else {
+        const { id, ...expData } = currentExp;
         await addDoc(collection(db, 'experiences'), {
-          ...currentExp,
-          technologies: currentExp.technologies || [],
+          ...expData,
+          technologies: expData.technologies || [],
           id: Date.now().toString()
         });
       }

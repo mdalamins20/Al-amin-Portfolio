@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m, LazyMotion, domAnimation } from 'framer-motion';
 import { useProfileStore } from './stores/useProfileStore';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -25,52 +25,53 @@ export const Hero: React.FC = () => {
         <link rel="preload" as="image" href={profile.image} fetchPriority="high" />
       </Helmet>
       <section id="hero" className="relative pt-4 md:pt-16 pb-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+        <LazyMotion features={domAnimation}>
         <div className="hero-glow -top-20 -left-20"></div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg items-center">
         <div className="space-y-stack-md">
-          <motion.div 
+          <m.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/10 border border-primary/20 text-primary font-label-bold text-label-bold"
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             AVAILABLE FOR NEW PROJECTS
-          </motion.div>
+          </m.div>
           
-          <motion.h1 
+          <m.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="font-display-xl-mobile md:font-display-xl text-display-xl-mobile md:text-display-xl text-on-background"
           >
             {profile.firstName} <br/> <span className="gradient-text">{profile.lastName}.</span>
-          </motion.h1>
+          </m.h1>
           
-          <motion.p 
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.2 }}
-             className="font-headline-md text-headline-md text-on-surface opacity-90 font-medium"
-          >
+          <m.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-surface-variant/30 border border-outline-variant mb-6"
+            >
              {profile.tagline || 'Full Stack Developer'}
-          </motion.p>
-          
-          <motion.p 
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.3 }}
-             className="font-body-lg text-body-lg text-text-secondary max-w-xl"
-          >
+          </m.div>
+
+          <m.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-text-secondary font-body-lg mb-8 md:mb-10 max-w-xl text-base md:text-lg leading-relaxed"
+            >
             {profile.supportingLine || 'Transforming Complex Problems Into Elegant Digital Solutions. I help startups and businesses build fast, modern, conversion-focused websites that scale effortlessly.'}
-          </motion.p>
+          </m.p>
           
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="flex flex-wrap gap-4 pt-4"
-          >
+          <m.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="flex flex-wrap items-center gap-4 mb-10 md:mb-14"
+            >
             <Link to="/#contact" className="flex items-center gap-2 px-8 py-4 bg-primary-container text-white rounded-lg font-label-bold text-label-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary-container/30">
               <span className="material-symbols-outlined">event</span>
               Strategy Session
@@ -96,10 +97,10 @@ export const Hero: React.FC = () => {
                 Download PDF
               </button>
             )}
-          </motion.div>
+          </m.div>
         </div>
         
-        <motion.div 
+        <m.div 
            initial={{ opacity: 0, scale: 0.9 }}
            animate={{ opacity: 1, scale: 1 }}
            transition={{ duration: 0.8 }}
@@ -122,8 +123,9 @@ export const Hero: React.FC = () => {
             <span className="font-label-bold text-label-bold text-text-secondary uppercase">Years Exp.</span>
           </div>
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-secondary/20 blur-[80px] rounded-full"></div>
-        </motion.div>
+        </m.div>
       </div>
+      </LazyMotion>
       </section>
     </>
   );

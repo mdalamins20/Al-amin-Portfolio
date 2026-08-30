@@ -316,7 +316,7 @@ export const BlogPostDetail: React.FC = () => {
         schemaType="article"
         datePublished={new Date(blog.date || Date.now()).toISOString()}
         author={blog.author}
-        url={`https://alamins20.ami.bd/blog/${blog.id}`}
+        url={`https://mdalamin.web.app/blog/${blog.id}`}
       />
 
       <motion.div 

@@ -7,11 +7,11 @@ import { useDataStore } from './components/stores/useDataStore';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Hero } from './components/Hero';
-import { ContentSections } from './components/ContentSections';
-
-import { GithubStats } from './components/GithubStats';
+// Lazy loaded heavy public routes
+const GithubStats = lazy(() => import('./components/GithubStats').then(m => ({ default: m.GithubStats })));
+const ContentSections = lazy(() => import('./components/ContentSections').then(m => ({ default: m.ContentSections })));
 import { NotFound } from './components/NotFound';
-import { VisitorLog } from './components/VisitorLog';
+const VisitorLog = lazy(() => import('./components/VisitorLog').then(m => ({ default: m.VisitorLog })));
 
 // Lazy loaded heavy public routes
 const ProjectDetails = lazy(() => import('./components/ProjectDetails').then(m => ({ default: m.ProjectDetails })));
@@ -23,6 +23,7 @@ import { CustomCursor } from './components/CustomCursor';
 import { PageTransition } from './components/PageTransition';
 import { WhatsAppButton } from './components/WhatsAppButton';
 import { LoadingScreen } from './components/LoadingScreen';
+import { PageLoader } from './components/PageLoader';
 import { CustomDialog } from './components/CustomDialog';
 
 // Lazy loaded admin components
@@ -39,14 +40,12 @@ const VisitorAnalytics = lazy(() => import('./components/AdminDashboard/VisitorA
 const ActiveSessions = lazy(() => import('./components/AdminDashboard/ActiveSessions').then(m => ({ default: m.ActiveSessions })));
 const ManageSubscribers = lazy(() => import('./components/AdminDashboard/ManageSubscribers').then(m => ({ default: m.ManageSubscribers })));
 
-function ScrollAndAnimateRoutes() {
+function ScrollAndAnimateRoutes({ showVisitorLog }: { showVisitorLog?: boolean }) {
   const location = useLocation();
 
   useEffect(() => {
     if (location.hash) {
-      const id = location.hash.substring(1);
-      // Because AnimatePresence mode="wait" delays the mount of the new route,
-      // we need to wait until the old route exits and the new one renders.
+      const id = location.hash.replace('#', '');
       const scrollToElement = () => {
         const element = document.getElementById(id);
         if (element) {
@@ -66,29 +65,33 @@ function ScrollAndAnimateRoutes() {
   return (
     <>
       <CustomDialog />
-      <VisitorLog />
+      {showVisitorLog && (
+        <Suspense fallback={null}>
+          <VisitorLog />
+        </Suspense>
+      )}
       <Routes location={location} key={location.pathname.startsWith('/admin-dashboard') ? 'admin' : location.pathname}>
         {/* Public Portfolio */}
         <Route path="/" element={<MainPortfolio />} />
         <Route path="/project/:id" element={
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<PageLoader />}>
             <ProjectDetails />
           </Suspense>
         } />
         <Route path="/blog" element={
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<PageLoader />}>
             <BlogPage />
           </Suspense>
         } />
         <Route path="/blog/:id" element={
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<PageLoader />}>
             <BlogPostDetail />
           </Suspense>
         } />
 
         {/* Admin Auth */}
         <Route path="/admin" element={
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<PageLoader />}>
             <AdminLogin />
           </Suspense>
         } />
@@ -100,61 +103,61 @@ function ScrollAndAnimateRoutes() {
           </ProtectedRoute>
         }>
           <Route index element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <DashboardOverview />
             </Suspense>
           } />
 
           <Route path="projects" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageProjects />
             </Suspense>
           } />
 
           <Route path="experience" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageExperience />
             </Suspense>
           } />
 
           <Route path="skills" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageSkills />
             </Suspense>
           } />
 
           <Route path="blogs" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageBlogs />
             </Suspense>
           } />
 
           <Route path="reviews" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageReviews />
             </Suspense>
           } />
 
           <Route path="profile" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageProfile />
             </Suspense>
           } />
 
           <Route path="analytics" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <VisitorAnalytics />
             </Suspense>
           } />
 
           <Route path="sessions" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ActiveSessions />
             </Suspense>
           } />
 
           <Route path="subscribers" element={
-            <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div></div>}>
+            <Suspense fallback={<PageLoader />}>
               <ManageSubscribers />
             </Suspense>
           } />
@@ -181,11 +184,11 @@ function MainPortfolio() {
   return (
     <Layout onViewCV={() => { }}>
       <Hero />
-      <GithubStats />
-      <ContentSections />
 
       {/* Below the fold components are lazy loaded to improve PageSpeed */}
-      <Suspense fallback={<div className="h-20 w-full flex items-center justify-center"><div className="animate-pulse w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700"></div></div>}>
+      <Suspense fallback={<PageLoader />}>
+        <GithubStats />
+        <ContentSections />
         <Expertise />
         <ExperienceTimeline />
         <Services />
@@ -200,11 +203,18 @@ function MainPortfolio() {
 }
 
 function App() {
+  const [showVisitorLog, setShowVisitorLog] = useState(false);
+
   useEffect(() => {
     useThemeStore.getState().init();
-    useAuthStore.getState().init();
-    useProfileStore.getState().init();
-    useDataStore.getState().init();
+    
+    // Only Profile is needed globally for the Hero section text/data (but we hardcoded the image so it's fast).
+    // DataStore (blogs/projects) will be initialized by the components that actually need them.
+    // AuthStore will be initialized only on Admin routes.
+    setTimeout(() => {
+      useProfileStore.getState().init();
+      setShowVisitorLog(true);
+    }, 2000);
   }, []);
 
   return (
@@ -212,7 +222,7 @@ function App() {
       <CustomCursor />
       <WhatsAppButton />
       <DynamicSEO />
-      <ScrollAndAnimateRoutes />
+      <ScrollAndAnimateRoutes showVisitorLog={showVisitorLog} />
     </Router>
   );
 }

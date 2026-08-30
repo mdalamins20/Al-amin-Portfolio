@@ -5,7 +5,11 @@ import { Loader2 } from 'lucide-react';
 import { useDataStore } from './stores/useDataStore';
 
 export const Expertise: React.FC = () => {
-  const { skills, loading } = useDataStore();
+  const { skills, loading, init } = useDataStore();
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
     <section id="expertise" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">

@@ -4,8 +4,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './stores/useAuthStore';
 
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuthStore();
+  const { user, loading, init } = useAuthStore();
   const location = useLocation();
+
+  React.useEffect(() => {
+    init();
+  }, [init]);
 
   if (loading) {
     return (

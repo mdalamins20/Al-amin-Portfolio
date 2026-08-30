@@ -33,14 +33,33 @@ export const useAdminLogin = () => {
   const [sessionDataCache, setSessionDataCache] = useState<any>(null);
 
   const fetchSessionData = async () => {
-    let position: GeolocationPosition;
+    let latitude = 0;
+    let longitude = 0;
     try {
-      position = await getLocation();
+      const position = await getLocation();
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
     } catch (locError: any) {
-      throw new Error('Location permission is strictly required to login to the admin panel for security reasons. Please allow location access and try again.');
+      console.warn('Location access denied or failed.', locError);
+      if (locError instanceof Error && locError.message === "Geolocation is not supported by your browser") {
+        throw new Error("Your browser does not support location services. Please use a modern browser.");
+      }
+      
+      // Handle specific GeolocationPositionError codes
+      if (locError && locError.code !== undefined) {
+        switch(locError.code) {
+          case 1: // PERMISSION_DENIED
+            throw new Error("Location permission denied. You MUST allow location access in your browser settings to log in to the admin panel.");
+          case 2: // POSITION_UNAVAILABLE
+            throw new Error("Location unavailable. Please ensure your device's OS-level Location Services are turned ON (e.g. Windows Settings -> Privacy -> Location).");
+          case 3: // TIMEOUT
+            throw new Error("Location request timed out. Please check your internet connection and try again.");
+          default:
+            throw new Error("Failed to get location. Location access is strictly required for admin login.");
+        }
+      }
+      throw new Error("Location access is strictly required for security reasons. Please enable it.");
     }
-
-    const { latitude, longitude } = position.coords;
     
     let ip = "Unknown IP";
     let isp = "Unknown ISP";
@@ -70,31 +89,34 @@ export const useAdminLogin = () => {
     }
     
     // Reverse geocoding for EXACT address (Street, Suburb, City)
-    let mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`, {
-        headers: {
-          'Accept-Language': 'en-US,en;q=0.9'
-        }
-      });
-      if (geoRes.ok) {
-        const geoData = await geoRes.json();
-        // Use the full detailed display name for exact location
-        locationString = geoData.display_name || locationString;
-      }
-    } catch (e) {
-      console.error("Nominatim Reverse geocoding failed", e);
-      // Fallback to bigdatacloud if nominatim is blocked
+    let mapLink = '';
+    if (latitude !== 0 && longitude !== 0) {
+      mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
       try {
-        const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-        if (bdcRes.ok) {
-          const bdcData = await bdcRes.json();
-          const city = bdcData.city || bdcData.locality || '';
-          const state = bdcData.principalSubdivision || '';
-          const country = bdcData.countryName || '';
-          locationString = [city, state, country].filter(Boolean).join(', ') || locationString;
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`, {
+          headers: {
+            'Accept-Language': 'en-US,en;q=0.9'
+          }
+        });
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          // Use the full detailed display name for exact location
+          locationString = geoData.display_name || locationString;
         }
-      } catch (err) {}
+      } catch (e) {
+        console.error("Nominatim Reverse geocoding failed", e);
+        // Fallback to bigdatacloud if nominatim is blocked
+        try {
+          const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          if (bdcRes.ok) {
+            const bdcData = await bdcRes.json();
+            const city = bdcData.city || bdcData.locality || '';
+            const state = bdcData.principalSubdivision || '';
+            const country = bdcData.countryName || '';
+            locationString = [city, state, country].filter(Boolean).join(', ') || locationString;
+          }
+        } catch (err) {}
+      }
     }
 
     const ua = navigator.userAgent;
@@ -161,10 +183,16 @@ export const useAdminLogin = () => {
       });
 
       localStorage.setItem('adminSessionId', sessionId);
+      import('../stores/useAuthStore').then(({ useAuthStore }) => {
+        useAuthStore.getState().startSessionListener(sessionId);
+      });
     } catch (e: any) {
       console.warn("Failed to create admin session record in Firestore, but proceeding with local session.", e);
       // We proceed anyway to prevent the user from being completely locked out
       localStorage.setItem('adminSessionId', sessionId);
+      import('../stores/useAuthStore').then(({ useAuthStore }) => {
+        useAuthStore.getState().startSessionListener(sessionId);
+      });
     }
     
     navigate('/admin-dashboard');

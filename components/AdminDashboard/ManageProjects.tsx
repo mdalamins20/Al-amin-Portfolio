@@ -81,9 +81,10 @@ export const ManageProjects: React.FC = () => {
         const { id, ...data } = currentProject;
         await updateDoc(doc(db, 'projects', id), data);
       } else {
+        const { id, ...projectData } = currentProject;
         await addDoc(collection(db, 'projects'), {
-          ...currentProject,
-          id: Date.now().toString() // Use timestamp as a temporary ID if needed
+          ...projectData,
+          id: Date.now().toString()
         });
       }
       setIsEditing(false);
@@ -136,7 +137,6 @@ export const ManageProjects: React.FC = () => {
     setCurrentProject(project);
     setGithubRepoUrl(project.githubUrl || '');
     setIsEditing(true);
-    setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const handleGithubImport = async () => {
@@ -191,7 +191,7 @@ export const ManageProjects: React.FC = () => {
             setCurrentProject({});
             setGithubRepoUrl('');
             setIsEditing(true);
-            setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+            fetchUserRepos().then(repos => setGithubRepos(repos));
           }}
           className="bg-brand hover:bg-brand-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-semibold transition-all shadow-lg shadow-brand/20"
         >
@@ -202,13 +202,22 @@ export const ManageProjects: React.FC = () => {
 
       <AnimatePresence>
         {isEditing && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -20, height: 0 }}
-            className="overflow-hidden mb-8"
-          >
-            <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-0"
+              onClick={() => setIsEditing(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-2xl z-10"
+            >
              {/* Subtle background glow */}
              <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
               <button 
@@ -242,9 +251,14 @@ export const ManageProjects: React.FC = () => {
                           className="w-full text-base pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface shadow-sm appearance-none cursor-pointer"
                         >
                           <option value="">Select a repository...</option>
-                          {githubRepos.map(repo => (
-                            <option key={repo.url} value={repo.url}>{repo.name}</option>
-                          ))}
+                          {githubRepos.map(repo => {
+                            const isAdded = projects.some(p => p.githubUrl === repo.url);
+                            return (
+                              <option key={repo.url} value={repo.url} disabled={isAdded}>
+                                {repo.name} {isAdded ? '(Already Added)' : ''}
+                              </option>
+                            );
+                          })}
                         </select>
                       ) : (
                         <input
@@ -471,8 +485,8 @@ export const ManageProjects: React.FC = () => {
                 </button>
               </div>
             </form>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

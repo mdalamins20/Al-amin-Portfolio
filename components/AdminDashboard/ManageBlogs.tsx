@@ -81,7 +81,11 @@ export const ManageBlogs: React.FC = () => {
         const { id, ...data } = blogData;
         await updateDoc(doc(db, 'blogs', id), data);
       } else {
-        await addDoc(collection(db, 'blogs'), blogData);
+        const { id: _, ...newBlogData } = blogData;
+        await addDoc(collection(db, 'blogs'), {
+          ...newBlogData,
+          id: Date.now().toString()
+        });
       }
       setIsEditing(false);
       setCurrentBlog({});
@@ -130,7 +134,6 @@ export const ManageBlogs: React.FC = () => {
   const openEdit = (blog: Blog) => {
     setCurrentBlog(blog);
     setIsEditing(true);
-    setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const handleAIGenerateBlog = async () => {
@@ -178,7 +181,6 @@ export const ManageBlogs: React.FC = () => {
           onClick={() => {
             setCurrentBlog({ author: 'Muhammad Al-amin' });
             setIsEditing(true);
-            setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
           }}
           className="bg-brand hover:scale-105 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-transform shadow-lg shadow-brand/20 active:scale-95"
           disabled={isEditing}
@@ -190,14 +192,22 @@ export const ManageBlogs: React.FC = () => {
 
       <AnimatePresence mode="wait">
         {isEditing && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, scale: 0.95 }}
-            animate={{ opacity: 1, height: 'auto', scale: 1 }}
-            exit={{ opacity: 0, height: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm relative mb-8 overflow-hidden">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-0"
+              onClick={() => setIsEditing(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-2xl z-10"
+            >
              {/* Subtle background glow */}
              <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
               <button 
@@ -345,8 +355,8 @@ export const ManageBlogs: React.FC = () => {
                   </button>
                 </div>
               </form>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

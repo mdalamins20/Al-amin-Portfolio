@@ -153,8 +153,12 @@ const ReviewForm = () => {
 };
 
 export const Testimonials: React.FC = () => {
-  const { testimonials, loading } = useDataStore();
+  const { testimonials, loading, init } = useDataStore();
   const approvedReviews = testimonials.filter(r => r.isApproved === true);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
     <section id="testimonials" className="py-section-padding bg-surface-container-lowest">

@@ -32,7 +32,7 @@ export const SEO: React.FC<SEOProps> = ({
   const defaultTitle = `${USER_INFO.name} | ${USER_INFO.role}`;
   const defaultDescription = `Portfolio of ${USER_INFO.name}, a seasoned Full Stack Developer specializing in React, Firebase, Tailwind CSS, and scalable web solutions.`;
   const defaultKeywords = 'Full Stack Developer in Bangladesh, MERN Stack Expert, Flutter Developer, Muhammad Al-amin, Alamin, mdalaminkhalifa2002, React Developer, Frontend Engineer, Portfolio, Software Engineer';
-  const defaultUrl = 'https://alamins20.ami.bd/'; // Updated with domain
+  const defaultUrl = 'https://mdalamin.web.app/'; // Updated with domain
   const defaultImage = profile?.image || USER_INFO.image || ''; 
 
   const getAbsoluteImageUrl = (imgUrl: string) => {

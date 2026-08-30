@@ -61,8 +61,12 @@ export const VisitorLog: React.FC = () => {
         console.log('Adblocker might have blocked tracking or network error occurred.');
       }
     };
-    
-    trackVisitor();
+    // Delay execution to avoid blocking the main thread (improves TBT/TTI)
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => trackVisitor());
+    } else {
+      setTimeout(trackVisitor, 2000);
+    }
   }, [location.pathname]);
 
   return null;
