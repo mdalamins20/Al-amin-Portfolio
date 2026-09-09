@@ -158,18 +158,17 @@ export const generateFullBlogPost = async (topic: string): Promise<{title: strin
 };
 
 export const generateProjectFromGithub = async (repoData: string): Promise<any> => {
-  const prompt = `You are the lead developer and author of this project. You are writing your own personal portfolio case study.
-Generate a highly professional, deeply engaging, and very detailed portfolio project case study based ONLY on the following GitHub repository data (which includes the full recursive file tree and commits):
+  const prompt = `You are the lead developer and author of this project. You are writing your own personal portfolio project summary.
+Generate a short and professional project summary based ONLY on the following GitHub repository data (which includes the full recursive file tree and commits):
   
 ${repoData}
 
 STRICT RULES:
-1. FIRST-PERSON PERSONA (CRITICAL): You MUST write from a first-person perspective ("I built", "I implemented", "I used"). NEVER write from a third-person perspective ("The developer built", "The project uses"). NEVER say things like "Scanning the codebase reveals", "AI analysis shows", or "It can be seen that". Write as if YOU personally wrote every line of code in this repo and are presenting your masterpiece to a client.
-2. DEEP ANALYSIS & NO HALLUCINATION: Analyze the recursive file list (which shows every screen, page, and controller), README, and COMMITS carefully. Extract the real features and technologies. DO NOT invent or assume any technologies. DO NOT invent features that are not evident in the file list or commits.
+1. FIRST-PERSON PERSONA (CRITICAL): You MUST write from a first-person perspective ("I built", "I implemented", "I used"). NEVER write from a third-person perspective.
+2. NO HALLUCINATION: Analyze the recursive file list and README carefully. Extract the real features and technologies. DO NOT invent or assume any technologies.
 3. TONE & STYLE: The tone must be extremely professional, authoritative, and engaging.
-4. BEAUTIFUL HTML FORMATTING: You MUST use beautiful HTML formatting (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <blockquote>, etc.) for the longDescription and privacyPolicy because they will be inserted directly into a Rich Text Editor. Use proper paragraphs (<p>) and line breaks (<br>).
-5. LANGUAGE MIX (BENGALI + ENGLISH): You MUST write the description, longDescription, and privacyPolicy in a professional Bengali-English mix (Banglish style for tech terms). The main sentences should be in Bengali (Bangla script), but ALL technical words, frameworks, architectures, and professional terms MUST be kept in English.
-6. Heavily optimize for SEO with perfect tags and keywords.
+4. LANGUAGE MIX (BENGALI + ENGLISH): You MUST write the description in a professional Bengali-English mix (Banglish style for tech terms). The main sentences should be in Bengali (Bangla script), but ALL technical words, frameworks, architectures, and professional terms MUST be kept in English.
+5. Heavily optimize for SEO with perfect tags and keywords.
 
 Return your response EXACTLY in the following plain text format, separating each section with the exact markers shown below. Do NOT use JSON.
 
@@ -177,21 +176,8 @@ Return your response EXACTLY in the following plain text format, separating each
 A very short, clean, and catchy main title for the project in English (ONLY the exact name of the app/project, max 3-4 words). DO NOT include any long descriptions, taglines, or colons.
 ---DESCRIPTION---
 An engaging 3-4 line short description in professional Bengali-English mix highlighting the exact value proposition based on the repo.
----LONG_DESCRIPTION---
-EXTREMELY IMPORTANT: Write a MASSIVE, deeply engaging case study in a professional Bengali-English mix. Include these EXACT sections with <h2> tags: 
-<h2>প্রজেক্ট এর ডিটেইলস (Project Details)</h2> (Explain what this project is, its architecture, and how it works in detail. Minimum 150 words.), 
-<h2>কী কী ফিচার আছে (Key Features)</h2> (Provide a complete A to Z list of features extracted from the repo using an HTML unordered list <ul>. Make it sound highly impressive.), 
-<h2>কী কী টেকনোলজি ব্যবহার করা হয়েছে (Technologies Used)</h2> (List the technologies and explain WHY they were chosen for this specific project. Minimum 100 words.), 
-<h2>কী কী সমস্যা ফেস করেছি এবং কীভাবে সমাধান করেছি (Challenges & Solutions)</h2> (Analyze the COMMIT MESSAGES and codebase to deduce the actual technical challenges faced during development and explain how they were solved. Make it sound like a senior developer's case study. Minimum 150 words.), 
-<h2>কেন বানিয়েছি এবং কাদের জন্য (Purpose & Target Audience)</h2> (Explain the exact purpose of this project and who will benefit the most from it. Minimum 100 words.)
----CATEGORY---
-One of: Frontend, Backend, Full-Stack, Mobile App, Other
 ---TECH_STACK---
 A comma-separated string of ALL technologies accurately extracted from the package.json and README (e.g., 'React, TypeScript, Tailwind CSS').
----FEATURES---
-A comma-separated string of 5-8 key features accurately extracted from the repo.
----PRIVACY_POLICY---
-Write a full-length professional Privacy Policy in a Bengali-English mix. Include multiple detailed HTML paragraphs (<p>) explaining data collection, cookies, third-party sharing, and user rights.
 ---SEO_TITLE---
 A highly optimized SEO title for this project (under 60 characters, English).
 ---META_DESCRIPTION---
@@ -200,7 +186,7 @@ An engaging meta description optimized for Google search results (120-150 charac
 A comma-separated list of 5-8 highly relevant, exact-match focus keywords based on the repo's tech stack and purpose.`;
 
   const text = await generateText(prompt);
-  console.log("=== RUNNING NEW PLAIN TEXT PROMPT V3 ===");
+  console.log("=== RUNNING NEW PLAIN TEXT PROMPT V4 ===");
   try {
     // Strip bold markers, hashes, and code blocks
     let cleanText = text.replace(/```(markdown|text|html)?\n/ig, '').replace(/```/g, '');
@@ -219,16 +205,12 @@ A comma-separated list of 5-8 highly relevant, exact-match focus keywords based 
 
     const title = parsed['TITLE'] || "";
     const description = parsed['DESCRIPTION'] || "";
-    const longDescription = parsed['LONG_DESCRIPTION'] || "";
-    const category = parsed['CATEGORY'] || "";
     const techStack = parsed['TECH_STACK'] || "";
-    const features = parsed['FEATURES'] || "";
-    const privacyPolicy = parsed['PRIVACY_POLICY'] || "";
     const seoTitle = parsed['SEO_TITLE'] || "";
     const metaDescription = parsed['META_DESCRIPTION'] || "";
     const keywords = parsed['KEYWORDS'] || "";
 
-    if (!title || !longDescription) {
+    if (!title || !description) {
       console.error("FAILED TEXT:", text);
       throw new Error(`AI didn't return all required sections. Please check browser console for Raw Text.`);
     }
@@ -236,11 +218,7 @@ A comma-separated list of 5-8 highly relevant, exact-match focus keywords based 
     return {
       title,
       description,
-      longDescription,
-      category,
       techStack,
-      features,
-      privacyPolicy,
       seoTitle,
       metaDescription,
       keywords

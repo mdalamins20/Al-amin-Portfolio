@@ -172,7 +172,7 @@ export const ManageSkills: React.FC = () => {
                 {currentSkill.id ? 'Edit Skill' : 'Add New Skill'}
               </h2>
 
-              <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+              <form onSubmit={handleSave} className="grid grid-cols-1 gap-6 relative z-10">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Skill Name</label>
                   <input
@@ -183,18 +183,8 @@ export const ManageSkills: React.FC = () => {
                     placeholder="e.g. React.js"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Tag / Category</label>
-                  <input
-                    required
-                    value={currentSkill.tag || ''}
-                    onChange={e => setCurrentSkill({ ...currentSkill, tag: e.target.value })}
-                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
-                    placeholder="e.g. ENTERPRISE"
-                  />
-                </div>
                 
-                <div className="space-y-2 md:col-span-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="space-y-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                   <h3 className="font-bold text-slate-900 dark:text-white mb-4">Skill Icon (SVG/PNG)</h3>
                   <div className="w-32 sm:w-40">
                   <ImageUpload
@@ -209,10 +199,8 @@ export const ManageSkills: React.FC = () => {
                   />
                   </div>
                 </div>
-                
 
-
-                <div className="md:col-span-2 flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-slate-200 dark:border-white/10">
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
@@ -263,12 +251,11 @@ export const ManageSkills: React.FC = () => {
               key={skill.id}
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-5 flex items-center gap-4 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm"
             >
-              <div className="w-14 h-14 shrink-0 flex items-center justify-center bg-slate-50 dark:bg-white/5 rounded-xl p-2.5 shadow-inner border border-slate-100 dark:border-white/5 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 shrink-0 flex items-center justify-center bg-slate-50 dark:bg-white/5 rounded-xl p-3 shadow-inner border border-slate-100 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
                 <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 dark:text-white truncate text-lg group-hover:text-brand transition-colors">{skill.name}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{skill.tag}</p>
+                <h3 className="font-bold text-slate-900 dark:text-white break-words text-base md:text-lg group-hover:text-brand transition-colors leading-snug">{skill.name}</h3>
               </div>
               <div className="flex flex-col gap-1 opacity-0 translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                 <button

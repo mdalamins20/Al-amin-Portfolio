@@ -172,10 +172,10 @@ export const ManageProfile: React.FC = () => {
                       initialValue={formData.image}
                       onUploadComplete={(url) => setFormData({ ...formData, image: url })}
                       folder="profile"
-                      cropShape="round"
-                      aspectRatio={1}
-                      maxWidth={400}
-                      maxHeight={400}
+                      cropShape="rect"
+                      maxWidth={2560}
+                      maxHeight={2560}
+                      quality={0.95}
                     />
                   </div>
                 </div>

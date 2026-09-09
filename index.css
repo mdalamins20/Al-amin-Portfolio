@@ -3,9 +3,28 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+  }
+  html, body {
+    overflow-x: hidden;
+  }
   body {
     @apply antialiased text-slate-900 bg-white dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300;
   }
+}
+
+/* 120 FPS+ GPU Acceleration Utilities */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
 }
 
 /* Custom scrollbar */
@@ -43,14 +62,15 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-    transform: translateZ(0);
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+    transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
+    perspective: 1000px;
     will-change: transform;
 }
 .glass-card:hover {
     background: var(--glass-bg-hover);
-    transform: translateY(-4px) translateZ(0);
+    transform: translate3d(0, -4px, 0);
     border-color: rgba(var(--accent-rgb), 0.3);
     box-shadow: 0 10px 40px -10px rgba(var(--accent-rgb), 0.15);
 }

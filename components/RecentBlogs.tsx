@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useDataStore } from './stores/useDataStore';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, ArrowRight, Loader2, BookOpen } from 'lucide-react';
 
 export const RecentBlogs: React.FC = () => {
   const { blogs, loading, init } = useDataStore();
@@ -31,18 +31,30 @@ export const RecentBlogs: React.FC = () => {
   const recentBlogs = blogs.slice(0, 3);
 
   return (
-    <section id="blog" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-stack-lg gap-4">
+    <section id="blog" className="py-section-padding px-margin-mobile md:px-gutter max-w-container-max mx-auto relative overflow-visible">
+      {/* Subtle ambient lighting */}
+      <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[130px] pointer-events-none -z-10" />
+
+      {/* Unified Section Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
         <div>
-          <span className="font-label-bold text-label-bold text-secondary uppercase tracking-widest mb-4 block">Latest Articles</span>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface">The <span className="gradient-text">Journal.</span></h2>
-          <p className="text-text-secondary font-body-lg max-w-xl mt-4">Thoughts, tutorials, and insights on the future of tech and design.</p>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-label-bold text-xs uppercase tracking-widest mb-4">
+            <BookOpen size={14} />
+            <span>Latest Articles</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface tracking-tight">
+            The <span className="gradient-text">Journal.</span>
+          </h2>
+          <p className="text-text-secondary dark:text-slate-300 font-normal text-sm sm:text-base leading-relaxed max-w-xl mt-3">
+            Thoughts, tutorials, and insights on the future of tech and design.
+          </p>
         </div>
         <button 
           onClick={() => navigate('/blog')}
-          className="flex items-center gap-2 text-primary font-label-bold hover:gap-3 transition-all whitespace-nowrap self-start md:self-end"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/25 font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-primary/20 active:scale-95 whitespace-nowrap self-start md:self-end"
         >
-          See All Articles <ArrowRight size={18} />
+          <span>See All Articles</span>
+          <ArrowRight size={15} />
         </button>
       </div>
 

@@ -50,9 +50,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const processImage = async (file: File): Promise<string> => {
     try {
-      // Step 1: Compress the image aggressively to meet the target ~200KB limit
+      // Step 1: Compress the image intelligently preserving high detail (up to 2MB)
       const options = {
-        maxSizeMB: 0.2, // Compress down to 200KB
+        maxSizeMB: 2, // Generous limit so images stay crystal clear
         maxWidthOrHeight: maxWidth,
         useWebWorker: true,
         fileType: 'image/webp'

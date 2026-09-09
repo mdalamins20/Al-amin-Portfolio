@@ -15,7 +15,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, onViewCV, hideNavigati
   const { language, mode } = useThemeStore();
 
   return (
-    <div className="min-h-screen relative bg-background text-on-surface transition-colors duration-500 overflow-x-hidden">
+    <div className="min-h-screen relative bg-background text-on-surface transition-colors duration-500">
       {!hideNavigation && <Navigation />}
 
       <main className={`relative z-0 ${hideNavigation ? 'pt-8' : 'pt-24'} pb-32 md:pb-20`}>

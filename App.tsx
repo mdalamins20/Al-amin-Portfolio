@@ -14,7 +14,6 @@ import { NotFound } from './components/NotFound';
 const VisitorLog = lazy(() => import('./components/VisitorLog').then(m => ({ default: m.VisitorLog })));
 
 // Lazy loaded heavy public routes
-const ProjectDetails = lazy(() => import('./components/ProjectDetails').then(m => ({ default: m.ProjectDetails })));
 const BlogPage = lazy(() => import('./components/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogPostDetail = lazy(() => import('./components/BlogPostDetail').then(m => ({ default: m.BlogPostDetail })));
 import { AnimatePresence } from 'framer-motion';
@@ -73,11 +72,6 @@ function ScrollAndAnimateRoutes({ showVisitorLog }: { showVisitorLog?: boolean }
       <Routes location={location} key={location.pathname.startsWith('/admin-dashboard') ? 'admin' : location.pathname}>
         {/* Public Portfolio */}
         <Route path="/" element={<MainPortfolio />} />
-        <Route path="/project/:id" element={
-          <Suspense fallback={<PageLoader />}>
-            <ProjectDetails />
-          </Suspense>
-        } />
         <Route path="/blog" element={
           <Suspense fallback={<PageLoader />}>
             <BlogPage />
@@ -204,26 +198,30 @@ function MainPortfolio() {
 
 function App() {
   const [showVisitorLog, setShowVisitorLog] = useState(false);
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
     useThemeStore.getState().init();
-    
-    // Only Profile is needed globally for the Hero section text/data (but we hardcoded the image so it's fast).
-    // DataStore (blogs/projects) will be initialized by the components that actually need them.
-    // AuthStore will be initialized only on Admin routes.
-    setTimeout(() => {
-      useProfileStore.getState().init();
-      setShowVisitorLog(true);
-    }, 2000);
+    useProfileStore.getState().init();
+    // Warm up dataStore in background during loader
+    useDataStore.getState().init();
+    setShowVisitorLog(true);
+
+    // Preload hero image into memory cache
+    const img = new Image();
+    img.src = '/profile-hero.webp';
   }, []);
 
   return (
-    <Router>
-      <CustomCursor />
-      <WhatsAppButton />
-      <DynamicSEO />
-      <ScrollAndAnimateRoutes showVisitorLog={showVisitorLog} />
-    </Router>
+    <>
+      {isAppLoading && <LoadingScreen onComplete={() => setIsAppLoading(false)} />}
+      <Router>
+        <CustomCursor />
+        <WhatsAppButton />
+        <DynamicSEO />
+        <ScrollAndAnimateRoutes showVisitorLog={showVisitorLog} />
+      </Router>
+    </>
   );
 }
 

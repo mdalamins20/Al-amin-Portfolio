@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, ArrowRight, Calendar } from 'lucide-react';
+import { Mail, ArrowRight, Calendar, BookOpen, Clock, Sparkles } from 'lucide-react';
 import { Layout } from './Layout';
 import { SectionWrapper } from './SectionWrapper';
 import { Link, useNavigate } from 'react-router-dom';
@@ -46,77 +46,86 @@ const NewsletterBanner = () => {
   };
 
   return (
-    <div className="bg-brand rounded-3xl overflow-hidden relative mb-16 md:mb-24 shadow-xl border border-brand/20 w-full max-w-[1200px] mx-auto">
-      {/* Desktop Newsletter */}
-      <div className="hidden md:flex items-center justify-between p-12">
-        <div className="z-10 w-[55%] text-white">
-          <h3 className="text-3xl font-serif font-bold mb-4">Stay ahead of the Vibe.</h3>
-          <p className="text-white/90 mb-8 leading-relaxed text-[15px]">
-            Get weekly insights into the future of software engineering, system architecture, and tech leadership delivered to your inbox. No spam, promise!
+    <div className="rounded-3xl p-px bg-gradient-to-b from-primary/30 via-surface-variant/20 to-transparent shadow-xl mb-16 md:mb-24 w-full max-w-[1200px] mx-auto overflow-hidden">
+      <div className="bg-surface/90 dark:bg-slate-950/80 backdrop-blur-2xl rounded-[23px] border border-surface-variant/30 dark:border-white/10 relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Desktop Newsletter */}
+        <div className="hidden md:flex items-center justify-between p-10 md:p-12 relative z-10">
+          <div className="w-[58%] text-on-surface">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs uppercase tracking-widest mb-4">
+              <Mail size={13} />
+              <span>Stay Ahead</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-black text-on-surface mb-3 tracking-tight">Stay ahead of the Vibe.</h3>
+            <p className="text-text-secondary dark:text-slate-300 mb-6 leading-relaxed text-sm md:text-[15px]">
+              Get weekly insights into software engineering, architecture, and design delivered to your inbox. No spam, promise!
+            </p>
+            
+            {subscribed ? (
+              <div className="bg-primary/10 text-primary px-5 py-3 rounded-full font-bold inline-block border border-primary/25">
+                Thanks for subscribing! 🎉
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex gap-2.5 w-full max-w-md">
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address" 
+                  className="flex-1 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-full px-5 py-3 text-sm text-on-surface outline-none focus:border-primary transition-colors font-medium shadow-inner"
+                  required
+                />
+                <button 
+                  type="submit" 
+                  disabled={subscribing}
+                  className="bg-primary text-white px-6 py-3 rounded-full font-bold text-xs md:text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-md shadow-primary/25 shrink-0 disabled:opacity-50"
+                >
+                  {subscribing ? 'Wait...' : 'Subscribe'}
+                </button>
+              </form>
+            )}
+          </div>
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none text-primary">
+            <Mail size={260} />
+          </div>
+        </div>
+
+        {/* Mobile Newsletter */}
+        <div className="md:hidden p-7 text-center relative z-10 flex flex-col items-center">
+          <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary border border-primary/20">
+            <Mail size={24} />
+          </div>
+          <h3 className="text-xl font-black text-on-surface mb-2 tracking-tight">Stay ahead of the Vibe.</h3>
+          <p className="text-text-secondary dark:text-slate-300 text-xs sm:text-sm mb-6 leading-relaxed">
+            Get weekly insights into the future of tech and leadership delivered to your inbox.
           </p>
           
           {subscribed ? (
-            <div className="bg-white/20 text-white px-6 py-4 rounded-xl font-bold inline-block border border-white/30 backdrop-blur-sm">
-              Thanks for subscribing! 🎉
+            <div className="bg-primary/10 text-primary w-full px-5 py-3 rounded-full font-bold text-xs border border-primary/25">
+              Thanks! 🎉
             </div>
           ) : (
-            <form onSubmit={handleSubscribe} className="flex gap-3 w-full max-w-md">
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-2.5 w-full">
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address" 
-                className="flex-1 bg-white dark:bg-slate-900 rounded-xl px-5 py-4 text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-brand/30 font-medium"
+                className="w-full bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-full px-4 py-3 text-xs sm:text-sm text-on-surface outline-none text-center font-medium"
                 required
               />
               <button 
                 type="submit" 
                 disabled={subscribing}
-                className="bg-slate-900 dark:bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-black transition-colors shrink-0 disabled:opacity-50"
+                className="w-full bg-primary text-white py-3 rounded-full font-bold text-xs sm:text-sm shadow-md shadow-primary/25 transition-transform active:scale-95 disabled:opacity-50"
               >
-                {subscribing ? 'Wait...' : 'Subscribe Here'}
+                {subscribing ? 'Wait...' : 'Subscribe'}
               </button>
             </form>
           )}
         </div>
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[20%] opacity-[0.07] pointer-events-none">
-          <Mail size={380} />
-        </div>
-      </div>
-
-      {/* Mobile Newsletter */}
-      <div className="md:hidden p-8 text-center text-white relative z-10 flex flex-col items-center">
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm border border-white/20">
-          <Mail size={32} />
-        </div>
-        <h3 className="text-2xl font-serif font-bold mb-4">Stay ahead of the Vibe.</h3>
-        <p className="text-white/90 text-sm mb-8 leading-relaxed">
-          Get weekly insights into the future of tech and leadership delivered to your inbox.
-        </p>
-        
-        {subscribed ? (
-          <div className="bg-white/20 text-white w-full px-6 py-4 rounded-xl font-bold border border-white/30">
-            Thanks! 🎉
-          </div>
-        ) : (
-          <form onSubmit={handleSubscribe} className="flex flex-col gap-3 w-full">
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your email address" 
-              className="w-full bg-theme-bg dark:bg-slate-900 rounded-xl px-5 py-4 text-theme-text dark:text-white outline-none text-center font-medium"
-              required
-            />
-            <button 
-              type="submit" 
-              disabled={subscribing}
-              className="w-full bg-brand-50 text-brand py-4 rounded-xl font-bold transition-colors disabled:opacity-50 text-base hover:bg-white"
-            >
-              {subscribing ? 'Wait...' : 'Subscribe Here'}
-            </button>
-          </form>
-        )}
       </div>
     </div>
   );
@@ -126,8 +135,6 @@ const NewsletterBanner = () => {
 export const BlogPage: React.FC = () => {
   const { blogs, loading } = useDataStore();
   const navigate = useNavigate();
-
-
 
   const stripHtmlAndTruncate = (html: string, maxLength: number) => {
     if (!html) return '';
@@ -149,10 +156,8 @@ export const BlogPage: React.FC = () => {
   };
 
   const featuredBlog = blogs[0];
-  const bentoGridBlogs = blogs.slice(1, 5); // Next 4 posts for bento grid
-  const standardBlogs = blogs.slice(5); // Remaining posts
-
-
+  const bentoGridBlogs = blogs.slice(1, 5);
+  const standardBlogs = blogs.slice(5);
 
   return (
     <Layout onViewCV={() => {}}>
@@ -160,56 +165,66 @@ export const BlogPage: React.FC = () => {
         title="The Journal - Blog & Insights" 
         description="প্রযুক্তি এবং ডিজাইনের ভবিষ্যৎ নিয়ে আমাদের চিন্তা, টিউটোরিয়াল এবং অন্তর্দৃষ্টি।"
       />
-      <div className="pt-2 md:pt-16 pb-20 w-full overflow-hidden bg-theme-bg">
+      <div className="pt-6 md:pt-16 pb-20 w-full overflow-hidden relative">
+        {/* Subtle ambient glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
         
-        {/* Header */}
-        <div className="text-center mb-10 md:mb-16 px-4">
-          <h1 className="text-[40px] md:text-[64px] font-serif font-black text-theme-text tracking-tight mb-2 md:mb-4">
-            The Journal<span className="text-brand">.</span>
+        {/* Unified Section Header */}
+        <div className="text-center mb-12 md:mb-16 px-4 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-label-bold text-xs uppercase tracking-widest mb-4">
+            <BookOpen size={14} />
+            <span>Engineering Blog</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-on-surface tracking-tight mb-3">
+            The <span className="gradient-text">Journal.</span>
           </h1>
-          <p className="text-theme-dim text-sm md:text-base">Thoughts, tutorials, and insights on the future of tech and design.</p>
+          <p className="text-text-secondary dark:text-slate-300 font-normal text-sm sm:text-base leading-relaxed">
+            Thoughts, tutorials, and insights on the future of tech and design.
+          </p>
         </div>
 
         {blogs.length === 0 && !loading ? (
-          <div className="text-center py-20 text-theme-dim">No articles published yet.</div>
+          <div className="text-center py-20 text-text-secondary">No articles published yet.</div>
         ) : (
           <div className="max-w-[1200px] mx-auto px-4 md:px-8">
             
-            {/* FEATURED POST */}
+            {/* FEATURED POST with Unified Glassmorphism Card */}
             {featuredBlog && (
               <motion.article
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group cursor-pointer mb-16 md:mb-24 flex flex-col rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-theme-card shadow-lg border border-theme-border transition-all hover:shadow-xl hover:-translate-y-1 w-full mx-auto"
+                className="group cursor-pointer mb-16 md:mb-20 flex flex-col rounded-3xl overflow-hidden bg-surface/85 dark:bg-slate-950/70 backdrop-blur-xl border border-surface-variant/30 dark:border-white/10 shadow-xl hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 w-full mx-auto"
                 onClick={() => navigate(`/blog/${featuredBlog.id}`)}
               >
-                <div className="w-full aspect-video overflow-hidden relative border-b border-theme-border/50">
+                <div className="w-full aspect-video md:aspect-[21/9] overflow-hidden relative border-b border-surface-variant/20 dark:border-white/10">
                   <img 
                     src={featuredBlog.image} 
                     alt={featuredBlog.title} 
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
                 
-                <div className="p-6 md:p-12 flex flex-col items-start w-full">
-                  <span className="bg-brand/10 text-brand px-4 py-1.5 text-[10px] md:text-xs font-bold rounded-full mb-4 md:mb-6 uppercase tracking-widest">
+                <div className="p-6 md:p-10 flex flex-col items-start w-full">
+                  <span className="bg-primary/10 text-primary border border-primary/20 px-3.5 py-1 text-[10px] md:text-xs font-bold rounded-full mb-3 uppercase tracking-widest">
                     Featured Article
                   </span>
-                  <h2 className="text-2xl md:text-[40px] font-serif font-bold text-theme-text mb-4 md:mb-6 leading-[1.3] group-hover:text-brand transition-colors">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-on-surface mb-4 leading-tight group-hover:text-primary transition-colors tracking-tight">
                     {featuredBlog.title}
                   </h2>
                   
-                  <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-6 mt-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-theme-bg border border-theme-border flex items-center justify-center font-bold text-sm uppercase text-theme-text shrink-0">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 mt-3 pt-4 border-t border-surface-variant/15 dark:border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/25 flex items-center justify-center font-bold text-xs uppercase text-primary shrink-0">
                         {featuredBlog.author?.charAt(0) || 'A'}
                       </div>
-                      <span className="text-sm text-theme-dim font-bold">{featuredBlog.author || 'Al-amin'} • {getReadingTime(featuredBlog.content)} min read</span>
+                      <span className="text-xs sm:text-sm text-text-secondary dark:text-slate-300 font-medium">
+                        {featuredBlog.author || 'Al-amin'} • {getReadingTime(featuredBlog.content)} min read
+                      </span>
                     </div>
                     
-                    <button className="bg-brand text-white px-8 py-3.5 rounded-full font-bold text-xs tracking-wider flex items-center justify-center gap-2 hover:bg-brand-700 transition-colors shadow-md">
-                      READ FULL ARTICLE <ArrowRight size={16} />
-                    </button>
+                    <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-primary/25 group-hover:scale-[1.02] active:scale-95 transition-all">
+                      Read Full Article <ArrowRight size={14} />
+                    </span>
                   </div>
                 </div>
               </motion.article>

@@ -4,16 +4,12 @@ export type LanguageType = 'en' | 'bn';
 export type ModeType = 'light' | 'dark';
 
 export const ACCENT_COLORS = [
-  { id: 'violet', val: '#7c3aed', hover: '#6d28d9', soft: '#f5f3ff' },
-  { id: 'blue', val: '#2563eb', hover: '#1d4ed8', soft: '#eff6ff' },
-  { id: 'emerald', val: '#059669', hover: '#047857', soft: '#ecfdf5' },
-  { id: 'rose', val: '#e11d48', hover: '#be123c', soft: '#fff1f2' },
-  { id: 'orange', val: '#ea580c', hover: '#c2410c', soft: '#fff7ed' },
-  { id: 'cyan', val: '#0891b2', hover: '#0e7490', soft: '#ecfeff' },
-  { id: 'amber', val: '#d97706', hover: '#b45309', soft: '#fffbeb' },
-  { id: 'indigo', val: '#4f46e5', hover: '#4338ca', soft: '#eef2ff' },
-  { id: 'pink', val: '#db2777', hover: '#be185d', soft: '#fdf2f8' },
-  { id: 'teal', val: '#0d9488', hover: '#0f766e', soft: '#f0fdfa' },
+  { id: 'indigo', name: 'Electric Indigo', val: '#6366f1', hover: '#4f46e5', soft: '#eef2ff' },
+  { id: 'cyan', name: 'Royal Cyan', val: '#06b6d4', hover: '#0891b2', soft: '#ecfeff' },
+  { id: 'emerald', name: 'Emerald Luxe', val: '#10b981', hover: '#059669', soft: '#ecfdf5' },
+  { id: 'amber', name: 'Sunset Gold', val: '#f59e0b', hover: '#d97706', soft: '#fffbeb' },
+  { id: 'rose', name: 'Rose Quartz', val: '#f43f5e', hover: '#e11d48', soft: '#fff1f2' },
+  { id: 'violet', name: 'Deep Violet', val: '#8b5cf6', hover: '#7c3aed', soft: '#f5f3ff' },
 ];
 
 interface ThemeState {

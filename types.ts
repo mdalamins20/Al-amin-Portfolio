@@ -7,22 +7,20 @@ export interface Project {
   category?: string;
   description?: string; 
   link?: string;
-  githubUrl?: string;
-  tags?: string[];
-  image?: string;
-  role?: string;
-  result?: string;
-  techStack?: string[];
-  longDescription?: string;
-  features?: string[];
-  screenshots?: string[];
-  privacyPolicy?: string;
-  platformLinks?: { name: string, url: string }[];
   appLink?: string;
   appVersion?: string;
+  techStack?: string[];
+  image?: string;
   seoTitle?: string;
   metaDescription?: string;
   keywords?: string;
+  githubUrl?: string;
+  role?: string;
+  result?: string;
+  longDescription?: string;
+  features?: string[];
+  screenshots?: string[];
+  platformLinks?: { name: string; url: string }[];
 }
 
 export interface Experience {

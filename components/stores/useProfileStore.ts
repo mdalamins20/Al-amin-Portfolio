@@ -62,7 +62,12 @@ export const useProfileStore = create<ProfileState>()(
             // Listen for real-time updates for everyone
             onSnapshot(docRef, async (docSnap) => {
               if (docSnap.exists()) {
-                set({ profile: docSnap.data() as Profile });
+                const data = docSnap.data() as Profile;
+                // If the remote image is still the unoptimized external png, prefer local webp for instant 0ms load
+                if (!data.image || data.image.includes('i.ibb.co.com/4ZtpFT0b/IMG.png')) {
+                  data.image = '/profile-hero.webp';
+                }
+                set({ profile: data });
               } else if (isAdmin) {
                 // Only initialize default if admin and it doesn't exist
                 await setDoc(docRef, defaultProfile);
@@ -79,6 +84,11 @@ export const useProfileStore = create<ProfileState>()(
     {
       name: 'portfolio-profile-storage',
       partialize: (state) => ({ profile: state.profile }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.profile?.image && state.profile.image.includes('i.ibb.co.com/4ZtpFT0b/IMG.png')) {
+          state.profile.image = '/profile-hero.webp';
+        }
+      },
     }
   )
 );

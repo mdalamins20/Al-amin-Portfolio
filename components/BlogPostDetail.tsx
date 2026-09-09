@@ -306,7 +306,7 @@ export const BlogPostDetail: React.FC = () => {
   const estimatedReadingTime = Math.max(1, Math.ceil((blog.content || '').replace(/<[^>]*>?/gm, '').split(/\s+/).length / 200));
 
   return (
-    <Layout onViewCV={() => {}} hideNavigation>
+    <Layout onViewCV={() => {}}>
       <SEO 
         title={blog.seoTitle || blog.title}
         description={blog.metaDescription || stripHtmlAndTruncate(blog.content, 160)}
@@ -319,42 +319,47 @@ export const BlogPostDetail: React.FC = () => {
         url={`https://mdalamin.web.app/blog/${blog.id}`}
       />
 
+      {/* Reading Progress Indicator */}
       <motion.div 
-        className="fixed top-0 left-0 right-0 h-1 bg-brand origin-left z-50"
+        className="fixed top-0 left-0 right-0 h-1 bg-primary origin-left z-50 shadow-sm shadow-primary/50"
         style={{ scaleX }}
       />
 
       {/* --------------------------------------------------- */}
       {/* DESKTOP & MOBILE HERO */}
       {/* --------------------------------------------------- */}
-      <div className="w-full pt-4 md:pt-10 mb-8 md:mb-12 max-w-[1200px] mx-auto">
-        <Link to="/blog" className="inline-flex items-center gap-2 text-theme-dim hover:text-brand font-bold text-[11px] tracking-widest uppercase mb-6 transition-colors">
-          <ArrowLeft size={14} /> Back to articles
+      <div className="w-full pt-2 md:pt-8 mb-8 md:mb-12 max-w-[1200px] mx-auto">
+        <Link 
+          to="/blog" 
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 hover:border-primary/40 text-text-secondary hover:text-primary font-bold text-xs uppercase tracking-wider mb-6 transition-all active:scale-95 shadow-sm"
+        >
+          <ArrowLeft size={14} /> 
+          <span>Back to articles</span>
         </Link>
 
         {/* Hero Image */}
-        <div className="w-full aspect-video rounded-xl md:rounded-2xl overflow-hidden bg-theme-card mb-8 shadow-sm border border-theme-border/50">
+        <div className="w-full aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden bg-surface-variant/10 mb-8 shadow-xl border border-surface-variant/30 dark:border-white/10">
           <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
         </div>
 
         <div className="w-full">
           {/* Desktop Meta Data */}
-          <div className="hidden md:flex items-center gap-4 mb-6 text-xs font-bold text-theme-dim uppercase tracking-wide">
-            <span className="bg-brand text-white px-3 py-1 rounded">Technology</span>
-            <span className="flex items-center gap-1.5"><Clock size={14} /> {estimatedReadingTime} min read</span>
-            <span className="flex items-center gap-1.5"><Calendar size={14} /> {blog.date}</span>
-            <span className="text-[#6B21A8] capitalize tracking-normal ml-auto text-sm">By {blog.author}</span>
+          <div className="hidden md:flex items-center gap-3 mb-6 text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wide">
+            <span className="bg-primary/10 text-primary border border-primary/25 px-3 py-1 rounded-full text-[11px]">Technology</span>
+            <span className="flex items-center gap-1.5"><Clock size={13} /> {estimatedReadingTime} min read</span>
+            <span className="flex items-center gap-1.5"><Calendar size={13} /> {blog.date}</span>
+            <span className="text-primary capitalize tracking-normal ml-auto text-sm font-semibold">By {blog.author}</span>
           </div>
 
           {/* Mobile Meta Data */}
-          <div className="md:hidden flex items-center gap-3 mb-4 text-[11px] font-bold uppercase tracking-widest">
-            <span className="bg-brand text-white px-3 py-1 rounded-full">Technology</span>
-            <span className="text-theme-dim">•</span>
-            <span className="text-theme-dim">{estimatedReadingTime} min read</span>
+          <div className="md:hidden flex items-center gap-2.5 mb-4 text-[11px] font-bold uppercase tracking-widest text-text-secondary">
+            <span className="bg-primary/10 text-primary border border-primary/25 px-3 py-0.5 rounded-full text-[10px]">Technology</span>
+            <span>•</span>
+            <span>{estimatedReadingTime} min read</span>
           </div>
 
           {/* Title */}
-          <h1 className="text-[28px] md:text-[44px] lg:text-[52px] font-serif font-black text-theme-text leading-[1.3] md:leading-[1.1] mb-6 md:mb-8">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-on-surface leading-tight md:leading-tight mb-6 tracking-tight">
             {blog.title}
           </h1>
 
@@ -411,28 +416,34 @@ export const BlogPostDetail: React.FC = () => {
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-3 mb-10 md:mb-16 mt-8 md:mt-0">
-            <span className="px-4 py-1.5 bg-theme-bg border border-theme-border rounded text-xs font-bold text-theme-dim hover:text-brand cursor-pointer">#Machine Learning</span>
-            <span className="px-4 py-1.5 bg-theme-bg border border-theme-border rounded text-xs font-bold text-theme-dim hover:text-brand cursor-pointer">#Web Development</span>
-            <span className="px-4 py-1.5 bg-theme-bg border border-theme-border rounded text-xs font-bold text-theme-dim hover:text-brand cursor-pointer">#Future of Tech</span>
+          <div className="flex flex-wrap gap-2 mb-8 md:mb-12 mt-6 md:mt-0">
+            {['#WebDevelopment', '#SoftwareArchitecture', '#NextGenTech'].map((tag) => (
+              <span key={tag} className="px-3.5 py-1.5 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-full text-xs font-semibold text-text-secondary hover:text-primary hover:border-primary/40 transition-colors cursor-pointer">
+                {tag}
+              </span>
+            ))}
           </div>
 
           {/* Desktop Only: Interaction Bar */}
-          <div className="hidden md:flex items-center gap-6 border-y border-theme-border py-6 my-12">
+          <div className="hidden md:flex items-center gap-4 border-y border-surface-variant/20 dark:border-white/10 py-5 my-10">
             <button 
               onClick={handleLike}
               disabled={hasLiked || isLiking}
-              className={`flex items-center gap-2 px-6 py-2.5 border rounded-lg font-bold transition-all ${hasLiked ? 'border-brand text-brand bg-brand/5' : 'border-theme-border text-theme-dim hover:border-brand hover:text-brand'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-sm ${
+                hasLiked 
+                  ? 'border border-primary text-primary bg-primary/10 shadow-primary/20' 
+                  : 'border border-surface-variant/30 dark:border-white/10 text-on-surface hover:border-primary/40 hover:text-primary active:scale-95'
+              }`}
             >
-              <Heart size={18} className={hasLiked ? 'fill-current' : ''} /> 
-              {blog.likes || 0} Likes
+              <Heart size={16} className={hasLiked ? 'fill-current text-primary' : ''} /> 
+              <span>{blog.likes || 0} Likes</span>
             </button>
 
-            <div className="flex items-center gap-3 ml-auto text-theme-dim">
-              <span className="text-sm font-bold mr-2">Share ({blog.shares || 0})</span>
-              <a onClick={handleShare} className="w-9 h-9 rounded border border-theme-border flex items-center justify-center hover:bg-theme-border transition-colors cursor-pointer"><Facebook size={14} /></a>
-              <a onClick={handleShare} className="w-9 h-9 rounded border border-theme-border flex items-center justify-center hover:bg-theme-border transition-colors cursor-pointer"><Twitter size={14} /></a>
-              <a onClick={handleShare} className="w-9 h-9 rounded border border-theme-border flex items-center justify-center hover:bg-theme-border transition-colors cursor-pointer"><Share2 size={14} /></a>
+            <div className="flex items-center gap-2 ml-auto text-text-secondary">
+              <span className="text-xs font-bold uppercase tracking-wider mr-1">Share</span>
+              <button onClick={handleShare} className="w-8 h-8 rounded-full bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 flex items-center justify-center hover:text-primary hover:border-primary/40 transition-colors" title="Share on Facebook"><Facebook size={13} /></button>
+              <button onClick={handleShare} className="w-8 h-8 rounded-full bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 flex items-center justify-center hover:text-primary hover:border-primary/40 transition-colors" title="Share on Twitter"><Twitter size={13} /></button>
+              <button onClick={handleShare} className="w-8 h-8 rounded-full bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 flex items-center justify-center hover:text-primary hover:border-primary/40 transition-colors" title="Copy Link"><Share2 size={13} /></button>
             </div>
           </div>
 

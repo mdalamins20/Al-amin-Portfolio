@@ -32,49 +32,27 @@ export const CustomCursor: React.FC = () => {
     const handleHoverStart = () => setIsHovering(true);
     const handleHoverEnd = () => setIsHovering(false);
 
-    window.addEventListener('mousemove', updateMousePosition);
-    document.addEventListener('mouseleave', handleMouseLeave);
-    document.addEventListener('mouseenter', handleMouseEnter);
+    window.addEventListener('mousemove', updateMousePosition, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+    document.addEventListener('mouseenter', handleMouseEnter, { passive: true });
 
-    // Setup hover listeners for interactive elements
-    const setupInteractions = () => {
-      const interactables = document.querySelectorAll('a, button, input, textarea, select, [role="button"], .cursor-pointer');
-      
-      interactables.forEach((el) => {
-        el.addEventListener('mouseenter', handleHoverStart);
-        el.addEventListener('mouseleave', handleHoverEnd);
-      });
+    // Efficient Event Delegation: zero DOM mutations and zero element-level event listeners
+    const handleElementHover = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const isInteractable = Boolean(
+        target.closest('a, button, input, textarea, select, [role="button"], .cursor-pointer, [data-interactive="true"]')
+      );
+      setIsHovering(isInteractable);
     };
 
-    // Run initially and set up a mutation observer for dynamic elements
-    setupInteractions();
-    
-    const observer = new MutationObserver((mutations) => {
-      let shouldSetup = false;
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0) {
-          shouldSetup = true;
-          break;
-        }
-      }
-      if (shouldSetup) {
-        setupInteractions();
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('mouseover', handleElementHover, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', updateMousePosition);
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
-      
-      const interactables = document.querySelectorAll('a, button, input, textarea, select, [role="button"], .cursor-pointer');
-      interactables.forEach((el) => {
-        el.removeEventListener('mouseenter', handleHoverStart);
-        el.removeEventListener('mouseleave', handleHoverEnd);
-      });
-      observer.disconnect();
+      window.removeEventListener('mouseover', handleElementHover);
     };
   }, [isVisible, cursorX, cursorY]);
 

@@ -19,8 +19,6 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { generateProjectFromGithub } from '../../utils/aiService';
 import { compileAndSyncToGist } from '../../utils/syncService';
 import { getGithubToken, fetchUserRepos, fetchGithubRepoData } from '../../utils/githubService';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
 
 export const ManageProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -155,11 +153,7 @@ export const ManageProjects: React.FC = () => {
         ...prev,
         title: generated.title || '',
         description: generated.description || '',
-        longDescription: generated.longDescription || '',
-        category: generated.category || 'Other',
         techStack: generated.techStack ? generated.techStack.split(',').map((s: string) => s.trim()) : [],
-        features: generated.features ? generated.features.split(',').map((s: string) => s.trim()) : [],
-        privacyPolicy: generated.privacyPolicy || '',
         seoTitle: generated.seoTitle || '',
         metaDescription: generated.metaDescription || '',
         keywords: generated.keywords || '',
@@ -360,74 +354,6 @@ export const ManageProjects: React.FC = () => {
                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
                   placeholder="React, Firebase, Tailwind..."
                 />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-on-surface-variant">Category</label>
-                  <input
-                    value={currentProject.category || ''}
-                    onChange={e => setCurrentProject({ ...currentProject, category: e.target.value })}
-                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
-                    placeholder="e.g. Full-Stack, Frontend..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-on-surface-variant">Role</label>
-                  <input
-                    value={currentProject.role || ''}
-                    onChange={e => setCurrentProject({ ...currentProject, role: e.target.value })}
-                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
-                    placeholder="e.g. Lead Developer"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-on-surface-variant">Core Features (comma separated)</label>
-                <input
-                  value={currentProject.features?.join(', ') || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, features: e.target.value.split(',').map(s => s.trim()) })}
-                  className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
-                  placeholder="Real-time chat, Auth, Payments..."
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-on-surface-variant">Case Study (Long Description)</label>
-                <div className="bg-white dark:bg-slate-900 text-on-surface rounded-xl overflow-hidden border border-outline-variant">
-                  <ReactQuill 
-                    theme="snow"
-                    value={currentProject.longDescription || ''}
-                    onChange={(value) => setCurrentProject(prev => ({ ...prev, longDescription: value }))}
-                    className="h-[250px] mb-12"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-on-surface-variant">The Outcome (Result)</label>
-                <textarea
-                  value={currentProject.result || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, result: e.target.value })}
-                  className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm min-h-[100px] resize-y"
-                  placeholder="e.g. Increased user retention by 20%..."
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-on-surface-variant flex justify-between items-center">
-                  <span>Privacy Policy</span>
-                  <span className="text-[10px] font-normal text-text-secondary bg-surface-variant px-1.5 py-0.5 rounded uppercase tracking-wider">Optional</span>
-                </label>
-                <div className="bg-white dark:bg-slate-900 text-on-surface rounded-xl overflow-hidden border border-outline-variant">
-                  <ReactQuill 
-                    theme="snow"
-                    value={currentProject.privacyPolicy || ''}
-                    onChange={(value) => setCurrentProject(prev => ({ ...prev, privacyPolicy: value }))}
-                    className="h-[200px] mb-12"
-                  />
-                </div>
               </div>
 
               <div className="md:col-span-2 space-y-4 pt-6 border-t border-outline-variant mt-2">
