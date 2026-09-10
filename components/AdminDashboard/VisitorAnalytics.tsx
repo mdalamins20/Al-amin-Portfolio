@@ -4,6 +4,7 @@ import { db } from '../../firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { Activity, Users, Globe, MapPin, Monitor, Smartphone, Clock, X, ChevronRight, Hash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AdminPageLoader } from './AdminPageLoader';
 
 interface PageVisit {
   page: string;
@@ -117,19 +118,20 @@ export const VisitorAnalytics: React.FC = () => {
   const todaysVisits = logs.filter(l => l.lastActive.startsWith(today)).length;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div>
-      </div>
-    );
+    return <AdminPageLoader icon={Activity} color="text-orange-500" bg="bg-orange-500/10 border-orange-500/20" label="Loading analytics..." />;
   }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Visitor Analytics</h1>
-          <p className="text-on-surface-variant mt-2">Track real-time traffic, unique IPs, and page histories.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+              <Activity size={20} className="text-orange-500" />
+            </div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">Visitor Analytics</h1>
+          </div>
+          <p className="text-text-secondary text-sm font-medium pl-[52px]">Track real-time traffic, unique IPs, and page histories.</p>
         </div>
       </div>
 
@@ -144,8 +146,8 @@ export const VisitorAnalytics: React.FC = () => {
               <Activity size={24} />
             </div>
           </div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Sessions</p>
-          <h3 className="text-4xl font-black text-slate-900 dark:text-white mt-1">{logs.length}</h3>
+          <p className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Total Sessions</p>
+          <h3 className="text-4xl font-black text-on-surface mt-1">{logs.length}</h3>
         </motion.div>
 
         <motion.div 
@@ -159,8 +161,8 @@ export const VisitorAnalytics: React.FC = () => {
               <Users size={24} />
             </div>
           </div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Unique IPs</p>
-          <h3 className="text-4xl font-black text-slate-900 dark:text-white mt-1">{uniqueVisitors}</h3>
+          <p className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Unique IPs</p>
+          <h3 className="text-4xl font-black text-on-surface mt-1">{uniqueVisitors}</h3>
         </motion.div>
         
         <motion.div 
@@ -174,8 +176,8 @@ export const VisitorAnalytics: React.FC = () => {
               <Clock size={24} />
             </div>
           </div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Visits Today</p>
-          <h3 className="text-4xl font-black text-slate-900 dark:text-white mt-1">{todaysVisits}</h3>
+          <p className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Visits Today</p>
+          <h3 className="text-4xl font-black text-on-surface mt-1">{todaysVisits}</h3>
         </motion.div>
 
         <motion.div 
@@ -184,15 +186,15 @@ export const VisitorAnalytics: React.FC = () => {
           transition={{ delay: 0.3 }}
           className="bg-surface p-6 rounded-3xl border border-outline-variant shadow-lg flex flex-col justify-between"
         >
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Devices (By IP)</p>
+          <p className="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-2">Devices (By IP)</p>
           <div className="flex justify-between items-end flex-1">
             <div className="flex flex-col items-center">
-              <Monitor size={24} className="text-slate-400 mb-2" />
-              <span className="text-2xl font-black text-slate-900 dark:text-white">{desktopUsers}</span>
+              <Monitor size={24} className="text-on-surface-variant mb-2" />
+              <span className="text-2xl font-black text-on-surface">{desktopUsers}</span>
             </div>
             <div className="flex flex-col items-center">
-              <Smartphone size={24} className="text-slate-400 mb-2" />
-              <span className="text-2xl font-black text-slate-900 dark:text-white">{mobileUsers}</span>
+              <Smartphone size={24} className="text-on-surface-variant mb-2" />
+              <span className="text-2xl font-black text-on-surface">{mobileUsers}</span>
             </div>
           </div>
         </motion.div>
@@ -200,7 +202,7 @@ export const VisitorAnalytics: React.FC = () => {
 
       <div className="bg-surface rounded-3xl border border-outline-variant shadow-lg overflow-hidden">
         <div className="p-6 border-b border-outline-variant bg-surface-variant/50">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
             <Globe className="text-brand" size={20} />
             Unique Visitors (Grouped by IP)
           </h3>
@@ -208,7 +210,7 @@ export const VisitorAnalytics: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-surface-variant/30 text-slate-500 text-xs uppercase tracking-wider">
+              <tr className="bg-surface-variant/30 text-on-surface-variant text-xs uppercase tracking-wider">
                 <th className="p-4 font-bold border-b border-outline-variant">IP & Location</th>
                 <th className="p-4 font-bold border-b border-outline-variant hidden md:table-cell">ISP</th>
                 <th className="p-4 font-bold border-b border-outline-variant text-center hidden md:table-cell">Sessions</th>
@@ -229,18 +231,18 @@ export const VisitorAnalytics: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-brand font-bold">{log.ip}</span>
                         {log.device === 'Mobile' ? (
-                          <span title="Mobile"><Smartphone size={14} className="text-slate-400" /></span>
+                          <span title="Mobile"><Smartphone size={14} className="text-on-surface-variant" /></span>
                         ) : (
-                          <span title="Desktop"><Monitor size={14} className="text-slate-400" /></span>
+                          <span title="Desktop"><Monitor size={14} className="text-on-surface-variant" /></span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
                         <MapPin size={12} />
                         {log.city}, {log.country}
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-slate-600 dark:text-slate-400 truncate max-w-[150px] text-xs font-semibold hidden md:table-cell">{log.isp}</td>
+                  <td className="p-4 text-on-surface-variant truncate max-w-[150px] text-xs font-semibold hidden md:table-cell">{log.isp}</td>
                   <td className="p-4 text-center hidden md:table-cell">
                     <span className="bg-surface-variant text-on-surface px-2.5 py-1 rounded-lg font-bold text-xs border border-outline-variant">
                       {log.totalSessions}
@@ -251,11 +253,11 @@ export const VisitorAnalytics: React.FC = () => {
                       {log.totalPageViews}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-500 text-xs font-medium">
+                  <td className="p-4 text-on-surface-variant text-xs font-medium">
                     {formatDate(log.lastActive)}
                   </td>
                   <td className="p-4 text-right">
-                    <button className="p-1.5 text-slate-400 hover:text-brand bg-surface-variant/50 hover:bg-brand/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                    <button className="p-1.5 text-on-surface-variant hover:text-primary bg-surface-variant/50 hover:bg-primary/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
                       <ChevronRight size={16} />
                     </button>
                   </td>
@@ -263,7 +265,7 @@ export const VisitorAnalytics: React.FC = () => {
               ))}
               {groupedLogs.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                  <td colSpan={6} className="p-8 text-center text-on-surface-variant">
                     No visitor logs found yet.
                   </td>
                 </tr>
@@ -293,20 +295,20 @@ export const VisitorAnalytics: React.FC = () => {
             >
               <div className="p-6 border-b border-outline-variant flex items-center justify-between bg-surface-variant/30 sticky top-0 z-10">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                  <h2 className="text-xl font-black text-on-surface flex items-center gap-3">
                     <span className="font-mono text-brand bg-brand/10 px-3 py-1 rounded-lg border border-brand/20">
                       {selectedVisitor.ip}
                     </span>
                     History
                   </h2>
-                  <div className="flex items-center gap-4 text-sm text-slate-500 mt-2 font-medium">
+                  <div className="flex items-center gap-4 text-sm text-on-surface-variant mt-2 font-medium">
                     <span className="flex items-center gap-1.5"><MapPin size={14}/> {selectedVisitor.city}, {selectedVisitor.country}</span>
                     <span className="flex items-center gap-1.5"><Monitor size={14}/> {selectedVisitor.isp}</span>
                   </div>
                 </div>
                 <button 
                   onClick={() => setSelectedVisitor(null)}
-                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                  className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
                 >
                   <X size={24} />
                 </button>
@@ -326,11 +328,11 @@ export const VisitorAnalytics: React.FC = () => {
                           <span className="bg-brand text-white text-xs font-bold px-2 py-1 rounded-md">
                             Session #{selectedVisitor.sessions.length - index}
                           </span>
-                          <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                          <span className="text-sm font-semibold text-on-surface-variant">
                             {formatDate(sessionStart || session.lastActive)}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
+                        <div className="flex items-center gap-4 text-xs font-bold text-on-surface-variant">
                           <span className="flex items-center gap-1.5 bg-surface px-2.5 py-1 rounded-lg border border-outline-variant">
                             <Clock size={14} className="text-brand"/> Duration: {duration}
                           </span>
@@ -342,7 +344,7 @@ export const VisitorAnalytics: React.FC = () => {
                       </div>
                       
                       <div className="p-4">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3 flex items-center gap-2">
                           <Hash size={14}/> Page Views
                         </h4>
                         
@@ -354,10 +356,10 @@ export const VisitorAnalytics: React.FC = () => {
                                   <div className="w-2 h-2 bg-brand rounded-full"></div>
                                 </div>
                                 <div className="flex-1 bg-surface border border-outline-variant rounded-xl p-3 flex justify-between items-center shadow-sm">
-                                  <span className="font-mono text-sm text-slate-700 dark:text-slate-200 bg-surface-variant/50 px-2 py-1 rounded-md border border-outline-variant/50">
+                                  <span className="font-mono text-sm text-on-surface bg-surface-variant/50 px-2 py-1 rounded-md border border-outline-variant/50">
                                     {visit.page}
                                   </span>
-                                  <span className="text-xs text-slate-400 font-medium">
+                                  <span className="text-xs text-on-surface-variant font-medium">
                                     {new Date(visit.timestamp).toLocaleTimeString()}
                                   </span>
                                 </div>
@@ -365,7 +367,7 @@ export const VisitorAnalytics: React.FC = () => {
                             ))}
                           </div>
                         ) : (
-                          <div className="text-sm text-slate-500 italic px-2">
+                          <div className="text-sm text-on-surface-variant italic px-2">
                             No detailed history available for this legacy session. Last page was: <span className="font-mono bg-surface-variant px-1 rounded">{session.lastPageVisited}</span>
                           </div>
                         )}

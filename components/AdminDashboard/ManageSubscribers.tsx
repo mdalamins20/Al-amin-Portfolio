@@ -254,14 +254,17 @@ export const ManageSubscribers: React.FC = () => {
     <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
-            <Mail className="text-brand" /> Newsletter & Subscribers
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage your audience and send manual updates.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+              <Mail size={20} className="text-purple-500" />
+            </div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">Newsletter & Subscribers</h1>
+          </div>
+          <p className="text-text-secondary text-sm font-medium pl-[52px]">Manage your audience and send manual updates.</p>
         </div>
         <button
           onClick={openBroadcastModal}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white rounded-xl font-bold transition-all hover:shadow-lg hover:shadow-brand/20 active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 bg-primary hover:scale-[1.02] active:scale-[0.98] text-white rounded-2xl font-bold transition-all hover:shadow-lg hover:shadow-primary/20"
         >
           <Send size={18} /> Broadcast Email
         </button>

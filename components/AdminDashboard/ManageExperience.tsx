@@ -11,7 +11,8 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Experience } from '../../types';
-import { Plus, Trash2, Edit2, Save, X, Loader2, Briefcase } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Loader2, Briefcase, Award } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
 import { AIAssistantInput } from './AIAssistantInput';
@@ -131,8 +132,13 @@ export const ManageExperience: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Manage Experience</h1>
-          <p className="text-slate-500 dark:text-slate-400">Update your professional journey and work history.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+              <Award size={20} className="text-cyan-500" />
+            </div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">Manage Experience</h1>
+          </div>
+          <p className="text-text-secondary text-sm font-medium pl-[52px]">Update your professional journey and work history.</p>
         </div>
         <button
           onClick={() => {
@@ -156,21 +162,21 @@ export const ManageExperience: React.FC = () => {
             exit={{ opacity: 0, y: -20, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden mb-8">
+            <div className="bg-surface/90 backdrop-blur-xl border border-outline-variant rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden mb-8">
               <button 
                 onClick={() => setIsEditing(false)}
-                className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors z-10"
+                className="absolute top-6 right-6 text-on-surface-variant hover:text-on-surface transition-colors z-10"
               >
                 <X size={24} />
               </button>
               
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 relative z-10">
+              <h2 className="text-2xl font-bold text-on-surface mb-8 relative z-10">
                 {currentExp.id ? 'Edit Experience' : 'Add New Experience'}
               </h2>
 
               <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Job Role</label>
+                  <label className="text-sm font-bold text-on-surface-variant">Job Role</label>
                   <input
                     required
                     value={currentExp.role || ''}
@@ -181,7 +187,7 @@ export const ManageExperience: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Company Name</label>
+                  <label className="text-sm font-bold text-on-surface-variant">Company Name</label>
                   <input
                     required
                     value={currentExp.company || ''}
@@ -192,7 +198,7 @@ export const ManageExperience: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Time Period</label>
+                  <label className="text-sm font-bold text-on-surface-variant">Time Period</label>
                   <input
                     required
                     value={currentExp.period || ''}
@@ -229,7 +235,7 @@ export const ManageExperience: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-6 py-3 rounded-2xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                    className="px-6 py-3 rounded-2xl text-on-surface-variant font-bold hover:bg-surface-variant transition-all"
                   >
                     Cancel
                   </button>
@@ -249,15 +255,12 @@ export const ManageExperience: React.FC = () => {
       </AnimatePresence>
 
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center">
-          <Loader2 className="w-10 h-10 text-brand animate-spin mb-4" />
-          <p className="text-slate-500 font-medium">Loading experience data...</p>
-        </div>
+        <AdminPageLoader icon={Award} color="text-cyan-500" bg="bg-cyan-500/10 border-cyan-500/20" label="Loading experience..." />
       ) : experiences.length === 0 ? (
-        <div className="text-center py-20 bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-white/10">
-          <Briefcase size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-          <p className="text-slate-500 font-medium text-lg">No experience records found.</p>
-          <p className="text-slate-400 text-sm mt-1">Click the button above to add your first job role.</p>
+        <div className="text-center py-20 bg-surface/50 rounded-3xl border border-dashed border-outline-variant">
+          <Briefcase size={48} className="mx-auto text-on-surface-variant mb-4" />
+          <p className="text-on-surface-variant font-medium text-lg">No experience records found.</p>
+          <p className="text-on-surface-variant/70 text-sm mt-1">Click the button above to add your first job role.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
@@ -267,28 +270,28 @@ export const ManageExperience: React.FC = () => {
               layout
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:items-center justify-between group hover:border-brand/30 transition-all shadow-sm"
+              className="bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:items-center justify-between group hover:border-primary/30 hover:shadow-lg transition-all shadow-sm"
             >
               <div className="flex-grow space-y-4">
                 <div>
                   <span className="inline-block px-3 py-1 rounded-full bg-brand/10 text-brand text-[10px] font-black tracking-widest uppercase mb-3">
                     {exp.period}
                   </span>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand transition-colors">
+                  <h3 className="text-xl font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
                     {exp.role}
                   </h3>
-                  <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                  <h4 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">
                     {exp.company}
                   </h4>
                 </div>
                 
-                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                <p className="text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
                   {exp.description}
                 </p>
                 
                 <div className="flex flex-wrap gap-2">
                   {exp.technologies?.map(tech => (
-                    <span key={tech} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <span key={tech} className="px-2.5 py-1 bg-surface-variant border border-outline-variant rounded-lg text-xs font-bold text-on-surface-variant">
                       {tech}
                     </span>
                   ))}
@@ -302,7 +305,7 @@ export const ManageExperience: React.FC = () => {
                     setIsEditing(true);
                     setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
                   }}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-2xl font-bold transition-colors"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-surface-variant hover:bg-outline-variant/30 text-on-surface rounded-2xl font-bold transition-colors"
                 >
                   <Edit2 size={16} />
                   <span>Edit</span>

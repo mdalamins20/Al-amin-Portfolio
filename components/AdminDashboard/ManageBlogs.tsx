@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { Blog } from '../../types';
 import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User, Sparkles } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -174,8 +175,13 @@ export const ManageBlogs: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface mb-2">Manage Blogs</h1>
-          <p className="text-on-surface-variant">Share your thoughts, articles, and latest updates.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <BookOpen size={20} className="text-emerald-500" />
+            </div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">Manage Blogs</h1>
+          </div>
+          <p className="text-text-secondary text-sm font-medium pl-[52px]">Share your thoughts, articles, and latest updates.</p>
         </div>
         <button
           onClick={() => {
@@ -367,9 +373,7 @@ export const ManageBlogs: React.FC = () => {
              <p className="text-on-surface-variant">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-             <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-outline-variant" />
-          ))
+          <AdminPageLoader icon={BookOpen} color="text-emerald-500" bg="bg-emerald-500/10 border-emerald-500/20" label="Loading blogs..." />
         ) : blogs.length === 0 ? (
           <div className="py-20 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
             <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">

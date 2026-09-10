@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar with Unified Alignment */}
         <div className="pt-6 border-t border-surface-variant/15 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3.5">
           <p className="text-text-secondary dark:text-slate-400 text-xs sm:text-sm font-normal text-center sm:text-left">
-            © {new Date().getFullYear()} <span className="text-on-surface font-bold">Muhammad Al-amin</span>. Crafted with precision &amp; performance.
+            © {new Date().getFullYear()} <span className="text-on-surface font-bold">{profile.name || 'Muhammad Al-amin'}</span>. Crafted with precision &amp; performance.
           </p>
           
           <button 

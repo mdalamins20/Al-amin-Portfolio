@@ -11,7 +11,8 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Review } from '../../types';
-import { Trash2, CheckCircle, XCircle, MessageSquare, User, Clock, Star, ShieldAlert } from 'lucide-react';
+import { Star, Trash2, CheckCircle, XCircle, MessageSquare, AlertCircle, User, Clock, ShieldAlert } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
 import { compileAndSyncToGist } from '../../utils/syncService';
@@ -94,27 +95,30 @@ export const ManageReviews: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Manage Reviews</h1>
-        <p className="text-slate-500 dark:text-slate-400">Moderate client testimonials before they appear on your site.</p>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <MessageSquare size={20} className="text-amber-500" />
+          </div>
+          <h1 className="text-3xl font-black text-on-surface tracking-tight">Manage Reviews</h1>
+        </div>
+        <p className="text-text-secondary text-sm font-medium pl-[52px]">Moderate client testimonials before they appear on your site.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         {!isConfigured ? (
           <div className="py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
              <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
-             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+             <p className="text-on-surface-variant">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-             <div key={i} className="h-40 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-3xl border border-slate-200 dark:border-white/10" />
-          ))
+          <AdminPageLoader icon={MessageSquare} color="text-amber-500" bg="bg-amber-500/10 border-amber-500/20" label="Loading reviews..." />
         ) : reviews.length === 0 ? (
-          <div className="py-20 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
-             <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <MessageSquare size={32} className="text-brand opacity-80" />
+          <div className="py-20 text-center bg-surface-variant/50 rounded-3xl border border-dashed border-outline-variant shadow-sm">
+             <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <MessageSquare size={32} className="text-primary opacity-80" />
             </div>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mb-2">No reviews submitted yet.</p>
-            <p className="text-slate-500 dark:text-slate-400">When clients submit a review, it will appear here for approval.</p>
+            <p className="text-xl font-bold text-on-surface mb-2">No reviews submitted yet.</p>
+            <p className="text-on-surface-variant">When clients submit a review, it will appear here for approval.</p>
           </div>
         ) : (
           <AnimatePresence>
@@ -127,22 +131,22 @@ export const ManageReviews: React.FC = () => {
                 transition={{ delay: i * 0.05 }}
                 key={review.id}
                 className={`
-                  bg-white dark:bg-slate-900 border rounded-3xl p-6 md:p-8 transition-all shadow-sm
-                  ${review.isApproved ? 'border-slate-200 dark:border-white/10' : 'border-amber-200 dark:border-amber-500/30 bg-amber-50/50 dark:bg-amber-900/10'}
+                  bg-surface border rounded-3xl p-6 md:p-8 transition-all shadow-sm
+                  ${review.isApproved ? 'border-outline-variant' : 'border-amber-200 dark:border-amber-500/30 bg-amber-50/50 dark:bg-amber-900/10'}
                 `}
               >
                 <div className="flex flex-col lg:flex-row gap-6">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-4 mb-4">
-                      <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 shadow-inner flex items-center justify-center text-brand">
+                      <div className="w-14 h-14 rounded-2xl bg-surface-variant border border-outline-variant shadow-inner flex items-center justify-center text-primary">
                         <User size={24} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{review.clientName}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{review.role}</p>
+                        <h3 className="font-bold text-lg text-on-surface">{review.clientName}</h3>
+                        <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">{review.role}</p>
                         <div className="flex space-x-1 mt-1.5 text-amber-400">
                             {Array.from({ length: 5 }).map((_, s) => (
-                                <Star key={s} size={14} fill={s < (review.rating || 5) ? "currentColor" : "none"} className={s < (review.rating || 5) ? "text-amber-400" : "text-slate-200 dark:text-slate-700"} />
+                                <Star key={s} size={14} fill={s < (review.rating || 5) ? "currentColor" : "none"} className={s < (review.rating || 5) ? "text-amber-400" : "text-outline-variant"} />
                             ))}
                         </div>
                       </div>
@@ -154,25 +158,25 @@ export const ManageReviews: React.FC = () => {
                       )}
                     </div>
                     
-                    <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 relative mt-4">
-                      <p className="text-slate-600 dark:text-slate-300 italic text-base leading-relaxed relative z-10">"{review.content}"</p>
+                    <div className="bg-surface-variant/60 rounded-2xl p-4 border border-outline-variant relative mt-4">
+                      <p className="text-on-surface-variant italic text-base leading-relaxed relative z-10">"{review.content}"</p>
                     </div>
 
                     {review.createdAt && (
-                      <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400 pl-2">
+                      <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-on-surface-variant pl-2">
                         <Clock size={14} />
                         <span>{new Date(review.createdAt.seconds * 1000).toLocaleDateString()}</span>
                       </div>
                     )}
                   </div>
                   
-                  <div className="flex lg:flex-col gap-3 shrink-0 lg:w-48 pt-2 mt-4 lg:mt-0 lg:border-l border-slate-100 dark:border-white/5 lg:pl-6">
+                  <div className="flex lg:flex-col gap-3 shrink-0 lg:w-48 pt-2 mt-4 lg:mt-0 lg:border-l border-outline-variant lg:pl-6">
                     <button
                       onClick={() => toggleApproval(review.id!, review.isApproved)}
                       className={`
                         flex-1 flex items-center justify-center lg:justify-start gap-2 px-4 py-3 rounded-xl font-bold transition-all
                         ${review.isApproved 
-                          ? 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10' 
+                          ? 'bg-surface-variant text-on-surface-variant hover:bg-outline-variant/30' 
                           : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/20 shadow-lg shadow-green-500/10'}
                       `}
                     >

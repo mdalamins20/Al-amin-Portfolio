@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useProfileStore } from '../stores/useProfileStore';
 import { Profile, SocialLink, Stat, Service, ProcessStep } from '../../types';
 import { Save, Loader2, Plus, Trash2, Globe, User, BookOpen, Star, Layers, Zap, Mail, Phone, CheckCircle2, Github, Activity, MapPin, Map } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getIconByName, ICON_NAMES } from '../IconMapper';
 import { ImageUpload } from './ImageUpload';
@@ -94,11 +95,7 @@ export const ManageProfile: React.FC = () => {
   };
 
   if (loading || !formData) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-brand" size={48} />
-      </div>
-    );
+    return <AdminPageLoader icon={User} color="text-violet-500" bg="bg-violet-500/10 border-violet-500/20" label="Loading profile..." />;
   }
 
   const tabs = [
@@ -114,8 +111,13 @@ export const ManageProfile: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface mb-2">Manage Profile</h1>
-          <p className="text-on-surface-variant">Control your personal information and site content</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
+              <User size={20} className="text-violet-500" />
+            </div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">Manage Profile</h1>
+          </div>
+          <p className="text-text-secondary text-sm font-medium pl-[52px]">Control your personal information and site content</p>
         </div>
         <button
           onClick={handleSave}
@@ -163,7 +165,7 @@ export const ManageProfile: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10"
             >
-              <div className="md:col-span-2 flex flex-col sm:flex-row flex-wrap gap-8 items-start sm:items-center md:items-start pb-8 border-b border-slate-100 dark:border-white/5">
+              <div className="md:col-span-2 flex flex-col sm:flex-row flex-wrap gap-8 items-start sm:items-center md:items-start pb-8 border-b border-outline-variant">
                 <div className="shrink-0 space-y-4">
                   <h3 className="font-bold text-on-surface">Profile Picture</h3>
                   <div className="w-40 sm:w-48">
@@ -232,7 +234,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -243,7 +245,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">Phone Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.phone}
                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
@@ -255,7 +257,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">Location Text</label>
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.locationText || ''}
                     onChange={e => setFormData({ ...formData, locationText: e.target.value })}
@@ -271,7 +273,7 @@ export const ManageProfile: React.FC = () => {
                   <span className="text-xs font-normal text-text-secondary bg-surface-variant px-2 py-0.5 rounded">Optional</span>
                 </label>
                 <div className="relative">
-                  <Map className="absolute left-4 top-4 text-slate-400" size={18} />
+                  <Map className="absolute left-4 top-4 text-on-surface-variant" size={18} />
                   <textarea
                     value={formData.mapEmbedUrl || ''}
                     onChange={e => setFormData({ ...formData, mapEmbedUrl: e.target.value })}
@@ -296,7 +298,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">GitHub Repositories Count</label>
                 <div className="relative">
-                  <Github className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Github className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.githubReposCount || ''}
                     onChange={e => setFormData({ ...formData, githubReposCount: e.target.value })}
@@ -309,7 +311,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">GitHub Total Stars</label>
                 <div className="relative">
-                  <Star className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Star className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.githubTotalStars || ''}
                     onChange={e => setFormData({ ...formData, githubTotalStars: e.target.value })}
@@ -322,7 +324,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-on-surface-variant">GitHub Total Forks</label>
                 <div className="relative">
-                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.githubTotalForks || ''}
                     onChange={e => setFormData({ ...formData, githubTotalForks: e.target.value })}
@@ -335,7 +337,7 @@ export const ManageProfile: React.FC = () => {
               <div className="space-y-2 md:col-span-2 pt-2 pb-4">
                 <label className="text-sm font-bold text-on-surface-variant">GitHub Total Contributions</label>
                 <div className="relative w-full md:w-1/2">
-                  <Activity className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Activity className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                   <input
                     value={formData.githubTotalContributions || ''}
                     onChange={e => setFormData({ ...formData, githubTotalContributions: e.target.value })}
@@ -413,8 +415,8 @@ export const ManageProfile: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100 dark:border-white/5">
-                <div className="space-y-3 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-outline-variant shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-outline-variant">
+                <div className="space-y-3 p-6 bg-surface-variant/50 rounded-3xl border border-outline-variant shadow-sm">
                   <div className="w-12 h-12 bg-surface rounded-2xl shadow-sm flex items-center justify-center text-brand mb-4">
                     <User size={24} />
                   </div>
@@ -428,7 +430,7 @@ export const ManageProfile: React.FC = () => {
                     placeholder="Describe your target audience..."
                   />
                 </div>
-                <div className="space-y-3 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-outline-variant shadow-sm">
+                <div className="space-y-3 p-6 bg-surface-variant/50 rounded-3xl border border-outline-variant shadow-sm">
                    <div className="w-12 h-12 bg-surface rounded-2xl shadow-sm flex items-center justify-center text-brand mb-4">
                     <CheckCircle2 size={24} />
                   </div>
@@ -442,7 +444,7 @@ export const ManageProfile: React.FC = () => {
                     placeholder="What problems do you solve?"
                   />
                 </div>
-                <div className="space-y-3 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-outline-variant shadow-sm">
+                <div className="space-y-3 p-6 bg-surface-variant/50 rounded-3xl border border-outline-variant shadow-sm">
                    <div className="w-12 h-12 bg-surface rounded-2xl shadow-sm flex items-center justify-center text-brand mb-4">
                     <Star size={24} />
                   </div>
@@ -490,7 +492,7 @@ export const ManageProfile: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     key={index} 
-                    className="flex flex-col md:flex-row gap-6 p-6 bg-slate-50 dark:bg-slate-800/20 border border-outline-variant rounded-3xl items-start md:items-center group shadow-sm"
+                    className="flex flex-col md:flex-row gap-6 p-6 bg-surface-container-low dark:bg-surface-container-low border border-outline-variant rounded-3xl items-start md:items-center group shadow-sm"
                   >
                     <div className="w-16 h-16 shrink-0 bg-surface border border-outline-variant rounded-2xl flex items-center justify-center text-brand shadow-sm">
                       {getIconByName(link.iconName)}
@@ -498,7 +500,7 @@ export const ManageProfile: React.FC = () => {
                     
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                       <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Platform Name</label>
+                        <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Platform Name</label>
                         <input
                           value={link.name}
                           onChange={e => {
@@ -511,7 +513,7 @@ export const ManageProfile: React.FC = () => {
                         />
                       </div>
                       <div>
-                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">URL</label>
+                         <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">URL</label>
                         <input
                           value={link.url}
                           onChange={e => {
@@ -524,7 +526,7 @@ export const ManageProfile: React.FC = () => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Platform Icon</label>
+                        <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Platform Icon</label>
                          <select
                           value={link.iconName}
                           onChange={e => {
@@ -554,8 +556,8 @@ export const ManageProfile: React.FC = () => {
                 ))}
                 
                 {formData.socialLinks.length === 0 && (
-                   <div className="py-12 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-                    <p className="text-slate-500">No social links added yet.</p>
+                   <div className="py-12 text-center bg-surface-variant/50 rounded-3xl border border-dashed border-outline-variant">
+                    <p className="text-on-surface-variant">No social links added yet.</p>
                   </div>
                 )}
               </div>
@@ -593,7 +595,7 @@ export const ManageProfile: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     key={index} 
-                    className="p-6 bg-slate-50 dark:bg-slate-800/20 border border-outline-variant rounded-3xl relative group shadow-sm"
+                    className="p-6 bg-surface-variant/50 border border-outline-variant rounded-3xl relative group shadow-sm"
                   >
                     <button
                       onClick={() => {
@@ -607,7 +609,7 @@ export const ManageProfile: React.FC = () => {
                     
                     <div className="space-y-4 pt-2">
                        <div>
-                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Value & Suffix</label>
+                         <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Value & Suffix</label>
                          <div className="flex gap-2">
                             <input
                               value={stat.value}
@@ -633,7 +635,7 @@ export const ManageProfile: React.FC = () => {
                        </div>
                        
                        <div>
-                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Label</label>
+                         <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Label</label>
                          <input
                            value={stat.label}
                            onChange={e => {
@@ -683,7 +685,7 @@ export const ManageProfile: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     key={index} 
-                    className="p-6 md:p-8 bg-slate-50 dark:bg-slate-800/30 border border-outline-variant rounded-3xl relative group"
+                    className="p-6 md:p-8 bg-surface-variant/50 border border-outline-variant rounded-3xl relative group"
                   >
                     <button
                       onClick={() => {
@@ -702,7 +704,7 @@ export const ManageProfile: React.FC = () => {
                           </div>
                           
                            <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Icon</label>
+                            <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Icon</label>
                             <select
                               value={service.iconName}
                               onChange={e => {
@@ -720,7 +722,7 @@ export const ManageProfile: React.FC = () => {
                        </div>
                        <div className="lg:col-span-8 space-y-5">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Service Title</label>
+                            <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Service Title</label>
                             <input
                               value={service.title}
                               onChange={e => {
@@ -734,7 +736,7 @@ export const ManageProfile: React.FC = () => {
                           </div>
                           
                           <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Main Benefit</label>
+                             <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Main Benefit</label>
                             <input
                               value={service.benefit}
                               onChange={e => {
@@ -748,7 +750,7 @@ export const ManageProfile: React.FC = () => {
                           </div>
                           
                           <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Detailed Description</label>
+                             <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Detailed Description</label>
                             <textarea
                               value={service.description}
                               onChange={e => {
@@ -801,7 +803,7 @@ export const ManageProfile: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     key={index} 
-                    className="flex flex-col md:flex-row gap-6 p-6 bg-slate-50 dark:bg-slate-800/20 border border-outline-variant rounded-3xl items-start group shadow-sm"
+                    className="flex flex-col md:flex-row gap-6 p-6 bg-surface-variant/50 border border-outline-variant rounded-3xl items-start group shadow-sm"
                   >
                      <div className="w-16 h-16 shrink-0 bg-surface border border-outline-variant rounded-2xl flex items-center justify-center shadow-sm relative">
                        <input
@@ -817,7 +819,7 @@ export const ManageProfile: React.FC = () => {
                      
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-1 gap-4 w-full pt-1">
                       <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Step Title</label>
+                        <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Step Title</label>
                         <input
                           value={step.title}
                           onChange={e => {
@@ -830,7 +832,7 @@ export const ManageProfile: React.FC = () => {
                         />
                       </div>
                       <div>
-                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Description</label>
+                         <label className="text-xs font-bold text-on-surface-variant uppercase mb-1 block">Description</label>
                         <textarea
                           value={step.description}
                           onChange={e => {

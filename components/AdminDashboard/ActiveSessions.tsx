@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { collection, query, onSnapshot, doc, updateDoc, where } from 'firebase/firestore';
 import { Shield, Monitor, Smartphone, Globe, LogOut, Clock, Activity, MapPin, Wifi } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TwoFactorSetup } from './TwoFactorSetup';
 
@@ -88,26 +89,24 @@ export const ActiveSessions: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div>
-      </div>
-    );
+    return <AdminPageLoader icon={Shield} color="text-red-500" bg="bg-red-500/10 border-red-500/20" label="Loading sessions..." />;
   }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-          <Shield className="text-brand" size={32} />
-          Active Admin Sessions
-        </h1>
-        <p className="text-on-surface-variant mt-2">Monitor all devices currently logged into the admin panel and remotely log them out if suspicious.</p>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <Shield size={20} className="text-red-500" />
+          </div>
+          <h1 className="text-3xl font-black text-on-surface tracking-tight">Active Admin Sessions</h1>
+        </div>
+        <p className="text-text-secondary text-sm font-medium pl-[52px]">Monitor all devices currently logged into the admin panel and remotely log them out if suspicious.</p>
       </div>
 
       <div className="bg-surface rounded-3xl border border-outline-variant shadow-lg overflow-hidden">
         <div className="p-6 border-b border-outline-variant bg-surface-variant/30 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
             <Activity className="text-brand" size={20} />
             Logged In Devices ({sessions.length})
           </h3>
@@ -130,7 +129,7 @@ export const ActiveSessions: React.FC = () => {
                   
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <h4 className="font-bold text-slate-900 dark:text-white text-lg">
+                      <h4 className="font-bold text-on-surface text-lg">
                         {session.deviceName || `${session.os} Device`}
                       </h4>
                       {session.sessionId === currentSessionId && (
@@ -140,11 +139,11 @@ export const ActiveSessions: React.FC = () => {
                       )}
                     </div>
                     
-                    <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">
+                    <div className="text-sm font-semibold text-on-surface-variant mb-3">
                       {session.os} • {session.browser}
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 text-sm font-medium text-slate-500">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 text-sm font-medium text-on-surface-variant">
                       <div className="flex items-start gap-1.5 col-span-1 md:col-span-2">
                         <MapPin size={14} className="text-brand/80 mt-0.5 flex-shrink-0" />
                         {session.mapLink ? (
@@ -152,13 +151,13 @@ export const ActiveSessions: React.FC = () => {
                             href={session.mapLink} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-slate-600 dark:text-slate-400 hover:text-brand hover:underline transition-colors"
+                            className="text-on-surface-variant hover:text-primary hover:underline transition-colors"
                             title="Click to view on Google Maps"
                           >
                             {session.exactLocation || "Location unavailable"}
                           </a>
                         ) : (
-                          <span className="text-slate-600 dark:text-slate-400">
+                          <span className="text-on-surface-variant">
                             {session.exactLocation || "Location unavailable"}
                           </span>
                         )}

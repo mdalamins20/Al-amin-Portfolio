@@ -12,7 +12,8 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Tool } from '../../types';
-import { Plus, Trash2, Edit2, Save, X, Loader2, Wrench } from 'lucide-react';
+import { Plus, Loader2, Trash2, Edit2, Save, X, Code2, Wrench } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
 import { ImageUpload } from './ImageUpload';
@@ -131,8 +132,13 @@ export const ManageSkills: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Manage Skills</h1>
-          <p className="text-slate-500 dark:text-slate-400">Add, update or remove your technical expertise and tools.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center shrink-0">
+              <Wrench size={20} className="text-pink-500" />
+            </div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">Manage Skills</h1>
+          </div>
+          <p className="text-text-secondary text-sm font-medium pl-[52px]">Add, update or remove your technical expertise and tools.</p>
         </div>
         <button
           onClick={() => {
@@ -140,10 +146,10 @@ export const ManageSkills: React.FC = () => {
             setIsEditing(true);
             setTimeout(() => document.getElementById('admin-main-content')?.scrollTo({ top: 0, behavior: 'smooth' }), 100);
           }}
-          className="bg-brand hover:scale-105 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-transform shadow-lg shadow-brand/20 active:scale-95"
+          className="bg-primary text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold transition-all shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-95 text-sm"
           disabled={isEditing}
         >
-          <Plus size={20} />
+          <Plus size={18} />
           New Skill
         </button>
       </div>
@@ -157,35 +163,35 @@ export const ManageSkills: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-sm relative mb-8 overflow-hidden">
+            <div className="bg-surface/95 dark:bg-slate-950/90 backdrop-blur-2xl border border-surface-variant/30 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative mb-8 overflow-hidden">
              {/* Subtle background glow */}
-             <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 blur-3xl rounded-full pointer-events-none" />
+             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-3xl rounded-full pointer-events-none" />
               <button 
                 onClick={() => setIsEditing(false)}
-                className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors z-10"
+                className="absolute top-6 right-6 text-text-secondary hover:text-on-surface transition-colors z-10 p-1.5 rounded-xl hover:bg-surface-variant/20"
                 title="Close"
               >
-                <X size={24} />
+                <X size={22} />
               </button>
               
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 relative z-10">
+              <h2 className="text-2xl font-black text-on-surface mb-6 relative z-10 tracking-tight">
                 {currentSkill.id ? 'Edit Skill' : 'Add New Skill'}
               </h2>
 
-              <form onSubmit={handleSave} className="grid grid-cols-1 gap-6 relative z-10">
+              <form onSubmit={handleSave} className="grid grid-cols-1 gap-5 relative z-10">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Skill Name</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">Skill Name</label>
                   <input
                     required
                     value={currentSkill.name || ''}
                     onChange={e => setCurrentSkill({ ...currentSkill, name: e.target.value })}
-                    className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-brand text-slate-900 dark:text-white transition-all shadow-sm"
+                    className="w-full text-sm px-4 py-3.5 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
                     placeholder="e.g. React.js"
                   />
                 </div>
                 
-                <div className="space-y-2 p-6 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                  <h3 className="font-bold text-slate-900 dark:text-white mb-4">Skill Icon (SVG/PNG)</h3>
+                <div className="space-y-2 p-5 bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-surface-variant/30 dark:border-white/10 shadow-sm">
+                  <h3 className="font-bold text-sm text-on-surface mb-3">Skill Icon (SVG/PNG)</h3>
                   <div className="w-32 sm:w-40">
                   <ImageUpload
                     label=""
@@ -200,20 +206,20 @@ export const ManageSkills: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="flex justify-end gap-3 mt-4 pt-5 border-t border-surface-variant/20 dark:border-white/5">
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-6 py-3 rounded-2xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                    className="px-6 py-3 rounded-2xl text-text-secondary font-bold hover:bg-surface-variant/20 transition-all text-sm"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="bg-brand hover:scale-[1.02] active:scale-[0.98] text-white px-8 py-3 rounded-2xl flex items-center justify-center gap-2 font-bold transition-all disabled:opacity-50 min-w-[150px] shadow-lg shadow-brand/20"
+                    className="bg-primary text-white px-8 py-3 rounded-2xl flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 min-w-[150px] shadow-lg shadow-primary/25 text-sm"
                   >
-                    {formLoading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                    {formLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                     Save Skill
                   </button>
                 </div>
@@ -223,23 +229,21 @@ export const ManageSkills: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {!isConfigured ? (
-          <div className="md:col-span-3 py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
-             <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Firebase Not Configured</p>
-             <p className="text-slate-500 dark:text-slate-400">Please check your .env file or firebase.ts configuration.</p>
+          <div className="md:col-span-3 py-20 text-center bg-red-500/10 rounded-3xl border border-dashed border-red-500/20 shadow-sm">
+             <p className="text-xl font-bold text-red-500 mb-2">Firebase Not Configured</p>
+             <p className="text-text-secondary text-sm">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-             <div key={i} className="h-24 bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-2xl border border-slate-200 dark:border-white/10" />
-          ))
+          <AdminPageLoader icon={Wrench} color="text-pink-500" bg="bg-pink-500/10 border-pink-500/20" label="Loading skills..." />
         ) : skills.length === 0 ? (
-          <div className="md:col-span-3 py-20 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
-            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <Wrench size={32} className="text-brand opacity-80" />
+          <div className="md:col-span-3 py-20 text-center bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-dashed border-surface-variant/40 dark:border-white/10 shadow-sm">
+            <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-surface-variant/30">
+              <Wrench size={28} className="text-primary opacity-80" />
             </div>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mb-2">No skills yet</p>
-            <p className="text-slate-500 dark:text-slate-400">Click "New Skill" to add your first expertise.</p>
+            <p className="text-lg font-bold text-on-surface mb-1">No skills yet</p>
+            <p className="text-text-secondary text-xs">Click "New Skill" to add your first expertise.</p>
           </div>
         ) : (
           skills.map((skill, i) => (
@@ -249,28 +253,28 @@ export const ManageSkills: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
               key={skill.id}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-5 flex items-center gap-4 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm"
+              className="bg-surface/90 dark:bg-slate-950/70 backdrop-blur-xl border border-surface-variant/30 dark:border-white/10 rounded-2xl p-4 flex items-center gap-4 group hover:border-primary/40 hover:shadow-xl transition-all shadow-sm"
             >
-              <div className="w-16 h-16 shrink-0 flex items-center justify-center bg-slate-50 dark:bg-white/5 rounded-xl p-3 shadow-inner border border-slate-100 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-14 h-14 shrink-0 flex items-center justify-center bg-surface-variant/20 dark:bg-white/5 rounded-xl p-2.5 shadow-inner border border-surface-variant/30 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
                 <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 dark:text-white break-words text-base md:text-lg group-hover:text-brand transition-colors leading-snug">{skill.name}</h3>
+                <h3 className="font-bold text-on-surface break-words text-base group-hover:text-primary transition-colors leading-snug">{skill.name}</h3>
               </div>
-              <div className="flex flex-col gap-1 opacity-0 translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+              <div className="flex flex-col gap-1 opacity-0 translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200">
                 <button
                   onClick={() => openEdit(skill)}
-                  className="p-1.5 text-slate-400 hover:text-brand hover:bg-brand/10 rounded-lg transition-colors"
+                  className="p-1.5 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                   title="Edit skill"
                 >
-                  <Edit2 size={16} />
+                  <Edit2 size={15} />
                 </button>
                 <button
                   onClick={() => handleDelete(skill.id!)}
-                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                   title="Delete skill"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </motion.div>
