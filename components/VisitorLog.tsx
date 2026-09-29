@@ -49,7 +49,10 @@ export const VisitorLog: React.FC = () => {
         await setDoc(sessionRef, {
           ip: ipData?.ip || 'Unknown',
           city: ipData?.city || 'Unknown',
+          region: ipData?.region || 'Unknown',
           country: (ipData?.country || ipData?.country_name) || 'Unknown',
+          latitude: ipData?.latitude || null,
+          longitude: ipData?.longitude || null,
           isp: (ipData?.connection?.org || ipData?.org) || 'Unknown',
           device: isMobile ? 'Mobile' : 'Desktop',
           lastActive: timestamp,

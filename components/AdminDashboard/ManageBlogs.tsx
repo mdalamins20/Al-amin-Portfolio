@@ -12,9 +12,10 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Blog } from '../../types';
-import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User, Sparkles } from 'lucide-react';
+import { logActivity } from '../../utils/activityLogger';
+import { Plus, Trash2, Edit2, Save, X, Loader2, BookOpen, Calendar, User, Sparkles, Search, GripVertical, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
 import { AdminPageLoader } from './AdminPageLoader';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { ImageUpload } from './ImageUpload';
@@ -41,6 +42,8 @@ export const ManageBlogs: React.FC = () => {
     type: 'info'
   });
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
 
   useEffect(() => {
     fetchBlogs();
@@ -53,12 +56,20 @@ export const ManageBlogs: React.FC = () => {
     }
     setLoading(true);
     try {
-      const q = query(collection(db, 'blogs'), orderBy('date', 'desc'));
+      const q = query(collection(db, 'blogs'));
       const querySnapshot = await getDocs(q);
       const blogsData = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id
       })) as Blog[];
+      
+      // Sort by order, fallback to date
+      blogsData.sort((a, b) => {
+        const orderA = a.order ?? 999999;
+        const orderB = b.order ?? 999999;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
       setBlogs(blogsData);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -81,12 +92,15 @@ export const ManageBlogs: React.FC = () => {
       if (currentBlog.id) {
         const { id, ...data } = blogData;
         await updateDoc(doc(db, 'blogs', id), data);
+        await logActivity('update', 'blog', data.title || 'Blog', `Updated blog post`);
       } else {
         const { id: _, ...newBlogData } = blogData;
         await addDoc(collection(db, 'blogs'), {
           ...newBlogData,
+          order: blogs.length,
           id: Date.now().toString()
         });
+        await logActivity('create', 'blog', newBlogData.title || 'New Blog', `Created new blog post`);
       }
       setIsEditing(false);
       setCurrentBlog({});
@@ -112,6 +126,57 @@ export const ManageBlogs: React.FC = () => {
     }
   };
 
+  const handleReorder = async (newOrder: Blog[]) => {
+    setBlogs(newOrder);
+    if (!db) return;
+    try {
+      const updates = newOrder.map((blog, index) => {
+        return updateDoc(doc(db, 'blogs', blog.id!), { order: index });
+      });
+      await Promise.all(updates);
+      compileAndSyncToGist().catch(console.error);
+    } catch (error) {
+      console.error('Error reordering blogs:', error);
+      fetchBlogs();
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (!db || selectedBlogs.length === 0) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Selected Blogs',
+      message: `Are you sure you want to delete ${selectedBlogs.length} selected blog posts? This action cannot be undone.`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          const deletePromises = selectedBlogs.map(id => deleteDoc(doc(db!, 'blogs', id)));
+          await Promise.all(deletePromises);
+          await logActivity('bulk_update', 'blog', `${selectedBlogs.length} blogs`, `Bulk deleted ${selectedBlogs.length} blogs`);
+          setSelectedBlogs([]);
+          fetchBlogs();
+          compileAndSyncToGist().catch(console.error);
+        } catch (error) {
+          console.error('Error in bulk delete:', error);
+        }
+      }
+    });
+  };
+
+  const handleBulkStatusUpdate = async (status: 'draft' | 'published') => {
+    if (!db || selectedBlogs.length === 0) return;
+    try {
+      const updatePromises = selectedBlogs.map(id => updateDoc(doc(db!, 'blogs', id), { status }));
+      await Promise.all(updatePromises);
+      await logActivity('bulk_update', 'blog', `${selectedBlogs.length} blogs`, `Changed status to ${status}`);
+      setSelectedBlogs([]);
+      fetchBlogs();
+      compileAndSyncToGist().catch(console.error);
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
   const handleDelete = (id: string) => {
     if (!db) return;
     setModalConfig({
@@ -122,6 +187,7 @@ export const ManageBlogs: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'blogs', id));
+          await logActivity('delete', 'blog', 'Blog Post', `Deleted blog ID: ${id}`);
           fetchBlogs();
           // Background Sync to Gist
           compileAndSyncToGist().catch(console.error);
@@ -265,14 +331,27 @@ export const ManageBlogs: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-on-surface-variant">Author Name</label>
-                    <input
-                      value={currentBlog.author || ''}
-                      onChange={e => setCurrentBlog(prev => ({ ...prev, author: e.target.value }))}
-                      className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
-                      placeholder="Enter Author Name"
-                    />
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-on-surface-variant">Author Name</label>
+                      <input
+                        value={currentBlog.author || ''}
+                        onChange={e => setCurrentBlog(prev => ({ ...prev, author: e.target.value }))}
+                        className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm"
+                        placeholder="Enter Author Name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-on-surface-variant">Visibility Status</label>
+                      <select
+                        value={currentBlog.status || 'published'}
+                        onChange={e => setCurrentBlog(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
+                        className="w-full text-base px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-brand text-on-surface transition-all shadow-sm appearance-none cursor-pointer"
+                      >
+                        <option value="published">Published (Visible to public)</option>
+                        <option value="draft">Draft (Hidden from public)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 
@@ -366,6 +445,58 @@ export const ManageBlogs: React.FC = () => {
         )}
       </AnimatePresence>
 
+      <div className="mb-6 relative">
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+            <input
+              type="text"
+              placeholder="Search blogs by title or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-variant border border-outline-variant rounded-xl py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-emerald-500/50 transition-colors"
+            />
+          </div>
+          <AnimatePresence>
+            {selectedBlogs.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex items-center gap-2 bg-surface border border-outline-variant rounded-xl p-2 shadow-sm"
+              >
+                <span className="text-sm font-bold text-on-surface px-3 whitespace-nowrap">
+                  {selectedBlogs.length} selected
+                </span>
+                <div className="w-px h-6 bg-outline-variant mx-1" />
+                <button
+                  onClick={() => handleBulkStatusUpdate('published')}
+                  className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                  title="Publish selected"
+                >
+                  <Eye size={18} />
+                </button>
+                <button
+                  onClick={() => handleBulkStatusUpdate('draft')}
+                  className="p-2 text-slate-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"
+                  title="Draft selected"
+                >
+                  <EyeOff size={18} />
+                </button>
+                <div className="w-px h-6 bg-outline-variant mx-1" />
+                <button
+                  onClick={handleBulkDelete}
+                  className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Delete selected"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
         {!isConfigured ? (
           <div className="py-20 text-center bg-red-50 dark:bg-red-900/10 rounded-3xl border border-dashed border-red-200 dark:border-red-500/20 shadow-sm">
@@ -382,56 +513,91 @@ export const ManageBlogs: React.FC = () => {
             <p className="text-xl font-bold text-on-surface mb-2">No blog posts yet</p>
             <p className="text-on-surface-variant">Click "New Post" to write your first article.</p>
           </div>
+        ) : blogs.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()) || (b.author || '').toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+          <div className="py-20 text-center bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 shadow-sm">
+            <p className="text-on-surface-variant">No blog posts match your search.</p>
+          </div>
         ) : (
-          blogs.map((blog, i) => (
-            <motion.div
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              key={blog.id}
-              className="bg-surface border border-outline-variant rounded-3xl p-6 flex flex-col md:flex-row gap-6 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm relative overflow-hidden"
-            >
-              <div className="w-full md:w-56 overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 group-hover:shadow-md transition-shadow relative">
-                {/* Serial Number Badge */}
-                <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-lg font-bold text-sm border border-white/10 shadow-lg flex items-center justify-center">
-                  #{blogs.length - i}
-                </div>
-                <div className="w-full h-full relative" style={{ paddingBottom: '70%' }}>
-                   <img src={blog.image} alt={blog.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <div className="flex items-center flex-wrap gap-4 text-xs font-bold text-on-surface-variant mb-3 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5 whitespace-nowrap bg-surface-variant px-2.5 py-1 rounded-md">
-                    <Calendar size={14} className="text-brand" />
-                    <span>{blog.date}</span>
+          <Reorder.Group 
+            axis="y" 
+            values={blogs} 
+            onReorder={handleReorder}
+            className="grid grid-cols-1 gap-6"
+          >
+            {blogs.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()) || (b.author || '').toLowerCase().includes(searchQuery.toLowerCase())).map((blog, i) => (
+              <Reorder.Item
+                value={blog}
+                key={blog.id}
+                className="bg-surface border border-outline-variant rounded-3xl p-6 flex flex-col md:flex-row gap-6 group hover:border-brand/40 hover:shadow-xl transition-all shadow-sm relative overflow-hidden"
+              >
+                <div className="w-full md:w-56 overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 group-hover:shadow-md transition-shadow relative">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedBlogs(prev => 
+                        prev.includes(blog.id!) 
+                          ? prev.filter(id => id !== blog.id)
+                          : [...prev, blog.id!]
+                      );
+                    }}
+                    className="absolute top-2 left-2 z-20 text-white/90 hover:text-brand hover:scale-110 transition-all drop-shadow-md"
+                  >
+                    {selectedBlogs.includes(blog.id!) ? (
+                      <CheckSquare size={22} className="text-brand fill-surface" />
+                    ) : (
+                      <Square size={22} className="opacity-70 group-hover:opacity-100" />
+                    )}
+                  </button>
+                  <div className="absolute top-2 left-10 flex gap-2 z-10">
+                    <div className="bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-lg font-bold text-sm border border-white/10 shadow-lg flex items-center justify-center">
+                      #{blogs.length - i}
+                    </div>
+                    {blog.status === 'draft' && (
+                      <div className="bg-yellow-500/90 text-yellow-950 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg shadow-lg backdrop-blur-md border border-yellow-400/50 flex items-center justify-center">
+                        Draft
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1.5 bg-surface-variant px-2.5 py-1 rounded-md max-w-full">
-                    <User size={14} className="text-brand shrink-0" />
-                    <span className="truncate">{blog.author}</span>
+                  <div className="w-full h-full relative" style={{ paddingBottom: '70%' }}>
+                     <img src={blog.image} alt={blog.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-on-surface mb-0 group-hover:text-brand transition-colors line-clamp-2">{blog.title}</h3>
-              </div>
-              <div className="flex md:flex-col gap-2 shrink-0 md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-white/5 pt-4 md:pt-0 md:pl-6 mt-4 md:mt-0">
-                <button
-                  onClick={() => openEdit(blog)}
-                  className="flex-1 md:flex-none p-3 text-slate-500 hover:text-brand hover:bg-brand/10 rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
-                >
-                  <Edit2 size={18} />
-                  <span className="md:hidden">Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(blog.id!)}
-                  className="flex-1 md:flex-none p-3 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
-                >
-                  <Trash2 size={18} />
-                  <span className="md:hidden">Delete</span>
-                </button>
-              </div>
-            </motion.div>
-          ))
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="flex items-center flex-wrap gap-4 text-xs font-bold text-on-surface-variant mb-3 uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap bg-surface-variant px-2.5 py-1 rounded-md">
+                      <Calendar size={14} className="text-brand" />
+                      <span>{blog.date}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-surface-variant px-2.5 py-1 rounded-md max-w-full">
+                      <User size={14} className="text-brand shrink-0" />
+                      <span className="truncate">{blog.author}</span>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-on-surface mb-0 group-hover:text-brand transition-colors line-clamp-2">{blog.title}</h3>
+                </div>
+                <div className="flex md:flex-col gap-2 shrink-0 md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-white/5 pt-4 md:pt-0 md:pl-6 mt-4 md:mt-0 relative">
+                  <div className="absolute top-0 right-0 md:static bg-surface rounded-full p-1.5 shadow-sm border border-outline-variant text-text-secondary cursor-grab active:cursor-grabbing hover:text-brand z-20 transition-colors md:mb-2 md:mx-auto">
+                    <GripVertical size={16} />
+                  </div>
+                  <button
+                    onClick={() => openEdit(blog)}
+                    className="flex-1 md:flex-none p-3 text-slate-500 hover:text-brand hover:bg-brand/10 rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
+                  >
+                    <Edit2 size={18} />
+                    <span className="md:hidden">Edit</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(blog.id!)}
+                    className="flex-1 md:flex-none p-3 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
+                  >
+                    <Trash2 size={18} />
+                    <span className="md:hidden">Delete</span>
+                  </button>
+                </div>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
         )}
       </div>
 

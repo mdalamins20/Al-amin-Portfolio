@@ -3,6 +3,7 @@ import { db } from '../../firebase';
 import { collection, query, onSnapshot, doc, updateDoc, where } from 'firebase/firestore';
 import { Shield, Monitor, Smartphone, Globe, LogOut, Clock, Activity, MapPin, Wifi } from 'lucide-react';
 import { AdminPageLoader } from './AdminPageLoader';
+import { logActivity } from '../../utils/activityLogger';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TwoFactorSetup } from './TwoFactorSetup';
 
@@ -75,6 +76,7 @@ export const ActiveSessions: React.FC = () => {
       await updateDoc(doc(db, 'admin_sessions', sessionId), {
         isActive: false
       });
+      await logActivity('delete', 'session', 'Session', `Terminated session ID: ${sessionId}`);
     } catch (e) {
       console.error("Failed to logout session", e);
       showAlert("Error", "Failed to logout the session.");

@@ -21,6 +21,8 @@ export interface Project {
   features?: string[];
   screenshots?: string[];
   platformLinks?: { name: string; url: string }[];
+  status?: 'draft' | 'published';
+  order?: number;
 }
 
 export interface Experience {
@@ -44,6 +46,7 @@ export interface Tool {
   tag: string;
   icon: string;
   benefit?: string;
+  order?: number;
 }
 
 export interface BlogComment {
@@ -66,6 +69,8 @@ export interface Blog {
   seoTitle?: string;
   metaDescription?: string;
   keywords?: string;
+  status?: 'draft' | 'published';
+  order?: number;
 }
 
 export interface Review {
@@ -137,4 +142,13 @@ export interface NavItem {
   label: string;
   href: string;
   isAction?: boolean;
+}
+
+export interface ActivityLog {
+  id?: string;
+  action: 'create' | 'update' | 'delete' | 'bulk_update';
+  entityType: 'project' | 'blog' | 'profile' | 'skill' | 'tool' | 'review' | 'system';
+  entityName: string;
+  timestamp: any;
+  details?: string;
 }

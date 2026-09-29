@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Send, Users, History, Calendar, Link as LinkIcon, RefreshCw, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Mail, Send, Users, History, Calendar, Link as LinkIcon, RefreshCw, Trash2, CheckSquare, Square, Search, Download } from 'lucide-react';
+import { AdminPageLoader } from './AdminPageLoader';
 import { db, isConfigured } from '../../firebase';
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { showAlert, useDialogStore } from '../stores/useDialogStore';
 import { getEmailJSKeys, hasEmailJSKeys } from '../../utils/emailjsService';
+import { logActivity } from '../../utils/activityLogger';
 import { Blog, Project } from '../../types';
 
 interface Subscriber {
@@ -31,12 +33,14 @@ export const ManageSubscribers: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // For Broadcast Modal
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectedSubscribers, setSelectedSubscribers] = useState<string[]>([]);
+  const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
   const [customSubject, setCustomSubject] = useState('');
   const [customMessage, setCustomMessage] = useState('');
 
@@ -106,11 +110,61 @@ export const ManageSubscribers: React.FC = () => {
     if (confirmed) {
       try {
         await deleteDoc(doc(db, 'subscribers', id));
+        await logActivity('delete', 'subscriber', 'Subscriber', `Deleted subscriber ID: ${id}`);
         fetchData();
         showAlert("Success", "Subscriber removed.", "success");
       } catch (e) {
         console.error(e);
         showAlert("Error", "Could not delete subscriber.", "danger");
+      }
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (subscribers.length === 0) {
+      showAlert("No Data", "There are no subscribers to export.", "danger");
+      return;
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Email,Subscribed At,Source\n";
+    
+    subscribers.forEach(sub => {
+      const date = sub.subscribedAt?.toDate ? sub.subscribedAt.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+      csvContent += `${sub.email},${date},${sub.source || 'Website'}\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBulkDeleteSubscribers = async () => {
+    if (selectedForDelete.length === 0) return;
+    
+    const confirmed = await showDialog({
+      title: 'Bulk Delete Subscribers',
+      message: `Are you sure you want to delete ${selectedForDelete.length} subscribers?`,
+      type: 'confirm',
+      variant: 'danger',
+      confirmText: 'Delete All'
+    });
+
+    if (confirmed) {
+      try {
+        const promises = selectedForDelete.map(id => deleteDoc(doc(db, 'subscribers', id)));
+        await Promise.all(promises);
+        await logActivity('bulk_update', 'subscriber', `${selectedForDelete.length} subscribers`, `Bulk deleted ${selectedForDelete.length} subscribers`);
+        showAlert("Deleted!", `Successfully deleted ${selectedForDelete.length} subscribers.`, "success");
+        setSelectedForDelete([]);
+        fetchData();
+      } catch (e) {
+        console.error(e);
+        showAlert("Error", "Could not delete subscribers.", "danger");
       }
     }
   };
@@ -227,6 +281,7 @@ export const ManageSubscribers: React.FC = () => {
             sentAt: serverTimestamp(),
             status: successCount === targetSubscribers.length ? 'Success' : 'Partial Success'
           });
+          await logActivity('create', 'broadcast', 'Email Broadcast', `Sent broadcast to ${successCount} subscribers`);
         } catch (historyErr) {
           console.warn("Could not save history to Firestore. Please update your Firestore Rules.", historyErr);
         }
@@ -271,30 +326,68 @@ export const ManageSubscribers: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <RefreshCw className="animate-spin text-brand" size={32} />
-        </div>
+        <AdminPageLoader icon={Mail} color="text-purple-500" bg="bg-purple-500/10 border-purple-500/20" label="Loading subscribers..." />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Subscribers List */}
           <div className="bg-surface rounded-3xl p-6 shadow-sm border border-outline-variant">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-outline-variant">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                <Users size={20} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-outline-variant gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-on-surface">Subscribers</h2>
+                  <p className="text-sm text-on-surface-variant">Total: {subscribers.length}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-on-surface">Subscribers</h2>
-                <p className="text-sm text-on-surface-variant">Total: {subscribers.length}</p>
+              <div className="flex gap-2">
+                {selectedForDelete.length > 0 && (
+                  <button
+                    onClick={handleBulkDeleteSubscribers}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-medium transition-colors text-sm border border-red-500/20"
+                  >
+                    <Trash2 size={16} /> Delete Selected ({selectedForDelete.length})
+                  </button>
+                )}
+                <button
+                  onClick={handleExportCSV}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-surface-variant/30 hover:bg-surface-variant/50 text-on-surface rounded-xl font-medium transition-colors text-sm border border-outline-variant"
+                >
+                  <Download size={16} /> Export CSV
+                </button>
               </div>
             </div>
 
+            <div className="mb-6 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+              <input
+                type="text"
+                placeholder="Search by email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-surface-variant/20 border border-outline-variant rounded-xl py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+              />
+            </div>
+
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-              {subscribers.length === 0 ? (
-                <div className="text-center py-10 text-on-surface-variant">No subscribers yet.</div>
+              {subscribers.filter(s => s.email.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                <div className="text-center py-10 text-on-surface-variant">
+                  {searchQuery ? "No subscribers match your search." : "No subscribers yet."}
+                </div>
               ) : (
-                subscribers.map((sub, i) => (
+                subscribers.filter(s => s.email.toLowerCase().includes(searchQuery.toLowerCase())).map((sub, i) => (
                   <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-outline-variant">
                     <div className="flex items-center gap-3">
+                      <input 
+                        type="checkbox"
+                        checked={selectedForDelete.includes(sub.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedForDelete([...selectedForDelete, sub.id]);
+                          else setSelectedForDelete(selectedForDelete.filter(id => id !== sub.id));
+                        }}
+                        className="w-4 h-4 cursor-pointer accent-brand"
+                      />
                       <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-xs">
                         {i + 1}
                       </div>

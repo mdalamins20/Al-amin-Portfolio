@@ -12,9 +12,10 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Tool } from '../../types';
-import { Plus, Loader2, Trash2, Edit2, Save, X, Code2, Wrench } from 'lucide-react';
+import { logActivity } from '../../utils/activityLogger';
+import { Plus, Loader2, Trash2, Edit2, Save, X, Code2, Wrench, GripVertical } from 'lucide-react';
 import { AdminPageLoader } from './AdminPageLoader';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
 import { ImageUpload } from './ImageUpload';
 import { compileAndSyncToGist } from '../../utils/syncService';
@@ -49,17 +50,45 @@ export const ManageSkills: React.FC = () => {
     }
     setLoading(true);
     try {
-      const q = query(collection(db, 'skills'), orderBy('name', 'asc'));
+      const q = query(collection(db, 'skills'));
       const querySnapshot = await getDocs(q);
       const skillsData = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id
       })) as Tool[];
+      
+      // Sort by order, fallback to name
+      skillsData.sort((a, b) => {
+        const orderA = a.order ?? 999999;
+        const orderB = b.order ?? 999999;
+        if (orderA !== orderB) return orderA - orderB;
+        return (a.name || '').localeCompare(b.name || '');
+      });
       setSkills(skillsData);
     } catch (error) {
       console.error('Error fetching skills:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReorder = async (newOrder: Tool[]) => {
+    // Optimistic update
+    setSkills(newOrder);
+    
+    // Update firestore in background
+    if (!db) return;
+    try {
+      const updates = newOrder.map((skill, index) => {
+        return updateDoc(doc(db, 'skills', skill.id!), { order: index });
+      });
+      await Promise.all(updates);
+      // Background Sync to Gist
+      compileAndSyncToGist().catch(console.error);
+    } catch (error) {
+      console.error('Error reordering skills:', error);
+      // Re-fetch to revert on error
+      fetchSkills();
     }
   };
 
@@ -71,12 +100,15 @@ export const ManageSkills: React.FC = () => {
       if (currentSkill.id) {
         const { id, ...data } = currentSkill;
         await updateDoc(doc(db, 'skills', id), data);
+        await logActivity('update', 'skill', data.name || 'Skill', `Updated skill: ${data.name}`);
       } else {
         const { id: _, ...skillData } = currentSkill;
         await addDoc(collection(db, 'skills'), {
           ...skillData,
+          order: skills.length,
           id: Date.now().toString()
         });
+        await logActivity('create', 'skill', skillData.name || 'New Skill', `Created new skill: ${skillData.name}`);
       }
       setIsEditing(false);
       setCurrentSkill({});
@@ -112,6 +144,7 @@ export const ManageSkills: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'skills', id));
+          await logActivity('delete', 'skill', 'Skill', `Deleted skill ID: ${id}`);
           fetchSkills();
           // Background Sync to Gist
           compileAndSyncToGist().catch(console.error);
@@ -229,16 +262,16 @@ export const ManageSkills: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div>
         {!isConfigured ? (
-          <div className="md:col-span-3 py-20 text-center bg-red-500/10 rounded-3xl border border-dashed border-red-500/20 shadow-sm">
+          <div className="py-20 text-center bg-red-500/10 rounded-3xl border border-dashed border-red-500/20 shadow-sm">
              <p className="text-xl font-bold text-red-500 mb-2">Firebase Not Configured</p>
              <p className="text-text-secondary text-sm">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
           <AdminPageLoader icon={Wrench} color="text-pink-500" bg="bg-pink-500/10 border-pink-500/20" label="Loading skills..." />
         ) : skills.length === 0 ? (
-          <div className="md:col-span-3 py-20 text-center bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-dashed border-surface-variant/40 dark:border-white/10 shadow-sm">
+          <div className="py-20 text-center bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-dashed border-surface-variant/40 dark:border-white/10 shadow-sm">
             <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-surface-variant/30">
               <Wrench size={28} className="text-primary opacity-80" />
             </div>
@@ -246,39 +279,46 @@ export const ManageSkills: React.FC = () => {
             <p className="text-text-secondary text-xs">Click "New Skill" to add your first expertise.</p>
           </div>
         ) : (
-          skills.map((skill, i) => (
-            <motion.div
-              layout
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-              key={skill.id}
-              className="bg-surface/90 dark:bg-slate-950/70 backdrop-blur-xl border border-surface-variant/30 dark:border-white/10 rounded-2xl p-4 flex items-center gap-4 group hover:border-primary/40 hover:shadow-xl transition-all shadow-sm"
-            >
-              <div className="w-14 h-14 shrink-0 flex items-center justify-center bg-surface-variant/20 dark:bg-white/5 rounded-xl p-2.5 shadow-inner border border-surface-variant/30 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
-                <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-on-surface break-words text-base group-hover:text-primary transition-colors leading-snug">{skill.name}</h3>
-              </div>
-              <div className="flex flex-col gap-1 opacity-0 translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200">
-                <button
-                  onClick={() => openEdit(skill)}
-                  className="p-1.5 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                  title="Edit skill"
-                >
-                  <Edit2 size={15} />
-                </button>
-                <button
-                  onClick={() => handleDelete(skill.id!)}
-                  className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                  title="Delete skill"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </motion.div>
-          ))
+          <Reorder.Group 
+            axis="y" 
+            values={skills} 
+            onReorder={handleReorder}
+            className="grid grid-cols-1 gap-3"
+          >
+            {skills.map((skill, i) => (
+              <Reorder.Item
+                value={skill}
+                key={skill.id}
+                className="bg-surface/90 dark:bg-slate-950/70 backdrop-blur-xl border border-surface-variant/30 dark:border-white/10 rounded-2xl p-4 flex items-center gap-4 group hover:border-primary/40 hover:shadow-xl transition-all shadow-sm"
+              >
+                <div className="cursor-grab active:cursor-grabbing text-text-secondary hover:text-primary transition-colors p-1">
+                  <GripVertical size={18} />
+                </div>
+                <div className="w-12 h-12 shrink-0 flex items-center justify-center bg-surface-variant/20 dark:bg-white/5 rounded-xl p-2 shadow-inner border border-surface-variant/30 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
+                  <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-on-surface break-words text-base group-hover:text-primary transition-colors leading-snug">{skill.name}</h3>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => openEdit(skill)}
+                    className="p-2 text-text-secondary hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                    title="Edit skill"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(skill.id!)}
+                    className="p-2 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                    title="Delete skill"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
         )}
       </div>
       

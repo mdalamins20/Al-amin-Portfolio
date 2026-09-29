@@ -11,7 +11,8 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Review } from '../../types';
-import { Star, Trash2, CheckCircle, XCircle, MessageSquare, AlertCircle, User, Clock, ShieldAlert } from 'lucide-react';
+import { logActivity } from '../../utils/activityLogger';
+import { Star, Trash2, CheckCircle, XCircle, MessageSquare, AlertCircle, User, Clock, ShieldAlert, Search, Download } from 'lucide-react';
 import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
@@ -32,6 +33,8 @@ export const ManageReviews: React.FC = () => {
     message: '',
     type: 'info'
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
 
   useEffect(() => {
     fetchReviews();
@@ -64,12 +67,36 @@ export const ManageReviews: React.FC = () => {
       await updateDoc(doc(db, 'reviews', id), {
         isApproved: !currentStatus
       });
+      await logActivity('update', 'review', 'Review', `${!currentStatus ? 'Approved' : 'Unapproved'} review ID: ${id}`);
       fetchReviews();
       // Background Sync to Gist
       compileAndSyncToGist().catch(console.error);
     } catch (error) {
       console.error('Error updating review:', error);
     }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedForDelete.length === 0) return;
+    
+    setModalConfig({
+      isOpen: true,
+      title: 'Bulk Delete Reviews',
+      message: `Are you sure you want to delete ${selectedForDelete.length} reviews? This action cannot be undone.`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          const promises = selectedForDelete.map(id => deleteDoc(doc(db, 'reviews', id)));
+          await Promise.all(promises);
+          await logActivity('bulk_update', 'review', `${selectedForDelete.length} reviews`, `Bulk deleted ${selectedForDelete.length} reviews`);
+          setSelectedForDelete([]);
+          fetchReviews();
+          compileAndSyncToGist().catch(console.error);
+        } catch (error) {
+          console.error('Error deleting reviews:', error);
+        }
+      }
+    });
   };
 
   const handleDelete = (id: string) => {
@@ -82,6 +109,7 @@ export const ManageReviews: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'reviews', id));
+          await logActivity('delete', 'review', 'Review', `Deleted review ID: ${id}`);
           fetchReviews();
           // Background Sync to Gist
           compileAndSyncToGist().catch(console.error);
@@ -90,6 +118,27 @@ export const ManageReviews: React.FC = () => {
         }
       }
     });
+  };
+
+  const handleExportCSV = () => {
+    if (reviews.length === 0) return;
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Client Name,Role,Rating,Status,Date\n";
+    
+    reviews.forEach(r => {
+      const date = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000).toLocaleDateString() : '';
+      const status = r.isApproved ? 'Approved' : 'Pending';
+      csvContent += `"${r.clientName}","${r.role}",${r.rating || 5},${status},${date}\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `reviews_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -102,6 +151,35 @@ export const ManageReviews: React.FC = () => {
           <h1 className="text-3xl font-black text-on-surface tracking-tight">Manage Reviews</h1>
         </div>
         <p className="text-text-secondary text-sm font-medium pl-[52px]">Moderate client testimonials before they appear on your site.</p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-surface p-4 rounded-3xl border border-outline-variant shadow-sm">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+          <input
+            type="text"
+            placeholder="Search by client name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-surface-variant/30 border border-outline-variant rounded-xl py-2.5 pl-10 pr-4 text-on-surface focus:outline-none focus:border-amber-500/50 transition-colors"
+          />
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          {selectedForDelete.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="flex-1 sm:flex-none items-center justify-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-medium transition-colors border border-red-500/20 flex"
+            >
+              <Trash2 size={18} /> Delete Selected ({selectedForDelete.length})
+            </button>
+          )}
+          <button
+            onClick={handleExportCSV}
+            className="flex-1 sm:flex-none items-center justify-center gap-2 px-6 py-2.5 bg-surface-variant/30 hover:bg-surface-variant/50 text-on-surface rounded-xl font-medium transition-colors border border-outline-variant flex"
+          >
+            <Download size={18} /> Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -120,9 +198,13 @@ export const ManageReviews: React.FC = () => {
             <p className="text-xl font-bold text-on-surface mb-2">No reviews submitted yet.</p>
             <p className="text-on-surface-variant">When clients submit a review, it will appear here for approval.</p>
           </div>
+        ) : reviews.filter(r => r.clientName.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+          <div className="py-20 text-center bg-surface-variant/50 rounded-3xl border border-dashed border-outline-variant shadow-sm">
+            <p className="text-on-surface-variant">No reviews match your search.</p>
+          </div>
         ) : (
           <AnimatePresence>
-            {reviews.map((review, i) => (
+            {reviews.filter(r => r.clientName.toLowerCase().includes(searchQuery.toLowerCase())).map((review, i) => (
               <motion.div
                 layout
                 initial={{ opacity: 0, y: 20 }}
@@ -138,6 +220,15 @@ export const ManageReviews: React.FC = () => {
                 <div className="flex flex-col lg:flex-row gap-6">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-4 mb-4">
+                      <input 
+                        type="checkbox"
+                        checked={selectedForDelete.includes(review.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedForDelete([...selectedForDelete, review.id]);
+                          else setSelectedForDelete(selectedForDelete.filter(id => id !== review.id));
+                        }}
+                        className="w-5 h-5 cursor-pointer accent-brand"
+                      />
                       <div className="w-14 h-14 rounded-2xl bg-surface-variant border border-outline-variant shadow-inner flex items-center justify-center text-primary">
                         <User size={24} />
                       </div>

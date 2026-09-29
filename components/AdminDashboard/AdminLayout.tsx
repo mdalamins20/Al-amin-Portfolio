@@ -21,7 +21,9 @@ import {
   Activity,
   Award,
   Palette,
-  Users as UsersIcon
+  Users as UsersIcon,
+  ClipboardList,
+  Globe
 } from 'lucide-react';
 import { useThemeStore } from '../stores/useThemeStore';
 import { useProfileStore } from '../stores/useProfileStore';
@@ -83,6 +85,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: UsersIcon, label: 'Newsletter', path: '/admin-dashboard/subscribers', color: 'text-purple-500', bg: 'bg-purple-500/10 border-purple-500/20' },
     { icon: MessageSquare, label: 'Reviews', path: '/admin-dashboard/reviews', color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/20' },
     { icon: Activity, label: 'Analytics', path: '/admin-dashboard/analytics', color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/20' },
+    { icon: Globe, label: 'SEO Manager', path: '/admin-dashboard/seo-manager', color: 'text-lime-500', bg: 'bg-lime-500/10 border-lime-500/20' },
+    { icon: ClipboardList, label: 'Activity Logs', path: '/admin-dashboard/activity-logs', color: 'text-teal-500', bg: 'bg-teal-500/10 border-teal-500/20' },
     { icon: ShieldAlert, label: 'Security', path: '/admin-dashboard/sessions', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/20' },
     { icon: User, label: 'Profile', path: '/admin-dashboard/profile', color: 'text-violet-500', bg: 'bg-violet-500/10 border-violet-500/20' },
   ];
@@ -94,22 +98,24 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[140px] -z-10 opacity-50 pointer-events-none mix-blend-screen" />
 
       {/* Mobile Top Header & Toggle */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-variant/30 px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center p-0.5 overflow-hidden">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-surface/70 backdrop-blur-2xl border-b border-surface-variant/30 px-5 py-3.5 flex items-center justify-between shadow-sm">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl bg-surface border border-surface-variant/50 flex items-center justify-center p-0.5 shadow-sm overflow-hidden">
             {profile?.favicon ? (
-              <img src={profile.favicon} alt="Favicon" className="w-full h-full object-cover rounded-lg" />
+              <img src={profile.favicon} alt="Favicon" className="w-full h-full object-cover rounded-[14px]" />
             ) : (
               <span className="text-primary font-black text-sm">A</span>
             )}
           </div>
-          <span className="font-black tracking-tighter text-lg text-on-surface">Al-amin<span className="text-primary">.</span></span>
-          <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
+          <div className="flex flex-col">
+            <span className="font-black tracking-tighter text-lg text-on-surface leading-none">Al-amin<span className="text-primary">.</span></span>
+            <span className="text-[9px] font-bold tracking-widest uppercase text-primary mt-0.5">Admin</span>
+          </div>
         </Link>
         
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2.5 bg-surface text-primary rounded-xl border border-surface-variant/40 shadow-md backdrop-blur-md active:scale-95 transition-transform"
+          className="p-2.5 bg-surface/50 text-on-surface rounded-2xl border border-surface-variant/40 shadow-sm backdrop-blur-md active:scale-95 transition-all hover:bg-surface"
           aria-label="Toggle menu"
         >
           {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
@@ -124,7 +130,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-md z-40"
           />
         )}
       </AnimatePresence>
@@ -132,8 +138,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static top-0 left-0 h-full z-50 flex-shrink-0
-        w-72 bg-surface/95 lg:bg-surface/85 backdrop-blur-2xl border-r border-surface-variant/30 dark:border-white/10
-        transform transition-transform duration-300 ease-out shadow-2xl lg:shadow-none
+        w-[280px] bg-surface/95 lg:bg-surface/50 backdrop-blur-3xl border-r border-surface-variant/30 dark:border-white/10
+        transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-2xl lg:shadow-none
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
@@ -252,9 +258,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main id="admin-main-content" ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto w-full scroll-smooth pt-16 lg:pt-0">
-        <div className="p-5 md:p-8 lg:p-10 max-w-7xl mx-auto">
-          <div className="w-full">
+      <main id="admin-main-content" ref={mainRef} className="flex-1 min-w-0 h-full overflow-y-auto w-full scroll-smooth pt-20 lg:pt-0">
+        <div className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1400px] mx-auto min-h-full flex flex-col">
+          <div className="w-full flex-1">
             {children || <Outlet />}
           </div>
         </div>

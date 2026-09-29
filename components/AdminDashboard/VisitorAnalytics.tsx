@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { db } from '../../firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { Activity, Users, Globe, MapPin, Monitor, Smartphone, Clock, X, ChevronRight, Hash } from 'lucide-react';
+import { collection, query, orderBy, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+import { Activity, Users, Globe, MapPin, Monitor, Smartphone, Clock, X, ChevronRight, Hash, Trash2, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminPageLoader } from './AdminPageLoader';
+import { showConfirm, showAlert } from '../stores/useDialogStore';
+import { logActivity } from '../../utils/activityLogger';
 
 interface PageVisit {
   page: string;
@@ -15,7 +17,10 @@ interface VisitLog {
   id: string;
   ip: string;
   city: string;
+  region?: string;
   country: string;
+  latitude?: number;
+  longitude?: number;
   isp: string;
   device: string;
   sessionStart?: string;
@@ -27,7 +32,10 @@ interface VisitLog {
 interface GroupedVisitor {
   ip: string;
   city: string;
+  region?: string;
   country: string;
+  latitude?: number;
+  longitude?: number;
   isp: string;
   device: string;
   totalSessions: number;
@@ -83,7 +91,10 @@ export const VisitorAnalytics: React.FC = () => {
         map.set(log.ip, {
           ip: log.ip,
           city: log.city,
+          region: log.region,
           country: log.country,
+          latitude: log.latitude,
+          longitude: log.longitude,
           isp: log.isp,
           device: log.device,
           totalSessions: 1,
@@ -99,7 +110,10 @@ export const VisitorAnalytics: React.FC = () => {
         if (new Date(log.lastActive) > new Date(existing.lastActive)) {
           existing.lastActive = log.lastActive;
           existing.city = log.city;
+          existing.region = log.region;
           existing.country = log.country;
+          existing.latitude = log.latitude;
+          existing.longitude = log.longitude;
           existing.isp = log.isp;
           existing.device = log.device;
         }
@@ -109,6 +123,29 @@ export const VisitorAnalytics: React.FC = () => {
     // Sort by lastActive desc
     return Array.from(map.values()).sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime());
   }, [logs]);
+
+  const handleDeleteIP = async (ip: string, sessions: VisitLog[]) => {
+    const confirmed = await showConfirm(
+      'Delete Visitor Logs',
+      `Are you sure you want to permanently delete all logs for IP: ${ip}? This action cannot be undone.`,
+      'danger',
+      'Yes, Delete'
+    );
+    if (!confirmed) return;
+
+    try {
+      const promises = sessions.map(session => deleteDoc(doc(db, 'analytics', session.id)));
+      await Promise.all(promises);
+      
+      await logActivity('delete', 'system', 'Visitor Logs', `Deleted ${sessions.length} sessions for IP: ${ip}`);
+      
+      showAlert('Success', `Successfully deleted logs for IP: ${ip}`, 'success');
+      if (selectedVisitor?.ip === ip) setSelectedVisitor(null);
+    } catch (err) {
+      console.error("Error deleting logs:", err);
+      showAlert('Error', 'Failed to delete visitor logs.', 'danger');
+    }
+  };
 
   const uniqueVisitors = groupedLogs.length;
   const desktopUsers = groupedLogs.filter(l => l.device === 'Desktop').length;
@@ -238,7 +275,19 @@ export const VisitorAnalytics: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
                         <MapPin size={12} />
-                        {log.city}, {log.country}
+                        {log.city}{log.region ? `, ${log.region}` : ''}, {log.country}
+                        {log.latitude && log.longitude && (
+                          <a
+                            href={`https://www.google.com/maps?q=${log.latitude},${log.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="ml-1 text-primary hover:text-primary-variant transition-colors"
+                            title="View on Map"
+                          >
+                            <MapIcon size={12} />
+                          </a>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -257,9 +306,18 @@ export const VisitorAnalytics: React.FC = () => {
                     {formatDate(log.lastActive)}
                   </td>
                   <td className="p-4 text-right">
-                    <button className="p-1.5 text-on-surface-variant hover:text-primary bg-surface-variant/50 hover:bg-primary/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                      <ChevronRight size={16} />
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleDeleteIP(log.ip, log.sessions); }}
+                        className="p-1.5 text-on-surface-variant hover:text-red-500 bg-surface-variant/50 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete IP Logs"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <button className="p-1.5 text-on-surface-variant hover:text-primary bg-surface-variant/50 hover:bg-primary/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -302,7 +360,21 @@ export const VisitorAnalytics: React.FC = () => {
                     History
                   </h2>
                   <div className="flex items-center gap-4 text-sm text-on-surface-variant mt-2 font-medium">
-                    <span className="flex items-center gap-1.5"><MapPin size={14}/> {selectedVisitor.city}, {selectedVisitor.country}</span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={14}/> 
+                      {selectedVisitor.city}{selectedVisitor.region ? `, ${selectedVisitor.region}` : ''}, {selectedVisitor.country}
+                      {selectedVisitor.latitude && selectedVisitor.longitude && (
+                        <a
+                          href={`https://www.google.com/maps?q=${selectedVisitor.latitude},${selectedVisitor.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1 text-primary hover:text-primary-variant transition-colors bg-primary/10 p-1 rounded"
+                          title="View Exact Location on Map"
+                        >
+                          <MapIcon size={14} />
+                        </a>
+                      )}
+                    </span>
                     <span className="flex items-center gap-1.5"><Monitor size={14}/> {selectedVisitor.isp}</span>
                   </div>
                 </div>

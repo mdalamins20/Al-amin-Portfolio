@@ -38,6 +38,8 @@ const DashboardOverview = lazy(() => import('./components/AdminDashboard/Dashboa
 const VisitorAnalytics = lazy(() => import('./components/AdminDashboard/VisitorAnalytics').then(m => ({ default: m.VisitorAnalytics })));
 const ActiveSessions = lazy(() => import('./components/AdminDashboard/ActiveSessions').then(m => ({ default: m.ActiveSessions })));
 const ManageSubscribers = lazy(() => import('./components/AdminDashboard/ManageSubscribers').then(m => ({ default: m.ManageSubscribers })));
+const ActivityLogs = lazy(() => import('./components/AdminDashboard/ActivityLogs').then(m => ({ default: m.ActivityLogs })));
+const ManageSEO = lazy(() => import('./components/AdminDashboard/ManageSEO').then(m => ({ default: m.ManageSEO })));
 
 function ScrollAndAnimateRoutes({ showVisitorLog }: { showVisitorLog?: boolean }) {
   const location = useLocation();
@@ -153,6 +155,18 @@ function ScrollAndAnimateRoutes({ showVisitorLog }: { showVisitorLog?: boolean }
           <Route path="subscribers" element={
             <Suspense fallback={<PageLoader />}>
               <ManageSubscribers />
+            </Suspense>
+          } />
+          
+          <Route path="activity-logs" element={
+            <Suspense fallback={<PageLoader />}>
+              <ActivityLogs />
+            </Suspense>
+          } />
+
+          <Route path="seo-manager" element={
+            <Suspense fallback={<PageLoader />}>
+              <ManageSEO />
             </Suspense>
           } />
         </Route>

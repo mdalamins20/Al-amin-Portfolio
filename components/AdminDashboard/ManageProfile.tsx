@@ -11,6 +11,7 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { AIAssistantInput } from './AIAssistantInput';
 import { compileAndSyncToGist } from '../../utils/syncService';
 import { fetchGithubContributions } from '../../utils/githubService';
+import { logActivity } from '../../utils/activityLogger';
 
 export const ManageProfile: React.FC = () => {
   const { profile, loading, updateProfile } = useProfileStore();
@@ -41,6 +42,7 @@ export const ManageProfile: React.FC = () => {
     setSaving(true);
     try {
       await updateProfile(formData);
+      await logActivity('update', 'profile', 'Profile', 'Updated profile information');
       // Background Sync to Gist
       compileAndSyncToGist().catch(console.error);
       setModalConfig({
@@ -165,53 +167,56 @@ export const ManageProfile: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10"
             >
-              <div className="md:col-span-2 flex flex-col sm:flex-row flex-wrap gap-8 items-start sm:items-center md:items-start pb-8 border-b border-outline-variant">
-                <div className="shrink-0 space-y-4">
-                  <h3 className="font-bold text-on-surface">Profile Picture</h3>
-                  <div className="w-40 sm:w-48">
-                    <ImageUpload
-                      label=""
-                      initialValue={formData.image}
-                      onUploadComplete={(url) => setFormData({ ...formData, image: url })}
-                      folder="profile"
-                      cropShape="rect"
-                      maxWidth={2560}
-                      maxHeight={2560}
-                      quality={0.95}
-                    />
+              <div className="md:col-span-2 flex flex-col lg:flex-row gap-10 items-start pb-8 border-b border-outline-variant">
+                
+                <div className="flex flex-wrap gap-8 items-start">
+                  <div className="shrink-0 space-y-4">
+                    <h3 className="font-bold text-on-surface">Profile Picture</h3>
+                    <div className="w-32 sm:w-40">
+                      <ImageUpload
+                        label=""
+                        initialValue={formData.image}
+                        onUploadComplete={(url) => setFormData({ ...formData, image: url })}
+                        folder="profile"
+                        cropShape="rect"
+                        maxWidth={2560}
+                        maxHeight={2560}
+                        quality={0.95}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 space-y-4">
+                    <h3 className="font-bold text-on-surface">Favicon Icon</h3>
+                    <div className="w-24 sm:w-28">
+                      <ImageUpload
+                        label=""
+                        initialValue={formData.favicon}
+                        onUploadComplete={(url) => setFormData({ ...formData, favicon: url })}
+                        folder="settings"
+                        cropShape="rect"
+                        aspectRatio={1}
+                        maxWidth={128}
+                        maxHeight={128}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 space-y-4">
+                    <h3 className="font-bold text-on-surface">Resume (PDF)</h3>
+                    <div className="w-48 sm:w-56">
+                      <FileUpload
+                        label=""
+                        initialValue={formData.cvFileUrl}
+                        onUploadComplete={(url) => setFormData({ ...formData, cvFileUrl: url })}
+                        folder="resumes"
+                        accept=".pdf"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="shrink-0 space-y-4">
-                  <h3 className="font-bold text-on-surface">Favicon Icon</h3>
-                  <div className="w-24 sm:w-32">
-                    <ImageUpload
-                      label=""
-                      initialValue={formData.favicon}
-                      onUploadComplete={(url) => setFormData({ ...formData, favicon: url })}
-                      folder="settings"
-                      cropShape="rect"
-                      aspectRatio={1}
-                      maxWidth={128}
-                      maxHeight={128}
-                    />
-                  </div>
-                </div>
-
-                <div className="shrink-0 space-y-4">
-                  <h3 className="font-bold text-on-surface">Resume (PDF)</h3>
-                  <div className="w-48 sm:w-64">
-                    <FileUpload
-                      label=""
-                      initialValue={formData.cvFileUrl}
-                      onUploadComplete={(url) => setFormData({ ...formData, cvFileUrl: url })}
-                      folder="resumes"
-                      accept=".pdf"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex-1 grid grid-cols-1 gap-6 w-full">
+                <div className="flex-1 w-full min-w-[280px] grid grid-cols-1 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-on-surface-variant">Full Name</label>
                     <input

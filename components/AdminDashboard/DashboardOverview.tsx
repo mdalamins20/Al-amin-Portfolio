@@ -12,6 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Project, Blog } from '../../types';
+import { AdminPageLoader } from './AdminPageLoader';
 
 interface Subscriber { id: string; email: string; subscribedAt: any; }
 interface DashStat {
@@ -81,17 +82,7 @@ export const DashboardOverview: React.FC = () => {
   const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const formatDateFull = (d: Date) => d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <div className="relative">
-        <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <BarChart2 size={20} className="text-primary animate-pulse" />
-        </div>
-      </div>
-      <p className="text-on-surface-variant text-sm font-medium animate-pulse">Loading dashboard...</p>
-    </div>
-  );
+  if (loading) return <AdminPageLoader icon={BarChart2} color="text-primary" bg="bg-primary/10 border-primary/20" label="Loading dashboard..." />;
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
   const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };

@@ -11,6 +11,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Experience } from '../../types';
+import { logActivity } from '../../utils/activityLogger';
 import { Plus, Trash2, Edit2, Save, X, Loader2, Briefcase, Award } from 'lucide-react';
 import { AdminPageLoader } from './AdminPageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -76,6 +77,7 @@ export const ManageExperience: React.FC = () => {
           ...data,
           technologies: data.technologies || []
         });
+        await logActivity('update', 'experience', data.title || data.company || 'Experience', `Updated experience at ${data.company}`);
       } else {
         const { id, ...expData } = currentExp;
         await addDoc(collection(db, 'experiences'), {
@@ -83,6 +85,7 @@ export const ManageExperience: React.FC = () => {
           technologies: expData.technologies || [],
           id: Date.now().toString()
         });
+        await logActivity('create', 'experience', expData.title || expData.company || 'New Experience', `Created new experience at ${expData.company}`);
       }
       setIsEditing(false);
       setCurrentExp({});
@@ -118,6 +121,7 @@ export const ManageExperience: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'experiences', id.toString()));
+          await logActivity('delete', 'experience', 'Experience', `Deleted experience ID: ${id}`);
           fetchExperiences();
           // Background Sync to Gist
           compileAndSyncToGist().catch(console.error);

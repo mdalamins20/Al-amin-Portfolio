@@ -12,10 +12,12 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { Project } from '../../types';
-import { Plus, Trash2, Edit2, ExternalLink, Save, X, Loader2, Briefcase, Sparkles, Github } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { logActivity } from '../../utils/activityLogger';
+import { Plus, Trash2, Edit2, ExternalLink, Save, X, Loader2, Briefcase, Sparkles, Github, Search, GripVertical, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { ImageUpload } from './ImageUpload';
 import { ConfirmationModal } from './ConfirmationModal';
+import { AdminPageLoader } from './AdminPageLoader';
 import { generateProjectFromGithub } from '../../utils/aiService';
 import { compileAndSyncToGist } from '../../utils/syncService';
 import { getGithubToken, fetchUserRepos, fetchGithubRepoData } from '../../utils/githubService';
@@ -41,8 +43,10 @@ export const ManageProjects: React.FC = () => {
   const [githubRepoUrl, setGithubRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [scanProgress, setScanProgress] = useState<{isOpen: boolean, messages: string[]}>({ isOpen: false, messages: [] });
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [githubRepos, setGithubRepos] = useState<{name: string, url: string}[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProjects();
@@ -56,12 +60,20 @@ export const ManageProjects: React.FC = () => {
     }
     setLoading(true);
     try {
-      const q = query(collection(db, 'projects'), orderBy('id', 'desc'));
+      const q = query(collection(db, 'projects'));
       const querySnapshot = await getDocs(q);
       const projectsData = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id
       })) as Project[];
+      
+      // Sort by order, fallback to id
+      projectsData.sort((a, b) => {
+        const orderA = a.order ?? 999999;
+        const orderB = b.order ?? 999999;
+        if (orderA !== orderB) return orderA - orderB;
+        return (b.id || '').localeCompare(a.id || '');
+      });
       setProjects(projectsData);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -78,12 +90,15 @@ export const ManageProjects: React.FC = () => {
       if (currentProject.id) {
         const { id, ...data } = currentProject;
         await updateDoc(doc(db, 'projects', id), data);
+        await logActivity('update', 'project', data.title || 'Project', `Updated project`);
       } else {
         const { id, ...projectData } = currentProject;
         await addDoc(collection(db, 'projects'), {
           ...projectData,
+          order: projects.length,
           id: Date.now().toString()
         });
+        await logActivity('create', 'project', projectData.title || 'New Project', `Created new project`);
       }
       setIsEditing(false);
       setCurrentProject({});
@@ -111,6 +126,57 @@ export const ManageProjects: React.FC = () => {
     }
   };
 
+  const handleReorder = async (newOrder: Project[]) => {
+    setProjects(newOrder);
+    if (!db) return;
+    try {
+      const updates = newOrder.map((project, index) => {
+        return updateDoc(doc(db, 'projects', project.id), { order: index });
+      });
+      await Promise.all(updates);
+      compileAndSyncToGist().catch(console.error);
+    } catch (error) {
+      console.error('Error reordering projects:', error);
+      fetchProjects();
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (!db || selectedProjects.length === 0) return;
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Selected Projects',
+      message: `Are you sure you want to delete ${selectedProjects.length} selected projects? This action cannot be undone.`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          const deletePromises = selectedProjects.map(id => deleteDoc(doc(db!, 'projects', id)));
+          await Promise.all(deletePromises);
+          await logActivity('bulk_update', 'project', `${selectedProjects.length} projects`, `Bulk deleted ${selectedProjects.length} projects`);
+          setSelectedProjects([]);
+          fetchProjects();
+          compileAndSyncToGist().catch(console.error);
+        } catch (error) {
+          console.error('Error in bulk delete:', error);
+        }
+      }
+    });
+  };
+
+  const handleBulkStatusUpdate = async (status: 'draft' | 'published') => {
+    if (!db || selectedProjects.length === 0) return;
+    try {
+      const updatePromises = selectedProjects.map(id => updateDoc(doc(db!, 'projects', id), { status }));
+      await Promise.all(updatePromises);
+      await logActivity('bulk_update', 'project', `${selectedProjects.length} projects`, `Changed status to ${status}`);
+      setSelectedProjects([]);
+      fetchProjects();
+      compileAndSyncToGist().catch(console.error);
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
   const handleDelete = (id: string) => {
     if (!db) return;
     setModalConfig({
@@ -121,6 +187,7 @@ export const ManageProjects: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'projects', id));
+          await logActivity('delete', 'project', 'Project', `Deleted project ID: ${id}`);
           fetchProjects();
           // Background Sync to Gist
           compileAndSyncToGist().catch(console.error);
@@ -215,7 +282,7 @@ export const ManageProjects: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-surface/95 dark:bg-slate-950/90 backdrop-blur-2xl border border-surface-variant/30 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl z-10"
+              className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-surface border border-outline-variant rounded-3xl p-6 md:p-8 shadow-2xl z-10"
             >
              {/* Subtle background glow */}
              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-3xl rounded-full pointer-events-none" />
@@ -231,7 +298,7 @@ export const ManageProjects: React.FC = () => {
                 {currentProject.id ? 'Edit Project' : 'Add New Project'}
               </h2>
 
-              <div className="mb-6 space-y-2 md:col-span-2 bg-primary/5 p-5 rounded-2xl border border-primary/20 relative z-10">
+              <div className="mb-6 space-y-2 md:col-span-2 bg-primary/10 p-5 rounded-2xl border border-primary/20 relative z-10">
                   <label className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
                     <Sparkles size={16} />
                     AI Magic: Generate from GitHub
@@ -247,7 +314,7 @@ export const ManageProjects: React.FC = () => {
                             setGithubRepoUrl(e.target.value);
                             setCurrentProject(prev => ({ ...prev, githubUrl: e.target.value }));
                           }}
-                          className="w-full text-sm pl-11 pr-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface shadow-sm appearance-none cursor-pointer font-medium"
+                          className="w-full text-sm pl-11 pr-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface shadow-sm appearance-none cursor-pointer font-medium"
                         >
                           <option value="">Select a repository...</option>
                           {githubRepos.map(repo => {
@@ -267,7 +334,7 @@ export const ManageProjects: React.FC = () => {
                             setCurrentProject(prev => ({ ...prev, githubUrl: e.target.value }));
                           }}
                           placeholder="https://github.com/username/repo"
-                          className="w-full text-sm pl-11 pr-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface shadow-sm font-medium"
+                          className="w-full text-sm pl-11 pr-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface shadow-sm font-medium"
                         />
                       )}
                     </div>
@@ -291,7 +358,7 @@ export const ManageProjects: React.FC = () => {
                   rows={1}
                   value={currentProject.title || ''}
                   onChange={e => setCurrentProject({ ...currentProject, title: e.target.value })}
-                  className="w-full text-base px-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm resize-none font-bold"
+                  className="w-full text-base px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm resize-none font-bold"
                   placeholder="e.g. AI Branding Tool"
                 />
               </div>
@@ -302,11 +369,11 @@ export const ManageProjects: React.FC = () => {
                   required
                   value={currentProject.description || ''}
                   onChange={e => setCurrentProject({ ...currentProject, description: e.target.value })}
-                  className="w-full text-sm px-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm min-h-[110px] resize-y leading-relaxed font-medium"
+                  className="w-full text-sm px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm min-h-[110px] resize-y leading-relaxed font-medium"
                   placeholder="Project overview and impact..."
                 />
               </div>
-              <div className="space-y-2 md:col-span-2 p-5 bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-surface-variant/30 dark:border-white/10 shadow-sm">
+              <div className="space-y-2 md:col-span-2 p-5 bg-surface-variant rounded-3xl border border-outline-variant shadow-sm">
                 <h3 className="font-bold text-sm text-on-surface mb-3">Project Image (16:9 recommended)</h3>
                 <ImageUpload
                   label=""
@@ -322,7 +389,7 @@ export const ManageProjects: React.FC = () => {
                 <input
                   value={currentProject.link || ''}
                   onChange={e => setCurrentProject({ ...currentProject, link: e.target.value })}
-                  className="w-full text-sm px-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
+                  className="w-full text-sm px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
                   placeholder="https://..."
                 />
               </div>
@@ -334,7 +401,7 @@ export const ManageProjects: React.FC = () => {
                 <input
                   value={currentProject.appLink || ''}
                   onChange={e => setCurrentProject({ ...currentProject, appLink: e.target.value })}
-                  className="w-full text-sm px-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
+                  className="w-full text-sm px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
                   placeholder="https://drive.google.com/..."
                 />
               </div>
@@ -345,19 +412,33 @@ export const ManageProjects: React.FC = () => {
                 <input
                   value={currentProject.appVersion || ''}
                   onChange={e => setCurrentProject({ ...currentProject, appVersion: e.target.value })}
-                  className="w-full text-sm px-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
+                  className="w-full text-sm px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
                   placeholder="e.g. v1.0.2"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">Tech Stack (comma separated)</label>
-                <input
-                  value={currentProject.techStack?.join(', ') || ''}
-                  onChange={e => setCurrentProject({ ...currentProject, techStack: e.target.value.split(',').map(s => s.trim()) })}
-                  className="w-full text-sm px-4 py-3 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
-                  placeholder="React, Tailwind, Firebase..."
-                />
+              <div className="space-y-2 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">Tech Stack (comma separated)</label>
+                  <input
+                    value={currentProject.techStack?.join(', ') || ''}
+                    onChange={e => setCurrentProject({ ...currentProject, techStack: e.target.value.split(',').map(s => s.trim()) })}
+                    className="w-full text-sm px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium"
+                    placeholder="React, Tailwind, Firebase..."
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">Visibility Status</label>
+                  <select
+                    value={currentProject.status || 'published'}
+                    onChange={e => setCurrentProject({ ...currentProject, status: e.target.value as 'draft' | 'published' })}
+                    className="w-full text-sm px-4 py-3 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="published">Published (Visible to public)</option>
+                    <option value="draft">Draft (Hidden from public)</option>
+                  </select>
+                </div>
               </div>
 
               <div className="md:col-span-2 space-y-4 pt-5 border-t border-surface-variant/20 dark:border-white/5 mt-2">
@@ -371,7 +452,7 @@ export const ManageProjects: React.FC = () => {
                     <input
                       value={currentProject.seoTitle || ''}
                       onChange={e => setCurrentProject({ ...currentProject, seoTitle: e.target.value })}
-                      className="w-full text-sm px-4 py-2.5 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm"
+                      className="w-full text-sm px-4 py-2.5 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm"
                       placeholder="Optimized title..."
                     />
                   </div>
@@ -380,7 +461,7 @@ export const ManageProjects: React.FC = () => {
                     <input
                       value={currentProject.keywords || ''}
                       onChange={e => setCurrentProject({ ...currentProject, keywords: e.target.value })}
-                      className="w-full text-sm px-4 py-2.5 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm"
+                      className="w-full text-sm px-4 py-2.5 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all shadow-sm"
                       placeholder="react, web dev, etc..."
                     />
                   </div>
@@ -391,7 +472,7 @@ export const ManageProjects: React.FC = () => {
                     rows={2}
                     value={currentProject.metaDescription || ''}
                     onChange={e => setCurrentProject({ ...currentProject, metaDescription: e.target.value })}
-                    className="w-full text-sm px-4 py-2.5 bg-surface-variant/20 dark:bg-white/5 border border-surface-variant/30 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all resize-none shadow-sm font-medium"
+                    className="w-full text-sm px-4 py-2.5 bg-surface-variant border border-outline-variant rounded-2xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary text-on-surface transition-all resize-none shadow-sm font-medium"
                     placeholder="Brief description for search engines..."
                   />
                 </div>
@@ -420,82 +501,166 @@ export const ManageProjects: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mb-6 relative">
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+            <input
+              type="text"
+              placeholder="Search projects by title or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-variant/20 border border-outline-variant rounded-xl py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+            />
+          </div>
+          <AnimatePresence>
+            {selectedProjects.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex items-center gap-2 bg-surface border border-outline-variant rounded-xl p-2 shadow-sm"
+              >
+                <span className="text-sm font-bold text-on-surface px-3 whitespace-nowrap">
+                  {selectedProjects.length} selected
+                </span>
+                <div className="w-px h-6 bg-outline-variant mx-1" />
+                <button
+                  onClick={() => handleBulkStatusUpdate('published')}
+                  className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                  title="Publish selected"
+                >
+                  <Eye size={18} />
+                </button>
+                <button
+                  onClick={() => handleBulkStatusUpdate('draft')}
+                  className="p-2 text-slate-500 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"
+                  title="Draft selected"
+                >
+                  <EyeOff size={18} />
+                </button>
+                <div className="w-px h-6 bg-outline-variant mx-1" />
+                <button
+                  onClick={handleBulkDelete}
+                  className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Delete selected"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div>
         {!isConfigured ? (
-          <div className="md:col-span-3 py-20 text-center bg-red-500/10 rounded-3xl border border-dashed border-red-500/20 shadow-sm">
+          <div className="py-20 text-center bg-red-500/10 rounded-3xl border border-dashed border-red-500/20 shadow-sm">
              <p className="text-xl font-bold text-red-500 mb-2">Firebase Not Configured</p>
              <p className="text-text-secondary text-sm">Please check your .env file or firebase.ts configuration.</p>
           </div>
         ) : loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[380px] bg-surface-variant/15 dark:bg-white/5 animate-pulse rounded-3xl border border-surface-variant/30 dark:border-white/5" />
-          ))
+          <AdminPageLoader icon={Briefcase} color="text-blue-500" bg="bg-blue-500/10 border-blue-500/20" label="Loading projects..." />
         ) : projects.length === 0 ? (
-          <div className="md:col-span-3 py-20 text-center bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-dashed border-surface-variant/40 dark:border-white/10 shadow-sm">
+          <div className="py-20 text-center bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-dashed border-surface-variant/40 dark:border-white/10 shadow-sm">
             <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-surface-variant/30">
               <Briefcase size={28} className="text-primary opacity-80" />
             </div>
             <p className="text-lg font-bold text-on-surface mb-1">No projects found</p>
             <p className="text-text-secondary text-xs">Click "Add Project" to build your portfolio showcase.</p>
           </div>
+        ) : projects.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+          <div className="py-20 text-center bg-surface-variant/10 dark:bg-white/5 rounded-3xl border border-dashed border-surface-variant/40 dark:border-white/10 shadow-sm">
+            <p className="text-on-surface-variant">No projects match your search.</p>
+          </div>
         ) : (
-          projects.map((project, i) => (
-             <motion.div
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              key={project.id}
-              className="group bg-surface/90 dark:bg-slate-950/70 backdrop-blur-xl border border-surface-variant/30 dark:border-white/10 rounded-3xl overflow-hidden hover:border-primary/40 hover:shadow-2xl transition-all shadow-sm flex flex-col relative"
-            >
-              <div className="aspect-[16/10] bg-surface-variant/20 dark:bg-slate-900 relative overflow-hidden shrink-0">
-                {project.image ? (
-                  <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-text-secondary">
-                    <Briefcase size={40} />
-                  </div>
-                )}
-                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-[-6px] group-hover:translate-y-0 transition-all duration-300 z-10">
+          <Reorder.Group 
+            axis="y" 
+            values={projects} 
+            onReorder={handleReorder}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {projects.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase())).map((project, i) => (
+               <Reorder.Item
+                value={project}
+                key={project.id}
+                className="group bg-surface/90 dark:bg-slate-950/70 backdrop-blur-xl border border-surface-variant/30 dark:border-white/10 rounded-3xl overflow-hidden hover:border-primary/40 hover:shadow-2xl transition-all shadow-sm flex flex-col relative"
+              >
+                <div className="aspect-[16/10] bg-surface-variant/20 dark:bg-slate-900 relative overflow-hidden shrink-0">
                   <button
-                    onClick={() => openEdit(project)}
-                    className="p-2.5 bg-surface/90 backdrop-blur-md text-on-surface hover:text-primary hover:scale-110 rounded-xl shadow-lg border border-surface-variant/30 transition-all"
-                    title="Edit project"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedProjects(prev => 
+                        prev.includes(project.id) 
+                          ? prev.filter(id => id !== project.id)
+                          : [...prev, project.id]
+                      );
+                    }}
+                    className="absolute top-4 left-4 z-20 text-white/90 hover:text-primary hover:scale-110 transition-all drop-shadow-md"
                   >
-                    <Edit2 size={15} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(project.id)}
-                    className="p-2.5 bg-surface/90 backdrop-blur-md text-red-500 hover:text-red-400 hover:scale-110 rounded-xl shadow-lg border border-surface-variant/30 transition-all"
-                    title="Delete project"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-                 {project.link && (
-                    <a href={project.link} target="_blank" rel="noreferrer" className="absolute bottom-4 right-4 w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100 translate-y-[6px] group-hover:translate-y-0 z-10">
-                      <ExternalLink size={16} />
-                    </a>
-                  )}
-              </div>
-              <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-lg font-bold text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">{project.title}</h3>
-                <p className="text-text-secondary text-xs line-clamp-2 mb-4 flex-1 font-medium leading-relaxed">{project.description}</p>
-                
-                 {project.techStack && project.techStack.length > 0 && (
-                  <div className="flex gap-1.5 flex-wrap pt-4 border-t border-surface-variant/20 dark:border-white/5">
-                    {project.techStack.slice(0, 3).map((tech, idx) => (
-                      <span key={idx} className="text-[10px] font-bold text-text-secondary bg-surface-variant/20 dark:bg-white/5 px-2 py-0.5 rounded-md uppercase tracking-wider">{tech}</span>
-                    ))}
-                    {project.techStack.length > 3 && (
-                       <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase tracking-wider">+{project.techStack.length - 3}</span>
+                    {selectedProjects.includes(project.id) ? (
+                      <CheckSquare size={22} className="text-primary fill-surface" />
+                    ) : (
+                      <Square size={22} className="opacity-70 group-hover:opacity-100" />
                     )}
+                  </button>
+                  {project.image ? (
+                    <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-text-secondary">
+                      <Briefcase size={40} />
+                    </div>
+                  )}
+                  {project.status === 'draft' && (
+                    <div className="absolute top-4 left-12 bg-yellow-500/90 text-yellow-950 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md z-10 border border-yellow-400/50">
+                      Draft
+                    </div>
+                  )}
+                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-[-6px] group-hover:translate-y-0 transition-all duration-300 z-10">
+                    <button
+                      onClick={() => openEdit(project)}
+                      className="p-2.5 bg-surface/90 backdrop-blur-md text-on-surface hover:text-primary hover:scale-110 rounded-xl shadow-lg border border-surface-variant/30 transition-all"
+                      title="Edit project"
+                    >
+                      <Edit2 size={15} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(project.id)}
+                      className="p-2.5 bg-surface/90 backdrop-blur-md text-red-500 hover:text-red-400 hover:scale-110 rounded-xl shadow-lg border border-surface-variant/30 transition-all"
+                      title="Delete project"
+                    >
+                      <Trash2 size={15} />
+                    </button>
                   </div>
-                )}
-              </div>
-            </motion.div>
-          ))
+                   {project.link && (
+                      <a href={project.link} target="_blank" rel="noreferrer" className="absolute bottom-4 right-4 w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100 translate-y-[6px] group-hover:translate-y-0 z-10">
+                        <ExternalLink size={16} />
+                      </a>
+                    )}
+                </div>
+                <div className="p-6 flex-1 flex flex-col relative">
+                  <div className="absolute -top-4 right-4 bg-surface rounded-full p-1.5 shadow-lg border border-surface-variant/30 text-text-secondary cursor-grab active:cursor-grabbing hover:text-primary z-20 transition-colors">
+                    <GripVertical size={16} />
+                  </div>
+                  <h3 className="text-lg font-bold text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">{project.title}</h3>
+                  <p className="text-text-secondary text-xs line-clamp-2 mb-4 flex-1 font-medium leading-relaxed">{project.description}</p>
+                  
+                   {project.techStack && project.techStack.length > 0 && (
+                    <div className="flex gap-1.5 flex-wrap pt-4 border-t border-surface-variant/20 dark:border-white/5">
+                      {project.techStack.slice(0, 3).map((tech, idx) => (
+                        <span key={idx} className="text-[10px] font-bold text-text-secondary bg-surface-variant/20 dark:bg-white/5 px-2 py-0.5 rounded-md uppercase tracking-wider">{tech}</span>
+                      ))}
+                      {project.techStack.length > 3 && (
+                         <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase tracking-wider">+{project.techStack.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
         )}
       </div>
       
