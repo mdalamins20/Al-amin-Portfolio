@@ -180,7 +180,11 @@ function setupServer() {
 // SSE Transport for MCP
 app.get(`/mcp/${SECRET_PATH}`, async (req, res) => {
   const sessionId = randomUUID();
-  const transport = new SSEServerTransport(`/message/${SECRET_PATH}?sessionId=${sessionId}`, res);
+  const host = req.headers.host || "alamin-q03k.onrender.com";
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || "https";
+  const endpointUrl = `${protocol}://${host}/message/${SECRET_PATH}?sessionId=${sessionId}`;
+  
+  const transport = new SSEServerTransport(endpointUrl, res);
   transports.set(sessionId, transport);
   
   const mcpServer = setupServer();
