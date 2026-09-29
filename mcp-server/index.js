@@ -30,20 +30,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// API Key Middleware for Security
-const API_KEY = process.env.MCP_API_KEY || "my-super-secret-key-123";
-// Keep the auth middleware but ignore OPTIONS
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') return next();
-  
-  const authHeader = req.headers.authorization;
-  const queryKey = req.query.key;
-  
-  if ((!authHeader || authHeader !== `Bearer ${API_KEY}`) && queryKey !== API_KEY) {
-    return res.status(401).json({ error: "Unauthorized. Invalid API Key." });
-  }
-  next();
-});
+// Security: Using a Secret Path (Capability URL) instead of Auth Headers
+// Since Gemini Web UI doesn't support custom headers, we make the URL itself the secret.
+const SECRET_PATH = process.env.MCP_API_KEY || "my-super-secret-key-123";
+
 
 import { randomUUID } from "crypto";
 const transports = new Map();
@@ -188,11 +178,9 @@ function setupServer() {
 }
 
 // SSE Transport for MCP
-app.get("/mcp", async (req, res) => {
+app.get(`/mcp/${SECRET_PATH}`, async (req, res) => {
   const sessionId = randomUUID();
-  // Ensure the query key is propagated to the message endpoint so it doesn't get blocked by auth
-  const keyParam = req.query.key ? `&key=${req.query.key}` : "";
-  const transport = new SSEServerTransport(`/message?sessionId=${sessionId}${keyParam}`, res);
+  const transport = new SSEServerTransport(`/message/${SECRET_PATH}?sessionId=${sessionId}`, res);
   transports.set(sessionId, transport);
   
   const mcpServer = setupServer();
@@ -204,7 +192,7 @@ app.get("/mcp", async (req, res) => {
   });
 });
 
-app.post("/message", async (req, res) => {
+app.post(`/message/${SECRET_PATH}`, async (req, res) => {
   const sessionId = req.query.sessionId;
   const transport = transports.get(sessionId);
   if (transport) {
@@ -217,5 +205,5 @@ app.post("/message", async (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`MCP Server is running on port ${PORT}`);
-  console.log(`API Key: ${API_KEY}`);
+  console.log(`Secret Path is enabled for security.`);
 });
