@@ -185,6 +185,25 @@ app.get(`/mcp/${SECRET_PATH}`, async (req, res) => {
   const endpointUrl = `${protocol}://${host}/message/${SECRET_PATH}?sessionId=${sessionId}`;
   
   const transport = new SSEServerTransport(endpointUrl, res);
+  
+  // Override start to send absolute URL, because the SDK strips the origin
+  transport.start = async function() {
+    if (this._sseResponse) {
+      throw new Error('SSEServerTransport already started!');
+    }
+    this.res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive'
+    });
+    this.res.write(`event: endpoint\ndata: ${endpointUrl}\n\n`);
+    this._sseResponse = this.res;
+    this.res.on('close', () => {
+      this._sseResponse = undefined;
+      this.onclose?.();
+    });
+  };
+
   transports.set(sessionId, transport);
   
   const mcpServer = setupServer();
